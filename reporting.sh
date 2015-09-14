@@ -1,11 +1,5 @@
 #!/bin/sh
-#$ -V
-#$ -cwd
-#$ -e err.sge
-#$ -o out.sge
-#$ -l mem=8G,time=2::
 
-echo "------------------------------------------------------------------"
 echo "------------------------------------------------------------------"
 echo REPORTING START [[ `date` ]]
 
@@ -18,10 +12,11 @@ for f in blast/*.result; do
     top_hit=`sed -n 21,21p $f`;
     top_acc=`echo $top_hit | cut -d"|" -f2`;
     top_rest=`echo $top_hit | cut -d"|" -f3`;
-    echo $1_$ctg_num"	"$ctg_len"	"$top_acc"	"$top_rest | grep -iv -f /ifs/home/c2b2/rr_lab/siz2102/apps/pandora/exclude_from_blast.txt >> report/top_blast_hits.tsv;
+    echo $1_$ctg_num"	"$ctg_len"	"$top_acc"	"$top_rest >> report/top_blast_hits.tsv;
     done
 
-/ifs/home/c2b2/rr_lab/siz2102/apps/pandora/make_taxon_report.py
+/ifs/home/c2b2/rr_lab/siz2102/apps/Pandora/make_taxon_report.py
 rm report/tmp.gbk
 
 echo REPORTING END [[ `date` ]]
+echo "------------------------------------------------------------------"

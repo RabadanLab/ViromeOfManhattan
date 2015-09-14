@@ -1,11 +1,10 @@
 #!/bin/sh
 #$ -V
 #$ -cwd
-#$ -o out.sge
-#$ -e err.sge
-#$ -l mem=8G,time=6::
+#$ -o log.out
+#$ -e log.err
+#$ -l mem=8G,time=2::
 
-echo "------------------------------------------------------------------"
 echo "------------------------------------------------------------------"
 echo DISCOVERY START [[ `date` ]]
 
@@ -21,14 +20,6 @@ for f in blast/*.result; do
 done
 
 if [ -e discovery/contigs_no_blastn.fasta ]; then
-    echo BLASTX commencing [ `date` ]
-    blastx -query discovery/contigs_no_blastn.fasta -db /ifs/scratch/c2b2/rr_lab/shares/ref/blastdb/nr-2012-04-08/nr -out discovery/blastx_result.xml -outfmt 5
-    echo BLASTX finished [ `date` ]
-
-    echo findorf commencing [ `date` ]
-    findorf join --output discovery/findorf_joined_blastx_dbs.pkl --ref discovery/contigs_no_blastn.fasta discovery/blastx_result.xml
-    findorf predict -v --gtf discovery/findorf_orfs.gtf --protein discovery/findorf_proteins.fasta --orf discovery/findorf_orfs.fasta --input discovery/findorf_joined_blastx_dbs.pkl
-    echo findorf finished [ `date` ]
 
     echo prodigal commencing [ `date` ]
     prodigal -p meta -f gbk -i discovery/contigs_no_blastn.fasta -o discovery/prodigal_coords.gbk -a discovery/prodigal_proteins.fasta -s discovery/prodigal_scores.txt
@@ -38,3 +29,13 @@ else
 fi
 
 echo DISCOVERY END [[ `date` ]]
+echo "------------------------------------------------------------------"
+
+#    echo BLASTX commencing [ `date` ]
+#    blastx -query discovery/contigs_no_blastn.fasta -db /ifs/scratch/c2b2/rr_lab/shares/ref/blastdb/nr-2012-04-08/nr -out discovery/blastx_result.xml -outfmt 5
+#    echo BLASTX finished [ `date` ]
+
+#    echo findorf commencing [ `date` ]
+#    findorf join --output discovery/findorf_joined_blastx_dbs.pkl --ref discovery/contigs_no_blastn.fasta discovery/blastx_result.xml
+#    findorf predict -v --gtf discovery/findorf_orfs.gtf --protein discovery/findorf_proteins.fasta --orf discovery/findorf_orfs.fasta --input discovery/findorf_joined_blastx_dbs.pkl
+#    echo findorf finished [ `date` ]
