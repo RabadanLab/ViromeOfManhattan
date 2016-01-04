@@ -8,7 +8,7 @@
 echo "------------------------------------------------------------------"
 echo DISCOVERY START [[ `date` ]]
 
-mkdir discovery
+mkdir -p discovery
 
 for f in blast/*.result; do
     base=`echo $f | cut -d"." -f1`

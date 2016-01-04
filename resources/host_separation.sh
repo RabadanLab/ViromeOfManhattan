@@ -6,22 +6,36 @@
 #$ -l mem=16G,time=4::
 #$ -pe smp 4
 
+# This script removes host (human) reads
+# using a pass of STAR mapping, followed by
+# a pass of bowtie2 mapping
+
+mate1=${1}	# mate 1 
+mate2=${2}	# mate 2
+refstar=${3}	# STAR ref
+refbowtie=${4}	# bowtie ref
+
 echo "------------------------------------------------------------------"
 echo HOST_SEPARATION START [[ `date` ]]
 
-mkdir host_separation
+mkdir -p host_separation
+
 echo STAR mapping commenced [ `date` ]
-STAR --readFilesCommand zcat --runThreadN 4 --genomeDir /ifs/scratch/c2b2/rr_lab/siz2102/reference/human/star --readFilesIn $1 $2 --outFileNamePrefix host_separation/ --outSAMtype BAM Unsorted --outSAMunmapped Within
+STAR --readFilesCommand zcat --runThreadN 4 --genomeDir ${refstar} --readFilesIn ${mate1} ${mate2} --outFileNamePrefix host_separation/ --outSAMtype BAM Unsorted --outSAMunmapped Within
 echo STAR mapping finished [ `date`  ]
+
 samtools flagstat host_separation/Aligned.out.bam > host_separation/mapping_stats.txt
 samtools view -b -f 13 host_separation/Aligned.out.bam | samtools sort -n - host_separation/star_unmapped
 bam bam2FastQ --in host_separation/star_unmapped.bam --readname --outBase host_separation/star_unmapped
+
 echo Bowtie2 mapping commenced [ `date` ]
-bowtie2 -p 4 -x /ifs/scratch/c2b2/rr_lab/siz2102/reference/human/bowtie2/hg19 -1 host_separation/star_unmapped_1.fastq -2 host_separation/star_unmapped_2.fastq -S host_separation/bwt2.sam
+bowtie2 -p 4 -x ${refbowtie} -1 host_separation/star_unmapped_1.fastq -2 host_separation/star_unmapped_2.fastq -S host_separation/bwt2.sam
 echo Bowtie2 mapping finished [ `date` ]
+
 samtools view -S -b -f 13 host_separation/bwt2.sam | samtools sort -n - host_separation/bwt2_unmapped
 bam bam2FastQ --in host_separation/bwt2_unmapped.bam --readname --outBase host_separation/bwt2_unmapped
 
+echo clean up
 rm -r host_separation/_STARtmp
 rm host_separation/Aligned.out.bam
 rm host_separation/Log.*
