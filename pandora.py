@@ -31,6 +31,8 @@ def get_arg():
 	parser.add_argument('-sr', '--refstar', required=True, help='STAR host reference')
 	parser.add_argument('-br', '--refbowtie', required=True, help='bowtie2 host reference')
 	parser.add_argument('-db', '--db', required=True, help='blast (nt) database')
+	parser.add_argument('-s', '--steps', default='12345', help='steps to run (default: 2345 - i.e, steps 2 through 5')
+	parser.add_argument("--noclean", action="store_true", help="do not delete temporary intermediate files (default: off)")
 	parser.add_argument('--scripts', default=software, help='location of scripts dir (directory where this script resides - use this option only if qsub-ing with the Oracle Grid Engine)')
 	parser.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
 
@@ -46,7 +48,7 @@ def get_arg():
 
 def getjid(x):
 	'''Parse out and return SGE job id from string'''
-	# string looks like this: Your job 8379811 ("test") has been submitted 
+	# string looks like this: 'Your job 8379811 ("test") has been submitted'
 	return x.split('Your job ')[1].split()[0]
 
 # -------------------------------------
@@ -60,21 +62,33 @@ def main():
 	# check for errors
 	check_error(args)
 
+	# start with job id set to zero
+	jid = 0
+
+	# dict which maps each step to 2-tuple, which contains the qsub part of the command,
+	# and the shell part of the command
+	d = 	{
+			'1': ('qsub -N Pan_tcr', '{}/resources/tcr_repertoire.sh {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.scripts)),
+			'2': ('qsub -N Pan_hsep', '{}/resources/host_separation.sh {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, int(args.noclean))),
+			'3': ('qsub -N Pan_asm', '{}/resources/assembly.sh'.format(args.scripts)),
+			'4': ('qsub -N Pan_blst', '{}/resources/blast_contigs.sh {} {}'.format(args.scripts, args.contigthreshold, args.db)),
+			'5': ('qsub -N Pan_orf', '{}/resources/orf_discovery.sh'.format(args.scripts))
+		}
+
 	# run steps
-	jid_tcr = getjid(subprocess.check_output('qsub -N tcr_{0} {1}/resources/tcr_repertoire.sh {2} {3}'.format(args.identifier, args.scripts, args.mate1, args.mate2), shell=True))
-	print 'jid_tcr = {0}'.format(jid_tcr)
-	
-	jid_hsep = getjid(subprocess.check_output('qsub -hold_jid {0} -N hsep_{1} {2}/resources/host_separation.sh {3} {4} {5} {6}'.format(jid_tcr, args.identifier, args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie), shell=True))
-	print 'jid_hsep = {0}'.format(jid_hsep)
-	
-	jid_asm = getjid(subprocess.check_output('qsub -hold_jid {0} -N asm_{1} {2}/resources/assembly.sh'.format(jid_hsep, args.identifier, args.scripts), shell=True))
-	print 'jid_asm = {0}'.format(jid_asm)
-	
-	jid_blst = getjid(subprocess.check_output('qsub -hold_jid {0} -N blst_{1} {2}/resources/blast_contigs.sh {3} {4}'.format(jid_asm, args.identifier, args.scripts, args.contigthreshold, args.db), shell=True))
-	print 'jid_blst = {0}'.format(jid_blst)
-	
-	jid_orf = getjid(subprocess.check_output('qsub -hold_jid {0} -N orf_{1} {2}/resources/orf_discovery.sh'.format(jid_blst, args.identifier, args.scripts), shell=True))
-	print 'jid_orf = {0}'.format(jid_orf)
+	for i in map(str, range(1,6)): 
+		# if step requested
+		if i in args.steps:
+			# define qsub part of command
+			cmd = d[i][0] + '_' + args.identifier + ' '
+			# if not the first command, hold on previous job id
+			if jid > 0: cmd += '-hold_jid ' + jid + ' '
+			# define shell (non-qsub) part of command
+			cmd += d[i][1]
+			# run command, get job id
+			if args.verbose: print(cmd)
+			jid = getjid(subprocess.check_output(cmd, shell=True))
+			print('Step ' + i + ', jid = ' + jid)
 
 # -------------------------------------
 

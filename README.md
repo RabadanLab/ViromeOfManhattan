@@ -37,3 +37,9 @@ Pandora needs various references: a host genome indexed for STAR; a host genome 
 ```
 pandora.py -id 1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --contigthreshold 100 --refstar /path/ref/STAR --refbowtie /path/ref/bowtie -db /path/ref/blastdb/nt
 ```
+
+**Notes**
+
+Currently, Pandora makes use of the [Oracle Grid Engine](https://en.wikipedia.org/wiki/Oracle_Grid_Engine).
+
+Status: Active Development
