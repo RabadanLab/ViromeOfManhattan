@@ -34,6 +34,7 @@ echo Bowtie2 mapping commenced [ `date` ]
 bowtie2 -p 4 -x ${refbowtie} -1 host_separation/star_unmapped_1.fastq -2 host_separation/star_unmapped_2.fastq -S host_separation/bwt2.sam
 echo Bowtie2 mapping finished [ `date` ]
 
+echo find unmapped reads
 samtools view -S -b -f 13 host_separation/bwt2.sam | samtools sort -n - host_separation/bwt2_unmapped
 bam bam2FastQ --in host_separation/bwt2_unmapped.bam --readname --outBase host_separation/bwt2_unmapped
 
@@ -49,9 +50,10 @@ if [ ${noclean} -eq 0 ]; then
 	rm host_separation/bwt2.sam
 	rm host_separation/bwt2_unmapped.bam
 	rm host_separation/bwt2_unmapped.fastq
-	mv host_separation/bwt2_unmapped_1.fastq host_separation/unmapped_1.fastq
-	mv host_separation/bwt2_unmapped_2.fastq host_separation/unmapped_2.fastq
 fi
+
+mv host_separation/bwt2_unmapped_1.fastq host_separation/unmapped_1.fastq
+mv host_separation/bwt2_unmapped_2.fastq host_separation/unmapped_2.fastq
 
 echo gzip commenced [ `date` ]
 gzip host_separation/unmapped_1.fastq

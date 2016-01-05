@@ -32,6 +32,16 @@ The following Python packages are required:
 
 Pandora needs various references: a host genome indexed for STAR; a host genome indexed for bowtie; and the BLAST nucleotide collection (nt) database.
 
+**Workflow**
+
+The Pandora pipeline is organized into 5 main steps. The steps are:
+
+1. Analysis of T-cell receptor sequences via [MiTCR](http://www.nature.com/nmeth/journal/v10/n9/full/nmeth.2555.html) (not default)
+2. Removal of host (non-pathogen) reads 
+3. Assembly of remaining reads
+4. Blasting of the assembled contigs
+5. ORF discovery
+
 **Usage Examples**
 
 ```
