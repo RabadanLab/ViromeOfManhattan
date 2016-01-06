@@ -19,6 +19,7 @@ The following programs must be in your `PATH`:
 - [STAR](https://github.com/alexdobin/STAR)
 - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 - [Trinity](https://github.com/trinityrnaseq/trinityrnaseq/wiki)
+- [Bowtie](http://bowtie-bio.sourceforge.net/index.shtml) (confusingly, bowtie, not bowtie2, is a dependency of Trinity)
 - [BLAST](http://www.ncbi.nlm.nih.gov/books/NBK279671/)
 - [findorf](https://github.com/vsbuffalo/findorf)
 - [Prodigal](http://prodigal.ornl.gov/)
@@ -30,7 +31,7 @@ The following Python packages are required:
 
 **Additional Files**
 
-Pandora needs various references: a host genome indexed for STAR; a host genome indexed for bowtie; and the BLAST nucleotide collection (nt) database.
+Pandora needs various references: a host genome indexed for STAR; a host genome indexed for bowtie2; and the BLAST nucleotide collection (nt) database.
 
 **Workflow**
 
@@ -45,7 +46,7 @@ The Pandora pipeline is organized into 5 main steps. The steps are:
 **Usage Examples**
 
 ```
-pandora.py -id 1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --contigthreshold 100 --refstar /path/ref/STAR --refbowtie /path/ref/bowtie -db /path/ref/blastdb/nt
+pandora.py -id 1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --contigthreshold 500 --refstar /path/ref/STAR --refbowtie /path/ref/bowtie -db /path/ref/blastdb/nt
 ```
 
 **Notes**
