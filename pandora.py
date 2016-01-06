@@ -68,11 +68,11 @@ def main():
     # dict which maps each step to 2-tuple, which contains the qsub part of the command,
     # and the shell part of the command
     d = {
-             '1': ('qsub -N Pan_tcr', '{}/resources/tcr_repertoire.sh {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.scripts)),
-             '2': ('qsub -N Pan_hsep', '{}/resources/host_separation.sh {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, int(args.noclean))),
-             '3': ('qsub -N Pan_asm', '{}/resources/assembly.sh {}'.format(args.scripts, int(args.noclean))),
-             '4': ('qsub -N Pan_blst', '{}/resources/blast_contigs.sh {} {} {} {}'.format(args.scripts, args.contigthreshold, args.db, args.identifier, args.scripts)),
-             '5': ('qsub -N Pan_orf', '{}/resources/orf_discovery.sh'.format(args.scripts))
+             '1': ('qsub -N tcr', '{}/scripts/tcr_repertoire.sh {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.scripts)),
+             '2': ('qsub -N hsep', '{}/scripts/host_separation.sh {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, int(args.noclean))),
+             '3': ('qsub -N asm', '{}/scripts/assembly.sh {}'.format(args.scripts, int(args.noclean))),
+             '4': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {}'.format(args.scripts, args.contigthreshold, args.db, args.identifier, args.scripts)),
+             '5': ('qsub -N orf', '{}/scripts/orf_discovery.sh'.format(args.scripts))
     }
 
     # run steps
@@ -97,7 +97,7 @@ def check_error(args):
     '''Check for errors, check dependencies '''
 
     # check for required programs
-    helpers.check_dependencies(['samtools', 'bam', 'bowtie', 'bowtie2', 'STAR', 'findorf', 'blastn', 'Trinity', 'prodigal'])
+    helpers.check_dependencies(['samtools', 'bam', 'bowtie2', 'STAR', 'blastn', 'Trinity', 'prodigal'])
 
 # -------------------------------------
 

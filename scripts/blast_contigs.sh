@@ -41,10 +41,10 @@ for i in $(seq 1 $NUM_CONTIGS); do
     fi;
 done
 
-jid=$( qsub -N Pan_bc_${id} -t 1-${j} ${d}/resources/blast.sh ${blastdb} | cut -f3 -d' ' | cut -f1 -d'.' )
+jid=$( qsub -N bc_${id} -t 1-${j} ${d}/scripts/blast.sh ${blastdb} | cut -f3 -d' ' | cut -f1 -d'.' )
 # message should be like: 'Your job-array 8388982.1-256:1 ("Pan_bc_5") has been submitted'
 # hold the script up here, until all the blast jobs finish
-qsub -cwd -b y -N Pan_wait_${id} -e logs_blast -o logs_blast -hold_jid ${jid} -sync y echo hold
+qsub -cwd -b y -N wait_${id} -e logs_blast -o logs_blast -hold_jid ${jid} -sync y echo hold
 
 echo BLAST END [[ `date` ]]
 echo "------------------------------------------------------------------"

@@ -19,15 +19,12 @@ The following programs must be in your `PATH`:
 - [STAR](https://github.com/alexdobin/STAR)
 - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 - [Trinity](https://github.com/trinityrnaseq/trinityrnaseq/wiki)
-- [Bowtie](http://bowtie-bio.sourceforge.net/index.shtml) (confusingly, bowtie, not bowtie2, is a dependency of Trinity)
 - [BLAST](http://www.ncbi.nlm.nih.gov/books/NBK279671/)
-- [findorf](https://github.com/vsbuffalo/findorf)
 - [Prodigal](http://prodigal.ornl.gov/)
 
 The following Python packages are required:
 
 - [BioPython](http://biopython.org/wiki/Main_Page)
-- [BioRanges](https://github.com/vsbuffalo/BioRanges)
 
 **Additional Files**
 
