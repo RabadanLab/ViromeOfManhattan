@@ -21,9 +21,6 @@ def get_arg():
     prog_description = 'microbial detection from paired-end RNAseq'
     parser = argparse.ArgumentParser(description=prog_description)
 
-    # directory where this script resides             
-    software = os.path.dirname(os.path.realpath(__file__))
-
     parser.add_argument('-id', '--identifier', required=True, help='5 chars or less sample ID')
     parser.add_argument('-r1', '--mate1', required=True, help='first RNAseq mate')
     parser.add_argument('-r2', '--mate2', required=True, help='second RNAseq mate')
@@ -33,10 +30,13 @@ def get_arg():
     parser.add_argument('-db', '--db', required=True, help='blast (nt) database')
     parser.add_argument('-s', '--steps', default='2345', help='steps to run (default: 2345 - i.e, steps 2 through 5')
     parser.add_argument("--noclean", action="store_true", help="do not delete temporary intermediate files (default: off)")
-    parser.add_argument('--scripts', default=software, help='location of scripts dir (directory where this script resides - use this option only if qsub-ing with the Oracle Grid Engine)')
     parser.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
 
     args = parser.parse_args()
+
+    # add key-value pairs to the args dict
+    # directory where this script resides             
+    vars(args)['scripts'] = os.path.dirname(os.path.realpath(__file__))
 
     # print args
     print(args)

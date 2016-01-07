@@ -18,33 +18,22 @@ echo BLAST START [[ `date` ]]
 
 mkdir -p blast logs_blast
 
-# get number of contigs
-NUM_CONTIGS=$(( `wc -l assembly/contigs_trinity.fasta | cut -f1 -d" "` / 2 ))
-
-# counter for contigs above threshold
-j=1
-
-for i in $(seq 1 $NUM_CONTIGS); do 
-
-    line1=$(( 2 * i - 1 ));
-    line2=$(( 2 * i ));
-
-    NUM_CHARS=`sed -n "$line2,$line2"p assembly/contigs_trinity.fasta | wc -c`;
-
-    if [ $NUM_CHARS -gt ${contigthreshold} ]; then
-        echo SAVE contig $i of $NUM_CONTIGS as ${j}, length is $NUM_CHARS;
-        sed -n "$line1,$line2"p assembly/contigs_trinity.fasta > blast/contig_${j}.fasta;
-        # increment counter
-        j=$((${j}+1))
-    else 
-        echo contig $i of $NUM_CONTIGS too short, length is $NUM_CHARS;
-    fi;
-done
+# return counter for contigs above threshold
+# assume fastajoinlines, i.e., only one sequence line per entry
+j=$( cat assembly/contigs_trinity.fasta | paste - - | awk -v cutoff=${contigthreshold} 'BEGIN{counter=0}{
+	if (length($2) >= cutoff) {
+		counter++;
+		myfile="blast/contig_"counter".fasta";
+		print ">contig_"counter" (formerly "substr($1,2)")" > myfile;
+		print $2 >> myfile
+	}
+}END{print counter}' )
 
 jid=$( qsub -N bc_${id} -t 1-${j} ${d}/scripts/blast.sh ${blastdb} | cut -f3 -d' ' | cut -f1 -d'.' )
-# message should be like: 'Your job-array 8388982.1-256:1 ("Pan_bc_5") has been submitted'
+# message should be like: 'Your job-array 8388982.1-256:1 ("bc_5") has been submitted'
 # hold the script up here, until all the blast jobs finish
-qsub -cwd -b y -N wait_${id} -e logs_blast -o logs_blast -hold_jid ${jid} -sync y echo hold
+# concat log files into one, so as not to clutter the file system
+qsub -N wait_${id} -hold_jid ${jid} -sync y ${d}/scripts/concat_logs.sh
 
 echo BLAST END [[ `date` ]]
 echo "------------------------------------------------------------------"
