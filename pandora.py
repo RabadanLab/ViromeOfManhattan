@@ -28,7 +28,8 @@ def get_arg():
     parser.add_argument('-sr', '--refstar', required=True, help='STAR host reference')
     parser.add_argument('-br', '--refbowtie', required=True, help='bowtie2 host reference')
     parser.add_argument('-db', '--db', required=True, help='blast (nt) database')
-    parser.add_argument('-s', '--steps', default='2345', help='steps to run (default: 2345 - i.e, steps 2 through 5')
+    parser.add_argument('-s', '--steps', default='1234', help='steps to run (default: 1234 - i.e, steps 1 through 4')
+    parser.add_argument("--noerror", action="store_true", help="do not check for errors (default: off)")
     parser.add_argument("--noclean", action="store_true", help="do not delete temporary intermediate files (default: off)")
     parser.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
 
@@ -60,7 +61,7 @@ def main():
     args = get_arg()
     
     # check for errors
-    check_error(args)
+    if not args.noerror: check_error(args)
 
     # start with job id set to zero
     jid = 0
@@ -68,15 +69,14 @@ def main():
     # dict which maps each step to 2-tuple, which contains the qsub part of the command,
     # and the shell part of the command
     d = {
-             '1': ('qsub -N tcr', '{}/scripts/tcr_repertoire.sh {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.scripts)),
-             '2': ('qsub -N hsep', '{}/scripts/host_separation.sh {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, int(args.noclean))),
-             '3': ('qsub -N asm', '{}/scripts/assembly.sh {}'.format(args.scripts, int(args.noclean))),
-             '4': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {}'.format(args.scripts, args.contigthreshold, args.db, args.identifier, args.scripts)),
-             '5': ('qsub -N orf', '{}/scripts/orf_discovery.sh'.format(args.scripts))
+             '1': ('qsub -N hsep', '{}/scripts/host_separation.sh {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, int(args.noclean))),
+             '2': ('qsub -N asm', '{}/scripts/assembly.sh {}'.format(args.scripts, int(args.noclean))),
+             '3': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {}'.format(args.scripts, args.contigthreshold, args.db, args.identifier, args.scripts)),
+             '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh'.format(args.scripts))
     }
 
     # run steps
-    for i in map(str, range(1,6)): 
+    for i in sorted(d):
         # if step requested
         if i in args.steps:
             # define qsub part of command

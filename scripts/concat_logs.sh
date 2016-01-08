@@ -7,5 +7,5 @@
 
 # concatenate blast logs and remove folder
 
-head -1000 logs_blast/* > log.blast
+head logs_blast/* > log.blast
 rm -rf logs_blast

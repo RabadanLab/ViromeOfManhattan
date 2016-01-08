@@ -32,13 +32,12 @@ Pandora needs various references: a host genome indexed for STAR; a host genome 
 
 **Workflow**
 
-The Pandora pipeline is organized into 5 main steps. The steps are:
+The Pandora pipeline is organized into the following steps:
 
-1. Analysis of T-cell receptor sequences via [MiTCR](http://www.nature.com/nmeth/journal/v10/n9/full/nmeth.2555.html) (not default)
-2. Removal of host (non-pathogen) reads 
-3. Assembly of remaining reads
-4. Blasting of the assembled contigs
-5. ORF discovery
+1. Removal of host (non-pathogen) reads 
+2. Assembly of remaining reads
+3. Blasting of the assembled contigs
+4. ORF discovery
 
 **Usage Examples**
 
