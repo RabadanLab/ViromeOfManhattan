@@ -9,6 +9,7 @@
 # This script performs assembly on the reads leftover after host removal
 
 noclean=${1}	# no clean boolean
+d=${2}		# directory where the parent script resides
 
 echo "------------------------------------------------------------------"
 echo ASSEMBLY START [[ `date` ]]

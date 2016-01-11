@@ -70,7 +70,7 @@ def main():
     # and the shell part of the command
     d = {
              '1': ('qsub -N hsep', '{}/scripts/host_separation.sh {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, int(args.noclean))),
-             '2': ('qsub -N asm', '{}/scripts/assembly.sh {}'.format(args.scripts, int(args.noclean))),
+             '2': ('qsub -N asm', '{}/scripts/assembly.sh {} {}'.format(args.scripts, int(args.noclean), args.scripts)),
              '3': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {}'.format(args.scripts, args.contigthreshold, args.db, args.identifier, args.scripts)),
              '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh'.format(args.scripts))
     }
