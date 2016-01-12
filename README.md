@@ -38,6 +38,7 @@ The Pandora pipeline is organized into the following steps:
 2. Assembly of remaining reads
 3. Blasting of the assembled contigs
 4. ORF discovery
+5. Generate summary report
 
 **Usage Examples**
 

@@ -29,7 +29,12 @@ j=$( cat assembly/contigs_trinity.fasta | paste - - | awk -v cutoff=${contigthre
 	}
 }END{print counter}' )
 
-jid=$( qsub -N bc_${id} -t 1-${j} ${d}/scripts/blast.sh ${blastdb} | cut -f3 -d' ' | cut -f1 -d'.' )
+# blast format string
+fmt="qseqid sseqid saccver staxids pident nident length mismatch gapopen gaps qstart qend qlen qframe qcovs sstart send slen sframe sstrand evalue bitscore stitle"
+
+echo ${fmt} | sed 's/ /\t/g' > blast/header
+
+jid=$( qsub -N bc_${id} -t 1-${j} ${d}/scripts/blast.sh ${blastdb} ${fmt} | cut -f3 -d' ' | cut -f1 -d'.' )
 # message should be like: 'Your job-array 8388982.1-256:1 ("bc_5") has been submitted'
 # hold the script up here, until all the blast jobs finish
 # concat log files into one, so as not to clutter the file system

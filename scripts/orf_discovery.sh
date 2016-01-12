@@ -13,9 +13,9 @@ mkdir -p discovery
 for f in blast/*.result; do
     base=`echo $f | cut -d"." -f1`
     len=`cat $f | wc -l`
-    if [ $len -lt 43 ]; then 
-        echo no blastn hits for `echo $base | cut -d"/" -f2`
-        cat $base.fasta | sed s/X//g >> discovery/contigs_no_blastn.fasta
+    if [ $len -eq 0 ]; then
+        echo no blastn hits for $( basename $base )
+        cat ${base}.fasta | sed s/X//g >> discovery/contigs_no_blastn.fasta
     fi
 done
 
