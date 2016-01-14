@@ -38,8 +38,8 @@ echo find unmapped reads
 samtools view -S -b -f 13 host_separation/bwt2.sam | samtools sort -n - host_separation/bwt2_unmapped
 bam bam2FastQ --in host_separation/bwt2_unmapped.bam --readname --outBase host_separation/bwt2_unmapped
 
-echo clean up
 if [ ${noclean} -eq 0 ]; then
+	echo clean up
 	rm -r host_separation/_STARtmp
 	rm host_separation/Aligned.out.bam
 	rm host_separation/Log.*

@@ -34,11 +34,11 @@ fmt="qseqid sseqid saccver staxids pident nident length mismatch gapopen gaps qs
 
 echo ${fmt} | sed 's/ /\t/g' > blast/header
 
-jid=$( qsub -N bc_${id} -t 1-${j} ${d}/scripts/blast.sh ${blastdb} ${fmt} | cut -f3 -d' ' | cut -f1 -d'.' )
+jid=$( qsub -N bc_${id} -t 1-${j} ${d}/scripts/blast.sh ${blastdb} "${fmt}" | cut -f3 -d' ' | cut -f1 -d'.' )
 # message should be like: 'Your job-array 8388982.1-256:1 ("bc_5") has been submitted'
 # hold the script up here, until all the blast jobs finish
-# concat log files into one, so as not to clutter the file system
-qsub -N wait_${id} -hold_jid ${jid} -sync y ${d}/scripts/concat_logs.sh
+# concat top blast hits; concat log files into one, so as not to clutter the file system
+qsub -N wait_${id} -hold_jid ${jid} -sync y ${d}/scripts/concat.sh
 
 echo BLAST END [[ `date` ]]
 echo "------------------------------------------------------------------"

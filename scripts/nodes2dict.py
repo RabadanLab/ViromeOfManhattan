@@ -5,13 +5,14 @@ import sys, pickle
 # This script associates each taxid with
 # its parent taxid of a specific rank (e.g., phylum)
 # It can then make a blacklist of uninteresting taxid id 
-# (e.g., all taxid whose phylum == chordata)  
+# (e.g., all taxid whose phylum == chordata or who
+# belong to the 'other sequences' lineage)
 
 # arg1 is the NCBI nodes.dmp file
 # download it: wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
 nodesfile = sys.argv[1]
 
-# taxid to (parent taxid, current rank)
+# taxid to (parent taxid, rank)
 id2parentrank = {}
 
 # verbose
@@ -38,27 +39,21 @@ print('pickle taxid to parent dict')
 with open('taxid2parent.pkl', 'wb') as handle:
     pickle.dump(id2parentrank, handle)
 
-# Now the goal is to find the level (e.g., phylum)
-# of the set of all taxids - i.e., map the taxid to 
-# the taxid of its parent node at a certain rank
+print('generate lists')
 
-# set the level
-# level = 'order'
-# level = 'class'
-level = 'phylum'
+# list of taxids in the lineage of other sequences (artificial and synthetic)
+# http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Undef&id=28384
+otherseq = []
 
-# taxid to level
-id2level = {}
-
-print('map taxids to ' + level)
+# list of taxids in the lineage of chordata (Taxonomy ID: 7711, Rank: phylum)
+# http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=7711
+chordata = []
 
 # make the dict
 for i in alltaxid:
     # check if id in dict
     if i in id2parentrank:
-	# if so, get the rank
-        rank = id2parentrank[i][1]
-	# new taxid
+	# copy current taxid
 	j = i
 
         if verbose:
@@ -67,39 +62,28 @@ for i in alltaxid:
 	    print('rank: '),
             print(id2parentrank[i])
 
-        # if rank is not final level, move up the tree
-        while rank != level and j != '1':
+        # if j not 1, move up the tree
+        while j != '1':
             # parent taxid
 	    j = id2parentrank[j][0]
+
 	    if verbose: print('parent taxid: ' + j)
-	    # find rank of parent taxid
-	    if j in id2parentrank:
-                rank = id2parentrank[j][1]
-		if verbose: print('parent rank: ' + id2parentrank[j])
-	    else:
+
+            # if member of "other sequences" (Taxonomy ID: 28384), add to list and break
+            if j == '28384':
+                otherseq.append(i)
+		break
+	    # if member of chordata
+            elif j == '7711':
+                chordata.append(i)
+		break
+	    # if not in dict, break to avoid infinite loop
+	    elif not (j in id2parentrank):
 		if verbose: print(i + ' not found')
 		break
 
-        # if rank matches level, update dict
-	if (rank == level) and (i not in id2level):
-	    id2level[i] = j
-	    if verbose:
-	        print('id2level: '),
-	        print(id2level)
+print('pickle')
 
-# print('resultant dict')
-# print(id2level)
-
-print('pickle taxid to ' + level + ' dict')
-
-# pickle
-with open('taxid2' + level + '.pkl', 'wb') as handle:
-    pickle.dump(id2level, handle)
-
-# get list of taxids corresponding to Chordata (Taxonomy ID: 7711, Rank: phylum)
-chordata = [x for x,y in id2level.iteritems() if y == '7711']
-
-# print(chordata)
-
-with open('chordatalist.pkl', 'wb') as handle:
-    pickle.dump(chordata, handle)
+# chordata and 'other sequences' are not pathogens, so they get blacklisted
+with open('blacklist.pkl', 'wb') as handle:
+    pickle.dump(chordata + otherseq, handle)
