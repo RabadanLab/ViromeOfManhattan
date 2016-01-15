@@ -10,19 +10,10 @@ echo DISCOVERY START [[ `date` ]]
 
 mkdir -p discovery
 
-for f in blast/*.result; do
-    base=`echo $f | cut -d"." -f1`
-    len=`cat $f | wc -l`
-    if [ $len -eq 0 ]; then
-        echo no blastn hits for $( basename $base )
-        cat ${base}.fasta | sed s/X//g >> discovery/contigs_no_blastn.fasta
-    fi
-done
-
-if [ -e discovery/contigs_no_blastn.fasta ]; then
-
+# if file is not zero size
+if [ -s blast/contigs_no_blastn.fa ]; then
     echo prodigal commencing [ `date` ]
-    prodigal -p meta -f gbk -i discovery/contigs_no_blastn.fasta -o discovery/prodigal_coords.gbk -a discovery/prodigal_proteins.fasta -s discovery/prodigal_scores.txt
+    prodigal -p meta -f gbk -i blast/contigs_no_blastn.fa -o discovery/prodigal_coords.gbk -a discovery/prodigal_proteins.fasta -s discovery/prodigal_scores.txt
     echo prodigal finished [ `date` ]
 else
     echo all contigs have blastn hits
@@ -32,10 +23,10 @@ echo DISCOVERY END [[ `date` ]]
 echo "------------------------------------------------------------------"
 
 #    echo BLASTX commencing [ `date` ]
-#    blastx -query discovery/contigs_no_blastn.fasta -db /ifs/scratch/c2b2/rr_lab/shares/ref/blastdb/nr-2012-04-08/nr -out discovery/blastx_result.xml -outfmt 5
+#    blastx -query blast/contigs_no_blastn.fa -db nr -out discovery/blastx_result.xml -outfmt 5
 #    echo BLASTX finished [ `date` ]
 
 #    echo findorf commencing [ `date` ]
-#    findorf join --output discovery/findorf_joined_blastx_dbs.pkl --ref discovery/contigs_no_blastn.fasta discovery/blastx_result.xml
+#    findorf join --output discovery/findorf_joined_blastx_dbs.pkl --ref blast/contigs_no_blastn.fa discovery/blastx_result.xml
 #    findorf predict -v --gtf discovery/findorf_orfs.gtf --protein discovery/findorf_proteins.fasta --orf discovery/findorf_orfs.fasta --input discovery/findorf_joined_blastx_dbs.pkl
 #    echo findorf finished [ `date` ]

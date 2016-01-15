@@ -12,6 +12,7 @@ contigthreshold=${1}	# contig threshold
 blastdb=${2}		# blast db
 id=${3}			# identifier
 d=${4}			# directory where the parent script resides
+noclean=${5}		# no clean boolean
 
 echo "------------------------------------------------------------------"
 echo BLAST START [[ `date` ]]
@@ -38,7 +39,7 @@ jid=$( qsub -N bc_${id} -t 1-${j} ${d}/scripts/blast.sh ${blastdb} "${fmt}" | cu
 # message should be like: 'Your job-array 8388982.1-256:1 ("bc_5") has been submitted'
 # hold the script up here, until all the blast jobs finish
 # concat top blast hits; concat log files into one, so as not to clutter the file system
-qsub -N wait_${id} -hold_jid ${jid} -sync y ${d}/scripts/concat.sh
+qsub -N wait_${id} -hold_jid ${jid} -sync y ${d}/scripts/concat.sh ${noclean}
 
 echo BLAST END [[ `date` ]]
 echo "------------------------------------------------------------------"

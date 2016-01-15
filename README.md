@@ -29,6 +29,8 @@ The following Python packages are required:
 **Additional Files**
 
 Pandora needs various references: a host genome indexed for STAR; a host genome indexed for bowtie2; and the BLAST nucleotide collection (nt) database.
+It also requires a "blacklist" of non-pathogen taxids for filtering, in the form of a Python pickle file.
+You can find the one we use on the Rabadan Lab homepage [here](https://rabadan.c2b2.columbia.edu/public/pandora_resources/).
 
 **Workflow**
 
@@ -43,7 +45,7 @@ The Pandora pipeline is organized into the following steps:
 **Usage Examples**
 
 ```
-pandora.py -id 1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --contigthreshold 500 --refstar /path/ref/STAR --refbowtie /path/ref/bowtie -db /path/ref/blastdb/nt
+pandora.py -id 1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --contigthreshold 500 --refstar /path/ref/STAR --refbowtie /path/ref/bowtie -db /path/ref/blastdb/nt --blacklist /path/blacklist.pkl --verbose --remap
 ```
 
 **Notes**
