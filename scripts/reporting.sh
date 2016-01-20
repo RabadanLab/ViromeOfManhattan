@@ -19,11 +19,16 @@ mate2="host_separation/unmapped_2.fastq.gz"	# mate 2
 echo "------------------------------------------------------------------"
 echo REPORTING START [[ `date` ]]
 
+# if blast result doesn't exist
+if [ ! -e blast/top.concat.txt ]; then
+	echo ERROR blast file not found
+	exit
+fi
+
 mkdir -p report
 
 echo filtering blast results
-cat blast/header > report/blast.topfilter.txt
-${d}/scripts/makereport.py $blacklist blast/top.concat.txt >> report/blast.topfilter.txt
+${d}/scripts/makereport.py $blacklist blast/header blast/top.concat.txt > report/blast.topfilter.txt
 
 if [ ${remap} -eq 1 ]; then
 	echo creating a pathogen reference

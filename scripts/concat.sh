@@ -14,15 +14,17 @@ noclean=${1}	# no clean boolean
 noblast=""
 
 for f in blast/*.result; do
-    base=`echo $f | cut -d"." -f1`
-    len=`cat $f | wc -l`
-    if [ $len -eq 0 ]; then
-        noblast=${noblast}","$( basename $base )
-        cat ${base}.fasta | sed s/X//g 
-    fi
+	base=`echo $f | cut -d"." -f1`
+	len=`cat $f | wc -l`
+	if [ $len -eq 0 ]; then
+		noblast=${noblast}","$( basename $base )
+		cat ${base}.fasta | sed s/X//g
+	fi
 done > blast/contigs_no_blastn.fa
 
-echo no blastn hits for $( echo $noblast | sed 's/,//' )
+if [ ! -z $noblast ]; then
+	echo no blastn hits for $( echo $noblast | sed 's/,//' )
+fi
 
 echo "concatenate blast results"
 for i in blast/*.result; do head -1 $i; done > blast/top.concat.txt
