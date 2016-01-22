@@ -32,7 +32,7 @@ def get_arg():
     parser.add_argument('-bl', '--blacklist', required=True, help='A Python pickle file whose contents is a list of non-pathogen taxids to ignore')
     parser.add_argument('-s', '--steps', default='12345', help='steps to run (default: 12345 - i.e, steps 1 through 5')
     parser.add_argument("--remap", action="store_true", help="create fasta file of pathogen sequences and map reads back onto this reference (default: off)")
-    parser.add_argument("--noerror", action="store_true", help="do not check for errors (default: off)")
+    # parser.add_argument("--noerror", action="store_true", help="do not check for errors (default: off)")
     parser.add_argument("--noclean", action="store_true", help="do not delete temporary intermediate files (default: off)")
     parser.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
 
@@ -64,7 +64,7 @@ def main():
     args = get_arg()
     
     # check for errors
-    if not args.noerror: check_error(args)
+    #if not args.noerror: check_error(args)
 
     # start with job id set to zero
     jid = 0

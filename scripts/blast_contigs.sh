@@ -35,7 +35,7 @@ fmt="qseqid sseqid saccver staxids pident nident length mismatch gapopen gaps qs
 
 echo ${fmt} | sed 's/ /\t/g' > blast/header
 
-message=$( qsub -N bc_${id} -t 1-${j} ${d}/scripts/blast.sh ${blastdb} "${fmt}" )
+message=$( qsub -N bc_${id} -t 1-${j} ${d}/scripts/blast.sh ${blastdb} "${fmt}" | grep submitted )
 echo $message
 jid=$( echo $message | cut -f3 -d' ' | cut -f1 -d'.' )
 # message should be like: 'Your job-array 8388982.1-256:1 ("bc_5") has been submitted'
