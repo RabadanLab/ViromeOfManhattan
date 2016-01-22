@@ -12,7 +12,7 @@ It includes modules for host separation, assembly, blasting contigs, and orf dis
 
 The following programs must be in your `PATH`:
 
-- python (version >= 2.7)
+- python 2.7.x
 - java
 - [Samtools](http://www.htslib.org/)
 - [bamUtil](https://github.com/statgen/bamUtil)
@@ -20,11 +20,6 @@ The following programs must be in your `PATH`:
 - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 - [Trinity](https://github.com/trinityrnaseq/trinityrnaseq/wiki)
 - [BLAST](http://www.ncbi.nlm.nih.gov/books/NBK279671/)
-- [Prodigal](http://prodigal.ornl.gov/)
-
-The following Python packages are required:
-
-- [BioPython](http://biopython.org/wiki/Main_Page)
 
 **Additional Files**
 
@@ -36,11 +31,11 @@ You can find the one we use on the Rabadan Lab homepage [here](https://rabadan.c
 
 The Pandora pipeline is organized into the following steps:
 
-1. Removal of host (non-pathogen) reads 
-2. Assembly of remaining reads
-3. Blasting of the assembled contigs
-4. ORF discovery
-5. Generate summary report
+1. Subtraction of reads mapping to human genome
+2. De-Novo assembly of remaining reads
+3. BLAST of assembled contigs
+4. ORF search in contigs of unknown origin
+5. Remapping of non-human reads to a microbial meta-genome
 
 **Usage Examples**
 
