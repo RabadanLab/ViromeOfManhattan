@@ -40,7 +40,7 @@ The Pandora pipeline is organized into the following steps:
 **Usage Examples**
 
 ```
-pandora.py -id 1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --contigthreshold 500 --refstar /path/ref/STAR --refbowtie /path/ref/bowtie -db /path/ref/blastdb/nt --blacklist /path/blacklist.pkl --verbose --remap
+pandora.py -id 1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --contigthreshold 500 --refstar /path/ref/STAR --refbowtie /path/ref/bowtie -db /path/ref/blastdb/nt --blacklist /path/blacklist.txt --verbose --remap
 ```
 
 **Notes**
