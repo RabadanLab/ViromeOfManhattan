@@ -24,8 +24,8 @@ The following programs must be in your `PATH`:
 **Additional Files**
 
 Pandora needs various references: a host genome indexed for STAR; a host genome indexed for bowtie2; and the BLAST nucleotide collection (nt) database.
-It also requires a "blacklist" of non-pathogen taxids for filtering, in the form of a Python pickle file.
-You can find the one we use on the Rabadan Lab homepage [here](https://rabadan.c2b2.columbia.edu/public/pandora_resources/).
+Optionally, you can provide a text file of "blacklist" of non-pathogen taxids for filtering.
+You can find the one we use on the Rabadan Lab homepage [here](https://rabadan.c2b2.columbia.edu/public/pandora_resources/), which currently contains any taxid children of the nodes chordata (Taxonomy ID: 7711) or "other sequences" (Taxonomy ID: 28384).
 
 **Workflow**
 

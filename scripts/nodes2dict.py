@@ -33,11 +33,10 @@ with open(nodesfile, 'r') as f:
 	# map taxid to (parent taxid, rank)
 	id2parentrank[l[0]] = (l[1], l[2])
 
-print('pickle taxid to parent dict')
-
 # pickle dict for possible later use
-with open('taxid2parent.pkl', 'wb') as handle:
-    pickle.dump(id2parentrank, handle)
+#print('pickle taxid to parent dict')
+#with open('taxid2parent.pkl', 'wb') as handle:
+#    pickle.dump(id2parentrank, handle)
 
 print('generate lists')
 
@@ -82,8 +81,11 @@ for i in alltaxid:
 		if verbose: print(i + ' not found')
 		break
 
-print('pickle')
+print('save blacklist to file')
 
 # chordata and 'other sequences' are not pathogens, so they get blacklisted
-with open('blacklist.pkl', 'wb') as handle:
-    pickle.dump(chordata + otherseq, handle)
+#with open('blacklist.pkl', 'wb') as handle:
+#    pickle.dump(chordata + otherseq, handle)
+with open('blacklist.txt', 'w') as f:
+    for i in chordata + otherseq:
+        f.write(i + '\n')

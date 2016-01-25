@@ -29,7 +29,7 @@ def get_arg():
     parser.add_argument('-sr', '--refstar', required=True, help='STAR host reference')
     parser.add_argument('-br', '--refbowtie', required=True, help='bowtie2 host reference')
     parser.add_argument('-db', '--db', required=True, help='blast (nt) database')
-    parser.add_argument('-bl', '--blacklist', required=True, help='A Python pickle file whose contents is a list of non-pathogen taxids to ignore')
+    parser.add_argument('-bl', '--blacklist', help='A text file containing a list of non-pathogen taxids to ignore')
     parser.add_argument('-s', '--steps', default='12345', help='steps to run (default: 12345 - i.e, steps 1 through 5')
     parser.add_argument("--remap", action="store_true", help="create fasta file of pathogen sequences and map reads back onto this reference (default: off)")
     # parser.add_argument("--noerror", action="store_true", help="do not check for errors (default: off)")
@@ -76,7 +76,7 @@ def main():
              '2': ('qsub -N asm', '{}/scripts/assembly.sh {} {}'.format(args.scripts, int(args.noclean), args.scripts)),
              '3': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {} {}'.format(args.scripts, args.contigthreshold, args.db, args.identifier, args.scripts, int(args.noclean))),
              '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh'.format(args.scripts)),
-             '5': ('qsub -N rep', '{}/scripts/reporting.sh {} {} {} {} {}'.format(args.scripts, args.blacklist, args.scripts, int(args.remap), args.db, int(args.noclean)))
+             '5': ('qsub -N rep', '{}/scripts/reporting.sh {} {} {} {} {}'.format(args.scripts, args.scripts, int(args.remap), args.db, int(args.noclean), args.blacklist))
     }
 
     # run steps

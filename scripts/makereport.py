@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-import sys, pickle, os
+import sys, os
 
 # The goal of this script is to filter blast results based on taxid
 # Don't want human sequences or anything in the taxid blacklist,
 # which contains non-pathogens
 
-mypkl = sys.argv[1]		# arg 1 is the pickle
-blastheader = sys.argv[2]	# arg 2 is the blast header
-blastout = sys.argv[3]		# arg 3 is the blast file
+blastheader = sys.argv[1]	# the blast header
+blastout = sys.argv[2]		# the blast file
+# myblacklist = sys.argv[3]	# the file of blacklist taxids
 
 # taxid blacklist
 filterlist = []
@@ -18,14 +18,13 @@ header = []
 # desired header
 desiredfields = ['qseqid', 'sseqid', 'qlen','saccver','staxids','evalue', 'bitscore', 'stitle']
 
-# load pickle
-with open(mypkl, 'rb') as handle:
-    # taxid to (parent taxid, rank)
-    filterlist = pickle.load(handle)
+# load blacklist if supplied (hacky - fix later)
+if len(sys.argv) > 3 and sys.argv[3] != 'None':
+    with open(sys.argv[3], 'r') as f:
+        filterlist = f.read().split('\n')[:-1]	# final newline causes empty list elt
 
 # load header
-with open(blastheader, 'rb') as f:
-    # taxid to (parent taxid, rank)
+with open(blastheader, 'r') as f:
     header = f.read().split()
 
 # get indicies of desired fields

@@ -8,11 +8,11 @@
 
 # This script generates the report
 
-blacklist=${1}	# blacklist Python pickle file
-d=${2}		# directory where the parent script resides
-remap=${3}	# boolean: create pathogen fasta and map reads back onto this reference
-blastdb=${4}	# blast db
-noclean=${5}	# no clean boolean
+d=${1}		# directory where the parent script resides
+remap=${2}	# boolean: create pathogen fasta and map reads back onto this reference
+blastdb=${3}	# blast db
+noclean=${4}	# no clean boolean
+blacklist=${5}	# text file of blacklist taxids 
 mate1="host_separation/unmapped_1.fastq.gz"	# mate 1 
 mate2="host_separation/unmapped_2.fastq.gz"	# mate 2
 
@@ -28,7 +28,7 @@ fi
 mkdir -p report
 
 echo filtering blast results
-${d}/scripts/makereport.py $blacklist blast/header blast/top.concat.txt > report/blast.topfilter.txt
+${d}/scripts/makereport.py blast/header blast/top.concat.txt $blacklist > report/blast.topfilter.txt
 
 if [ ${remap} -eq 1 ]; then
 	echo creating a pathogen reference
@@ -50,9 +50,9 @@ fi
 
 if [ ${noclean} -eq 0 ]; then
 	echo clean up
-	rm report/entry.batch.txt
-	rm report/pathogen.ref.fa
-	rm -r report/star_ref
+	rm -f report/entry.batch.txt
+	rm -f report/pathogen.ref.fa
+	rm -rf report/star_ref
 fi
 
 echo REPORTING END [[ `date` ]]
