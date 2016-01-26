@@ -14,6 +14,17 @@ import argparse, sys, re, subprocess, os, time
 from helpers import helpers
 from distutils import spawn
 
+def add_common_args(sub):
+    '''A function to add common args to subparers, modified from StackOverflow'''
+
+    # http://stackoverflow.com/questions/33463052/how-do-i-specify-two-required-arguments-including-a-subcommand-using-argparse
+
+    # add common args
+    sub.add_argument("--noclean", action="store_true", help="do not delete temporary intermediate files (default: off)")
+    sub.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
+
+    return sub
+
 # -------------------------------------
 
 def get_arg():
@@ -22,20 +33,35 @@ def get_arg():
     prog_description = 'microbial detection from paired-end RNAseq'
     parser = argparse.ArgumentParser(description=prog_description)
 
-    parser.add_argument('-id', '--identifier', required=True, help='5 chars or less sample ID')
-    parser.add_argument('-r1', '--mate1', required=True, help='first RNAseq mate')
-    parser.add_argument('-r2', '--mate2', required=True, help='second RNAseq mate')
-    parser.add_argument('-sr', '--refstar', required=True, help='STAR host reference')
-    parser.add_argument('-br', '--refbowtie', required=True, help='bowtie2 host reference')
-    parser.add_argument('-db', '--blastdb', required=True, help='blast (nt) database')
-    parser.add_argument('-ct', '--contigthreshold', default='500', help='threshold on contig length for blast')
-    parser.add_argument('-s', '--steps', default='12345', help='steps to run. The steps are as follows: \
-        step 1: host separation, step 2: assembly, step 3: blast contigs, step 4: orf discovery, step 5: reporting (default: 12345 - i.e, steps 1 through 5).')
-    parser.add_argument('-bl', '--blacklist', help='A text file containing a list of non-pathogen taxids to ignore')
+    # implement subcommands (Think git: git add, git commit, git push, etc)
+    subparsers = parser.add_subparsers(help='sub-command help')
+
+    # create the parser for the 'scan' command
+    parser_scan = subparsers.add_parser('scan', help='run the pathogen discovery pipeline')
+    parser_scan.add_argument('-id', '--identifier', required=True, help='5 chars or less sample ID')
+    parser_scan.add_argument('-r1', '--mate1', required=True, help='first RNAseq mate')
+    parser_scan.add_argument('-r2', '--mate2', required=True, help='second RNAseq mate')
+    parser_scan.add_argument('-sr', '--refstar', required=True, help='STAR host reference')
+    parser_scan.add_argument('-br', '--refbowtie', required=True, help='bowtie2 host reference')
+    parser_scan.add_argument('-db', '--blastdb', required=True, help='blast (nt) database')
+    parser_scan.add_argument('-ct', '--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
+    parser_scan.add_argument('-bl', '--blacklist', help='A text file containing a list of non-pathogen taxids to ignore')
     # parser.add_argument("--noerror", action="store_true", help="do not check for errors (default: off)")
-    parser.add_argument("--noclean", action="store_true", help="do not delete temporary intermediate files (default: off)")
-    parser.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
-    parser.add_argument("--remap", action="store_true", help="create fasta file of pathogen sequences and map reads back onto this reference (default: off)")
+    # parser_scan.add_argument("--remap", action="store_true", help="create fasta file of pathogen sequences and map reads back onto this reference (default: off)")
+    parser_scan.add_argument('-s', '--steps', default='12345', help='steps to run. The steps are as follows: \
+        step 1: host separation, step 2: assembly, step 3: blast contigs, step 4: orf discovery, step 5: reporting (default: 12345 - i.e, steps 1 through 5).')
+    parser_scan.set_defaults(which='scan')
+
+    # create the parser for the 'remap' command
+    parser_map = subparsers.add_parser('remap', help='map reads back onto contigs')
+    parser_map.set_defaults(which='remap')
+
+    # create the parser for the 'aggregate' command
+    parser_agg = subparsers.add_parser('aggregate', help='create report aggregated over multiple sample runs')
+    parser_agg.set_defaults(which='aggregate')
+
+    # add common arguments
+    for i in [parser_scan, parser_map, parser_agg]: add_common_args(i)
 
     args = parser.parse_args()
 
@@ -51,6 +77,25 @@ def get_arg():
 
 # -------------------------------------
 
+def main():
+    '''Run the appropriate sub-command in the Pandora suite'''
+
+    # dict which maps each subcommand name to its corresponding function (reference)
+    d = {
+             'scan': scan_main,
+             'remap': remap_main,
+             'aggregate': agg_main
+    }
+
+    # get arguments
+    args = get_arg()
+
+    # invoke subcommand
+    # print('--> subcommand: ' + args.which)
+    d[args.which](args)
+
+# -------------------------------------
+
 def getjid(x):
     '''Parse out and return SGE job id from string'''
     # string looks like this: 'Your job 8379811 ("test") has been submitted'
@@ -58,12 +103,9 @@ def getjid(x):
 
 # -------------------------------------
 
-def main():
-    '''Run all steps'''
+def scan_main(args):
+    '''Run pathogen discovery steps'''
 
-    # get arguments dict
-    args = get_arg()
-    
     # check for errors
     #if not args.noerror: check_error(args)
 
@@ -77,7 +119,7 @@ def main():
              '2': ('qsub -N asm', '{}/scripts/assembly.sh {} {}'.format(args.scripts, int(args.noclean), args.scripts)),
              '3': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {} {}'.format(args.scripts, args.contigthreshold, args.blastdb, args.identifier, args.scripts, int(args.noclean))),
              '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh'.format(args.scripts)),
-             '5': ('qsub -N rep', '{}/scripts/reporting.sh {} {} {} {} {}'.format(args.scripts, args.scripts, int(args.remap), args.blastdb, int(args.noclean), args.blacklist))
+             '5': ('qsub -N rep', '{}/scripts/reporting.sh {} {}'.format(args.scripts, args.scripts, args.blacklist))
     }
 
     # run steps
@@ -95,6 +137,20 @@ def main():
             # run command, get job id
             jid = getjid(subprocess.check_output(cmd, shell=True))
             print('Step ' + i + ', jid = ' + jid)
+
+# -------------------------------------
+
+def remap_main(args):
+    '''Run remap function'''
+
+    pass
+
+# -------------------------------------
+
+def agg_main(args):
+    '''Run aggregate function'''
+
+    pass
 
 # -------------------------------------
 
