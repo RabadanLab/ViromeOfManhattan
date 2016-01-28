@@ -28,8 +28,10 @@ fi
 
 echo "concatenate blast results"
 for i in blast/*.result; do head -1 $i; done > blast/top.concat.txt
-cat blast/*.result | gzip > blast/concat.txt.gz
-cat blast/*.fasta | gzip > blast/all_contigs.fa.gz
+# cat blast/*.result | gzip > blast/concat.txt.gz
+# cat blast/*.fasta | gzip > blast/all_contigs.fa.gz
+cat blast/*.result > blast/concat.txt
+cat blast/*.fasta > blast/contigs_above_threshold.fa
 
 # concatenate blast logs and remove folder
 echo "concatenate blast logs"
