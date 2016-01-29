@@ -23,6 +23,7 @@ def add_common_args(sub):
     sub.add_argument('-id', '--identifier', required=True, help='sample ID (5 chars or less)')
     sub.add_argument("--noclean", action="store_true", help="do not delete temporary intermediate files (default: off)")
     sub.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
+    sub.add_argument("--sge", action="store_true", help="qsub jobs with the Oracle Grid Engine (default: off)")
 
     return sub
 
@@ -103,6 +104,35 @@ def getjid(x):
 
 # -------------------------------------
 
+def docmd(mytuple, jid, args):
+    '''Run a command on the shell or with SGE qsub'''
+
+    # mytuple - a tuple containing (qsub part, shell part) for a given command
+    # jid - job id
+    # args - args dict
+
+    # if run command with SGE qsub
+    if args.sge:
+        # define qsub part of command
+        cmd = mytuple[0] + '_' + args.identifier + ' '
+        # if not the first command, hold on previous job id
+        if jid > 0: cmd += '-hold_jid ' + jid + ' '
+        # define shell (non-qsub) part of command
+        cmd += mytuple[1]
+        # if verbose, print command
+        if args.verbose: print(cmd)
+        # run command, get job id
+	return getjid(subprocess.check_output(cmd, shell=True))
+    # if run in the shell without qsub
+    else:
+        cmd = mytuple[1]
+        # if verbose, print command
+        if args.verbose: print(cmd)
+        subprocess.check_output(cmd, shell=True)
+	return '0'
+
+# -------------------------------------
+
 def scan_main(args):
     '''Run pathogen discovery steps'''
 
@@ -123,20 +153,9 @@ def scan_main(args):
     }
 
     # run steps
-    for i in sorted(d):
-        # if step requested
-        if i in args.steps:
-            # define qsub part of command
-            cmd = d[i][0] + '_' + args.identifier + ' '
-            # if not the first command, hold on previous job id
-            if jid > 0: cmd += '-hold_jid ' + jid + ' '
-            # define shell (non-qsub) part of command
-            cmd += d[i][1]
-            # if verbose, print command
-            if args.verbose: print(cmd)
-            # run command, get job id
-            jid = getjid(subprocess.check_output(cmd, shell=True))
-            print('Step ' + i + ', jid = ' + jid)
+    for i in args.steps:
+        jid = docmd(d[i], jid, args)
+        print('Step ' + i + ', jid = ' + jid)
 
 # -------------------------------------
 
@@ -149,17 +168,8 @@ def remap_main(args):
              '1': ('qsub -N rmap', '{}/scripts/remap.sh {}'.format(args.scripts, int(args.noclean)))
     }
 
-    # DRY this up later!
-
-    # define qsub part of command
-    cmd = d['1'][0] + '_' + args.identifier + ' '
-    # define shell (non-qsub) part of command
-    cmd += d['1'][1]
-    # if verbose, print command
-    if args.verbose: print(cmd)
-    # run command, get job id
-    jid = getjid(subprocess.check_output(cmd, shell=True))
-    print('jid = ' + jid)
+    jid = 0
+    jid = docmd(d['1'], jid, args)
 
 # -------------------------------------
 

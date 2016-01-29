@@ -29,13 +29,16 @@ You can find the one we use on the Rabadan Lab homepage [here](https://rabadan.c
 
 **Workflow**
 
-The Pandora pipeline is organized into the following steps:
+To accomplish diverse tasks, Pandora has various subcommands (like, say, the program git).
+The primary subcommand is `scan`, which is a pipeline comprising the following steps:
 
 1. Subtraction of reads mapping to human genome
 2. De-Novo assembly of remaining reads
 3. BLAST of assembled contigs
 4. ORF search in contigs of unknown origin
 5. Remapping of non-human reads to a microbial meta-genome
+
+The `remap` subcommand maps the reads which did not map (from scan, step1) to the assembly of contigs.
 
 **Usage Examples**
 
