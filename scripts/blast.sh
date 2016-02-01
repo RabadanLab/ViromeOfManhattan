@@ -14,6 +14,11 @@ fmt=${2}
 # blast options
 # opts="-task megablast -evalue 0.01"
 
+# if a third, argument, set SGE_TASK_ID by hand (for the case where qsub is turned off)
+if [ $# -eq 3 ]; then
+	SGE_TASK_ID=${3}
+fi
+
 echo "------------------------------------------------------------------"
 echo BLAST ${SGE_TASK_ID} START [[ `date` ]]
 

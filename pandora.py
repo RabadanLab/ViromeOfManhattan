@@ -147,7 +147,7 @@ def scan_main(args):
     d = {
              '1': ('qsub -N hsep', '{}/scripts/host_separation.sh {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, int(args.noclean))),
              '2': ('qsub -N asm', '{}/scripts/assembly.sh {} {}'.format(args.scripts, int(args.noclean), args.scripts)),
-             '3': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {} {}'.format(args.scripts, args.contigthreshold, args.blastdb, args.identifier, args.scripts, int(args.noclean))),
+             '3': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {} {} {}'.format(args.scripts, args.contigthreshold, args.blastdb, args.identifier, args.scripts, int(args.noclean), int(args.sge))),
              '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh'.format(args.scripts)),
              '5': ('qsub -N rep', '{}/scripts/reporting.sh {} {}'.format(args.scripts, args.scripts, args.blacklist))
     }
