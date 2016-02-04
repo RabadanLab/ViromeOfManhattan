@@ -8,7 +8,8 @@ import sys, os
 
 blastheader = sys.argv[1]	# the blast header
 blastout = sys.argv[2]		# the blast file
-# myblacklist = sys.argv[3]	# the file of blacklist taxids
+sampleid = sys.argv[3]		# sample identifier
+# myblacklist = sys.argv[4]	# the file of blacklist taxids
 
 # taxid blacklist
 filterlist = []
@@ -19,8 +20,8 @@ header = []
 desiredfields = ['qseqid', 'sseqid', 'qlen','saccver','staxids','evalue', 'bitscore', 'stitle']
 
 # load blacklist if supplied (hacky - fix later)
-if len(sys.argv) > 3 and sys.argv[3] != 'None':
-    with open(sys.argv[3], 'r') as f:
+if len(sys.argv) > 4 and sys.argv[4] != 'None':
+    with open(sys.argv[4], 'r') as f:
         filterlist = f.read().split('\n')[:-1]	# final newline causes empty list elt
 
 # load header
@@ -33,6 +34,7 @@ myindicies = [(j,k) for j,k in enumerate(header) if k in desiredfields]
 # [(0, 'qseqid'), (1, 'sseqid'), (2, 'saccver'), (3, 'staxids'), (12, 'qlen'), (20, 'evalue'), (21, 'bitscore'), (22, 'stitle')]
 
 # print header:
+print('sampleid\t'),
 print('\t'.join([i[1] for i in myindicies]))
 
 # get index of taxid:
@@ -47,4 +49,4 @@ with open(blastout, 'r') as f:
         if taxid == '9606':
             pass
         elif taxid not in filterlist:
-            print('\t'.join(myfields)),
+            print(sampleid + '\t' + '\t'.join(myfields)),

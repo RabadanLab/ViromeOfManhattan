@@ -24,8 +24,9 @@ The following programs must be in your `PATH`:
 **Additional Files**
 
 Pandora needs various references: a host genome indexed for STAR; a host genome indexed for bowtie2; and the BLAST nucleotide collection (nt) database.
-Optionally, you can provide a text file of "blacklist" of non-pathogen taxids for filtering.
-You can find the one we use on the Rabadan Lab homepage [here](https://rabadan.c2b2.columbia.edu/public/pandora_resources/), which currently contains any taxid children of the nodes chordata (Taxonomy ID: 7711) or "other sequences" (Taxonomy ID: 28384).
+Optionally, you can provide a text file of "blacklist" non-pathogen taxids for filtering.
+You can find the one we use in the `resources/` directory.
+It contains any taxid children of the nodes chordata (Taxonomy ID: 7711) or "other sequences" (Taxonomy ID: 28384).
 
 **Workflow**
 
@@ -48,6 +49,8 @@ pandora.py -id 1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --contigthreshold 500 -
 
 **Notes**
 
-Currently, Pandora makes use of the [Oracle Grid Engine](https://en.wikipedia.org/wiki/Oracle_Grid_Engine).
+Currently, Pandora makes use of the [Oracle Grid Engine](https://en.wikipedia.org/wiki/Oracle_Grid_Engine) by default.
+The reason for this is that blast is computationally intensive, easily parallelizable, and lends itself very nicely to cluster computing.
+You can turn this off with the `--noSGE` flag, but blast will be very slow.
 
 Status: Active Development

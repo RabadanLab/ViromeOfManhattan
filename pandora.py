@@ -23,7 +23,7 @@ def add_common_args(sub):
     sub.add_argument('-id', '--identifier', required=True, help='sample ID (5 chars or less)')
     sub.add_argument("--noclean", action="store_true", help="do not delete temporary intermediate files (default: off)")
     sub.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
-    sub.add_argument("--sge", action="store_true", help="qsub jobs with the Oracle Grid Engine (default: off)")
+    sub.add_argument("--noSGE", action="store_true", help="do not qsub jobs with the Oracle Grid Engine (default: off)")
 
     return sub
 
@@ -111,8 +111,15 @@ def docmd(mytuple, jid, args):
     # jid - job id
     # args - args dict
 
+    # if run in the shell without qsub
+    if args.noSGE:
+        cmd = mytuple[1]
+        # if verbose, print command
+        if args.verbose: print(cmd)
+        subprocess.check_output(cmd, shell=True)
+	return '0'
     # if run command with SGE qsub
-    if args.sge:
+    else:
         # define qsub part of command
         cmd = mytuple[0] + '_' + args.identifier + ' '
         # if not the first command, hold on previous job id
@@ -123,13 +130,6 @@ def docmd(mytuple, jid, args):
         if args.verbose: print(cmd)
         # run command, get job id
 	return getjid(subprocess.check_output(cmd, shell=True))
-    # if run in the shell without qsub
-    else:
-        cmd = mytuple[1]
-        # if verbose, print command
-        if args.verbose: print(cmd)
-        subprocess.check_output(cmd, shell=True)
-	return '0'
 
 # -------------------------------------
 
@@ -147,9 +147,9 @@ def scan_main(args):
     d = {
              '1': ('qsub -N hsep', '{}/scripts/host_separation.sh {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, int(args.noclean))),
              '2': ('qsub -N asm', '{}/scripts/assembly.sh {} {}'.format(args.scripts, int(args.noclean), args.scripts)),
-             '3': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {} {} {}'.format(args.scripts, args.contigthreshold, args.blastdb, args.identifier, args.scripts, int(args.noclean), int(args.sge))),
+             '3': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {} {} {}'.format(args.scripts, args.contigthreshold, args.blastdb, args.identifier, args.scripts, int(args.noclean), int(args.noSGE))),
              '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh'.format(args.scripts)),
-             '5': ('qsub -N rep', '{}/scripts/reporting.sh {} {}'.format(args.scripts, args.scripts, args.blacklist))
+             '5': ('qsub -N rep', '{}/scripts/reporting.sh {} {} {}'.format(args.scripts, args.scripts, args.identifier, args.blacklist))
     }
 
     # run steps

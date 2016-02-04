@@ -8,7 +8,8 @@
 # This script generates the report
 
 d=${1}		# directory where the parent script resides
-blacklist=${2}	# text file of blacklist taxids
+id=${2}		# sample identifier
+blacklist=${3}	# text file of blacklist taxids
 
 echo "------------------------------------------------------------------"
 echo REPORTING START [[ `date` ]]
@@ -22,7 +23,8 @@ fi
 mkdir -p report
 
 echo filtering blast results
-${d}/scripts/makereport.py blast/header blast/top.concat.txt $blacklist | grep -v PREDICTED | sort -k 4,4n -k 5,5nr > report/blast.topfilter.txt
+# filter PREDICTED; sort by taxids then query sequence length (careful: this line can scramble the header)
+${d}/scripts/makereport.py blast/header blast/top.concat.txt ${id} ${blacklist} | grep -v PREDICTED | sort -k5,5n -k6,6nr > report/blast.topfilter.txt
 
 echo REPORTING END [[ `date` ]]
 echo "------------------------------------------------------------------"

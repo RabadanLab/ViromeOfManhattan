@@ -13,7 +13,7 @@ blastdb=${2}		# blast db
 id=${3}			# identifier
 d=${4}			# directory where the parent script resides
 noclean=${5}		# no clean boolean
-sge=${6}		# sge boolean
+noSGE=${6}		# sge boolean
 
 echo "------------------------------------------------------------------"
 echo BLAST START [[ `date` ]]
@@ -37,7 +37,7 @@ fmt="qseqid sseqid saccver staxids pident nident length mismatch gapopen gaps qs
 echo ${fmt} | sed 's/ /\t/g' > blast/header
 
 # if qsub
-if [ ${sge} -eq 1 ]; then
+if [ ${noSGE} -eq 0 ]; then
 	message=$( qsub -N bc_${id} -t 1-${j} ${d}/scripts/blast.sh ${blastdb} "${fmt}" | grep submitted )
 	echo $message
 	jid=$( echo $message | cut -f3 -d' ' | cut -f1 -d'.' )
