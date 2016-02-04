@@ -22,7 +22,7 @@ fi
 mkdir -p report
 
 echo filtering blast results
-${d}/scripts/makereport.py blast/header blast/top.concat.txt $blacklist > report/blast.topfilter.txt
+${d}/scripts/makereport.py blast/header blast/top.concat.txt $blacklist | grep -v PREDICTED | sort -k 4,4n -k 5,5nr > report/blast.topfilter.txt
 
 echo REPORTING END [[ `date` ]]
 echo "------------------------------------------------------------------"
