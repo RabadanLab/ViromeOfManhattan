@@ -35,6 +35,9 @@ def get_arg():
     prog_description = 'microbial detection from paired-end RNAseq'
     parser = argparse.ArgumentParser(description=prog_description)
 
+    # path of this script
+    mycwd = os.path.dirname(os.path.realpath(__file__))
+
     # implement subcommands (Think git: git add, git commit, git push, etc)
     subparsers = parser.add_subparsers(help='sub-command help')
 
@@ -46,7 +49,7 @@ def get_arg():
     parser_scan.add_argument('-br', '--refbowtie', required=True, help='bowtie2 host reference')
     parser_scan.add_argument('-db', '--blastdb', required=True, help='blast (nt) database')
     parser_scan.add_argument('-ct', '--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
-    parser_scan.add_argument('-bl', '--blacklist', help='A text file containing a list of non-pathogen taxids to ignore')
+    parser_scan.add_argument('-bl', '--blacklist', default=mycwd + '/resources/blacklist.txt', help='A text file containing a list of non-pathogen taxids to ignore')
     parser.add_argument("--noerror", action="store_true", help="do not check for errors (default: off)")
     # parser_scan.add_argument("--remap", action="store_true", help="create fasta file of pathogen sequences and map reads back onto this reference (default: off)")
     parser_scan.add_argument('-s', '--steps', default='12345', help='steps to run. The steps are as follows: \
@@ -68,7 +71,7 @@ def get_arg():
 
     # add key-value pairs to the args dict
     # directory where this script resides             
-    vars(args)['scripts'] = os.path.dirname(os.path.realpath(__file__))
+    vars(args)['scripts'] = mycwd
 
     # print args
     print(args)
