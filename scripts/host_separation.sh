@@ -3,7 +3,7 @@
 #$ -cwd
 #$ -o log.out
 #$ -e log.err
-#$ -l mem=16G,time=4::
+#$ -l mem=16G,time=12::
 #$ -pe smp 4
 
 # This script removes host (human) reads
