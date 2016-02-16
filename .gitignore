@@ -1,2 +1,6 @@
 *.pyc
+*.synctex.gz
+*.{aux,bbl,blg,log,out,pdf}
+*Icon
+.DS_Store
 notes
