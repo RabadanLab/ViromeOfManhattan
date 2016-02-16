@@ -43,7 +43,7 @@ The `remap` subcommand maps the reads which did not map (from scan, step1) to th
 **Usage Examples**
 
 ```
-pandora.py -id 1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --contigthreshold 500 --refstar /path/ref/STAR --refbowtie /path/ref/bowtie -db /path/ref/blastdb/nt --verbose
+pandora.py -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --refstar /path/ref/STAR --refbowtie /path/ref/bowtie/hg19 -db /path/ref/blastdb/nt
 ```
 
 **Notes**
