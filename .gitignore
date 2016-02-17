@@ -1,6 +1,13 @@
 *.pyc
 *.synctex.gz
-*.{aux,bbl,blg,log,out,pdf}
+*.aux
+*bbl
+*.blg
+*.log
+*.out
+*.pdf
+*latexmk
+*.fls
 *Icon
-.DS_Store
+*.DS_Store
 notes
