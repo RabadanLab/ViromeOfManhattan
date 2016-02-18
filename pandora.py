@@ -50,7 +50,8 @@ def get_arg():
     parser_scan.add_argument('-db', '--blastdb', required=True, help='blast (nt) database')
     parser_scan.add_argument('-ct', '--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
     parser_scan.add_argument('-bl', '--blacklist', default=mycwd + '/resources/blacklist.txt', help='A text file containing a list of non-pathogen taxids to ignore')
-    parser.add_argument("--noerror", action="store_true", help="do not check for errors (default: off)")
+    parser_scan.add_argument('-gz', '--gzip', action='store_true', help='input fastq files are gzipped (default: off)')
+    parser_scan.add_argument('--noerror', action='store_true', help='do not check for errors (default: off)')
     # parser_scan.add_argument("--remap", action="store_true", help="create fasta file of pathogen sequences and map reads back onto this reference (default: off)")
     parser_scan.add_argument('-s', '--steps', default='12345', help='steps to run. The steps are as follows: \
         step 1: host separation, step 2: assembly, step 3: blast contigs, step 4: orf discovery, step 5: reporting (default: 12345 - i.e, steps 1 through 5).')
@@ -148,7 +149,7 @@ def scan_main(args):
     # dict which maps each step to 2-tuple, which contains the qsub part of the command,
     # and the shell part of the command
     d = {
-             '1': ('qsub -N hsep', '{}/scripts/host_separation.sh {} {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, args.scripts, int(args.noclean))),
+             '1': ('qsub -N hsep', '{}/scripts/host_separation.sh {} {} {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, args.scripts, int(args.gzip), int(args.noclean))),
              '2': ('qsub -N asm', '{}/scripts/assembly.sh {} {}'.format(args.scripts, int(args.noclean), args.scripts)),
              '3': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {} {} {}'.format(args.scripts, args.contigthreshold, args.blastdb, args.identifier, args.scripts, int(args.noclean), int(args.noSGE))),
              '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh'.format(args.scripts)),
@@ -193,6 +194,14 @@ def check_error(args):
     for i in [args.mate1, args.mate2, args.blacklist]:
 	if i:
             helpers.check_path(i)
+
+    # check if input files gzipped
+    if args.gzip and not (args.mate1[-3:] == '.gz' and args.mate2[-3:] == '.gz'):
+        print('[ERROR] For --gzip option, files must have .gz extension')
+	sys.exit(1)
+    elif (args.mate1[-3:] == '.gz' or args.mate2[-3:] == '.gz') and not args.gzip:
+        print('[ERROR] Files have .gz extension: use --gzip option')
+	sys.exit(1)
 
 # -------------------------------------
 

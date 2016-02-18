@@ -15,7 +15,8 @@ mate2=${2}	# mate 2
 refstar=${3}	# STAR ref
 refbowtie=${4}	# bowtie ref
 d=${5}		# directory where the parent script resides
-noclean=${6}	# no clean boolean
+gz=${6}		# gzip boolean
+noclean=${7}	# no clean boolean
 
 # convert bam to fastq
 function bam2fastq {
@@ -38,8 +39,15 @@ echo HOST_SEPARATION START [[ `date` ]]
 
 mkdir -p host_separation
 
+# flags for STAR
+starflag=""
+# if input files are gzipped
+if [ ${gz} -eq 1 ]; then
+	starflag="--readFilesCommand zcat"
+fi
+
 echo STAR mapping commenced [ `date` ]
-STAR --readFilesCommand zcat --runThreadN 4 --genomeDir ${refstar} --readFilesIn ${mate1} ${mate2} --outFileNamePrefix host_separation/ --outSAMtype BAM Unsorted --outSAMunmapped Within
+STAR --runThreadN 4 --genomeDir ${refstar} --readFilesIn ${mate1} ${mate2} --outFileNamePrefix host_separation/ --outSAMtype BAM Unsorted --outSAMunmapped Within ${starflag}
 echo STAR mapping finished [ `date`  ]
 
 echo find unmapped reads
