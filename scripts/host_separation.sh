@@ -65,10 +65,8 @@ if [ ${noclean} -eq 0 ]; then
 	rm host_separation/SJ.out.tab
 	rm host_separation/star_unmapped.bam
 	rm host_separation/star_unmapped_[12].fastq
-	rm host_separation/star_unmapped.fastq
 	rm host_separation/bwt2.sam
 	rm host_separation/bwt2_unmapped.bam
-	rm host_separation/bwt2_unmapped.fastq
 fi
 
 mv host_separation/bwt2_unmapped_1.fastq host_separation/unmapped_1.fastq
