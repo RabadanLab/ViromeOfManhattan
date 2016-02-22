@@ -11,14 +11,11 @@ d=${1}		# directory where the parent script resides
 id=${2}		# sample identifier
 blacklist=${3}	# text file of blacklist taxids
 
+# exit if previous step produced zero output
+if [ ! -s blast/top.concat.txt ]; then exit; fi
+
 echo "------------------------------------------------------------------"
 echo REPORTING START [[ `date` ]]
-
-# if blast result doesn't exist
-if [ ! -e blast/top.concat.txt ]; then
-	echo ERROR blast file not found
-	exit
-fi
 
 mkdir -p report
 

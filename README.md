@@ -32,18 +32,18 @@ This list contains any taxid children of the nodes chordata (Taxonomy ID: 7711) 
 To accomplish diverse tasks, Pandora has various subcommands (like, say, the program git).
 The primary subcommand is `scan`, which is a pipeline comprising the following steps:
 
-1. Subtraction of reads mapping to human genome
+1. Subtraction of reads mapping to host genome
 2. De-Novo assembly of remaining reads
 3. BLAST of assembled contigs
 4. ORF search in contigs of unknown origin
-5. Filter and parse blast results into tidy human-friendly tsv
+5. Filter and parse blast results into tidy human-readable report
 
 The `remap` subcommand maps the reads which did not map (from scan, step1) to the assembly of contigs.
 
 **Usage Examples**
 
 ```
-pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --refstar /path/ref/STAR --refbowtie /path/ref/bowtie/hg19 -db /path/ref/blastdb/nt
+pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --refstar /path/ref/STAR --refbowtie /path/ref/bowtie/hg19 -db /path/ref/blastdb/nt
 ```
 
 **Notes**

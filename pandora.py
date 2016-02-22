@@ -188,7 +188,7 @@ def check_error(args):
     '''Check for errors, check dependencies '''
 
     # check for required programs
-    #helpers.check_dependencies(['samtools', 'bam', 'bowtie2', 'STAR', 'blastn', 'Trinity', 'prodigal'])
+    #helpers.check_dependencies(['samtools', 'bam', 'bowtie2', 'STAR', 'blastn', 'Trinity'])
 
     # check for existence of files, if supplied
     for i in [args.mate1, args.mate2, args.blacklist]:

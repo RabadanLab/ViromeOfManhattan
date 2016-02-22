@@ -15,6 +15,9 @@ d=${4}			# directory where the parent script resides
 noclean=${5}		# no clean boolean
 noSGE=${6}		# sge boolean
 
+# exit if previous step produced zero output
+if [ ! -s assembly/contigs_trinity.fasta ]; then exit; fi
+
 echo "------------------------------------------------------------------"
 echo BLAST START [[ `date` ]]
 

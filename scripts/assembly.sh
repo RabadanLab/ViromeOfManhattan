@@ -11,12 +11,25 @@
 noclean=${1}	# no clean boolean
 d=${2}		# directory where the parent script resides
 
+# function to check if file is zero size or doesn't exist
+function iszero {
+	if [ ! -s $1 ]; then exit; fi
+} 
+
+# exit if previous step produced zero output
+iszero host_separation/unmapped_1.fastq.gz
+iszero host_separation/unmapped_2.fastq.gz
+
 echo "------------------------------------------------------------------"
 echo ASSEMBLY START [[ `date` ]]
 
 mkdir -p assembly_trinity assembly
 
 Trinity --seqType fq --max_memory 50G --CPU 8 --normalize_reads --output assembly_trinity --left host_separation/unmapped_1.fastq.gz --right host_separation/unmapped_2.fastq.gz
+
+# exit if no output
+iszero assembly_trinity/Trinity.fasta
+
 sed -e 's/\(^>.*$\)/#\1#/' assembly_trinity/Trinity.fasta | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | awk '/^>/{print ">contig_" ++i; next}{print}' > assembly/contigs_trinity.fasta
 
 # get number of contigs
