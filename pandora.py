@@ -49,11 +49,10 @@ def get_arg():
     parser_scan.add_argument('-br', '--refbowtie', required=True, help='bowtie2 host reference')
     parser_scan.add_argument('-db', '--blastdb', required=True, help='blast (nt) database')
     parser_scan.add_argument('-ct', '--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
-    parser_scan.add_argument('-ot', '--orfthreshold', default='200', help='threshold on ORF length for protein blast (default: 200)')
+    parser_scan.add_argument('-ot', '--orfthreshold', default='100', help='threshold on ORF length for protein blast (default: 100)')
     parser_scan.add_argument('-bl', '--blacklist', default=mycwd + '/resources/blacklist.txt', help='A text file containing a list of non-pathogen taxids to ignore')
     parser_scan.add_argument('-gz', '--gzip', action='store_true', help='input fastq files are gzipped (default: off)')
     parser_scan.add_argument('--noerror', action='store_true', help='do not check for errors (default: off)')
-    # parser_scan.add_argument("--remap", action="store_true", help="create fasta file of pathogen sequences and map reads back onto this reference (default: off)")
     parser_scan.add_argument('-s', '--steps', default='12345', help='steps to run. The steps are as follows: \
         step 1: host separation, step 2: assembly, step 3: blast contigs, step 4: orf discovery, step 5: reporting (default: 12345 - i.e, steps 1 through 5).')
     parser_scan.set_defaults(which='scan')
@@ -104,7 +103,7 @@ def main():
 
 def getjid(x):
     '''Parse out and return SGE job id from string'''
-    # string looks like this: 'Your job 8379811 ("test") has been submitted'
+    # the SGE string must look like this: 'Your job 8379811 ("test") has been submitted'
     return x.split('Your job ')[1].split()[0]
 
 # -------------------------------------
