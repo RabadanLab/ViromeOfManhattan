@@ -20,6 +20,10 @@ The following programs must be in your `PATH`:
 - [Trinity](https://github.com/trinityrnaseq/trinityrnaseq/wiki)
 - [BLAST](http://www.ncbi.nlm.nih.gov/books/NBK279671/)
 
+Pandora depends on the following Python modules:
+
+- [Biopython](http://biopython.org/wiki/Main_Page)
+
 **Additional Files**
 
 Pandora needs various references: a host genome indexed for STAR; a host genome indexed for bowtie2; and the BLAST nucleotide collection (nt) database.

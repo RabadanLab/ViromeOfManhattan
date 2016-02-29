@@ -49,6 +49,7 @@ def get_arg():
     parser_scan.add_argument('-br', '--refbowtie', required=True, help='bowtie2 host reference')
     parser_scan.add_argument('-db', '--blastdb', required=True, help='blast (nt) database')
     parser_scan.add_argument('-ct', '--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
+    parser_scan.add_argument('-ot', '--orfthreshold', default='200', help='threshold on ORF length for protein blast (default: 200)')
     parser_scan.add_argument('-bl', '--blacklist', default=mycwd + '/resources/blacklist.txt', help='A text file containing a list of non-pathogen taxids to ignore')
     parser_scan.add_argument('-gz', '--gzip', action='store_true', help='input fastq files are gzipped (default: off)')
     parser_scan.add_argument('--noerror', action='store_true', help='do not check for errors (default: off)')
@@ -152,7 +153,7 @@ def scan_main(args):
              '1': ('qsub -N hsep', '{}/scripts/host_separation.sh {} {} {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, args.scripts, int(args.gzip), int(args.noclean))),
              '2': ('qsub -N asm', '{}/scripts/assembly.sh {} {}'.format(args.scripts, int(args.noclean), args.scripts)),
              '3': ('qsub -N blst', '{}/scripts/blast_contigs.sh {} {} {} {} {} {}'.format(args.scripts, args.contigthreshold, args.blastdb, args.identifier, args.scripts, int(args.noclean), int(args.noSGE))),
-             '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh'.format(args.scripts)),
+             '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh {} {}'.format(args.scripts, args.scripts, args.orfthreshold)),
              '5': ('qsub -N rep', '{}/scripts/reporting.sh {} {} {}'.format(args.scripts, args.scripts, args.identifier, args.blacklist))
     }
 
