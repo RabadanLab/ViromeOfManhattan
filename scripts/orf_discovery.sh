@@ -19,5 +19,7 @@ echo DISCOVERY START [[ `date` ]]
 mkdir -p discovery
 ${d}/scripts/orf.py -i blast/contigs_no_blastn.fa -t ${orfthreshold} > discovery/orf.fa
 
+# blastp to nr
+
 echo DISCOVERY END [[ `date` ]]
 echo "------------------------------------------------------------------"

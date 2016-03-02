@@ -1,28 +1,25 @@
 #!/bin/sh
 #$ -V
 #$ -cwd
-#$ -o logs_blast/
-#$ -e logs_blast/
 #$ -l mem=4G,time=4::
 
 # A simple wrapper for blast array job 
 
-# blast db
-blastdb=${1}
-# blast format string
-fmt=${2}
-# blast options
-# opts="-task megablast -evalue 0.01"
+wblast=${1}	# which blast (blastn or blastp)
+blastdb=${2}	# blast db
+fmt=${3}	# blast format string
+seqtype=${4}	# seqtype id
+# opts="-task megablast -evalue 0.01"	# blast options
 
-# if a third, argument, set SGE_TASK_ID by hand (for the case where qsub is turned off)
-if [ $# -eq 3 ]; then
-	SGE_TASK_ID=${3}
+# if a fifth, argument, set SGE_TASK_ID by hand (for the case where qsub is turned off)
+if [ $# -eq 5 ]; then
+	SGE_TASK_ID=${5}
 fi
 
 echo "------------------------------------------------------------------"
 echo BLAST ${SGE_TASK_ID} START [[ `date` ]]
 
-blastn -outfmt "6 ${fmt}" -query blast/contig_${SGE_TASK_ID}.fasta -db ${blastdb} > blast/contig_${SGE_TASK_ID}.result;
+${wblast} -outfmt "6 ${fmt}" -query blast/${seqtype}_${SGE_TASK_ID}.fasta -db ${blastdb} > blast/${seqtype}_${SGE_TASK_ID}.result;
 
 echo BLAST ${SGE_TASK_ID} END [[ `date` ]]
 echo "------------------------------------------------------------------"

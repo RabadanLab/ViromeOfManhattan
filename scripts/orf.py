@@ -43,6 +43,8 @@ with open(args.input, 'r') as f:
                     # the purpose of this line is get a multiple of three
                     # e.g., 3/3 * 3 = 3 and 4/3 * 3 = 3 
                     length = 3 * ((len(myseq)-frame) // 3)
+                    # split on the stop codon, a '*' character
+                    # don't worry about start codons
 	            for pro in nuc[frame:frame+length].translate(table).split('*'):
                         if len(pro) >= int(args.threshold):
 	    		    # print fasta entry
