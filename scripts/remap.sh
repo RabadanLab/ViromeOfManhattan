@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #$ -V
 #$ -cwd
 #$ -o log.out

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #$ -V
 #$ -cwd
 #$ -o log.out
@@ -8,8 +8,39 @@
 
 # This script performs assembly on the reads leftover after host removal
 
-noclean=${1}	# no clean boolean
-d=${2}		# directory where the parent script resides
+# defaults
+noclean=0		# no clean boolean
+
+while [[ $# > 0 ]]; do
+
+	flag=${1}
+
+	case $flag in
+		-o|--outputdir)	# the output directory
+		outputdir="${2}"
+		shift ;;
+
+		-l|--logsdir)	# the logs directory
+		logsdir="${2}"
+		shift ;;
+
+		-d|--scripts)	# the git repository directory
+		d="${2}"
+		shift ;;
+
+		--noclean)	# noclean bool
+		noclean="${2}"
+		shift ;;
+
+		-v|--verbose)	# verbose
+		verbose=true ;;
+
+		*)
+				# unknown option
+		;;
+	esac
+	shift
+done
 
 # function to check if file is zero size or doesn't exist
 function iszero {

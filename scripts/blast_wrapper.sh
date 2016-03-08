@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #$ -V
 #$ -cwd
 #$ -o log.out
@@ -20,7 +20,6 @@ noSGE=0			# sge boolean
 # blast format string
 fmt="qseqid sseqid saccver staxids pident nident length mismatch gapopen gaps qstart qend qlen qframe qcovs sstart send slen sframe sstrand evalue bitscore stitle"
 
-# argparse derived from http://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 while [[ $# > 0 ]]; do
 
 	flag=${1}
@@ -29,40 +28,52 @@ while [[ $# > 0 ]]; do
 		-i|--input)	# the input fasta
 		input="${2}"
 		shift ;;
+
 		-o|--outputdir)	# the output directory
 		outputdir="${2}"
 		shift ;;
+
 		-l|--logsdir)	# the logs directory
 		logsdir="${2}"
 		shift ;;
-		-d|--repodir)	# the git repository directory
+
+		-d|--scripts)	# the git repository directory
 		d="${2}"
 		shift ;;
+
 		--threshold)	# the length threshold
 		lenthreshold="${2}"
 		shift ;;
+
 		--db)		# the database prefix
 		dbprefix="${2}"
 		shift ;;
+
 		-b|--blast)	# which blast to use (blastn, blastp, etc)
 		wblast="${2}"
 		shift ;;
+
 		--seqtype)	# an id string for sequence type
 		seqtype="${2}"
 		shift ;;
+
 		--nosge)	# no SGE bool
 		noSGE="${2}"
 		shift ;;
+
 		--noclean)	# noclean bool
 		noclean="${2}"
 		shift ;;
+
 		--id)		# id
 		id="${2}"
 		shift ;;
+
 		-v|--verbose)	# verbose
 		verbose=true ;;
+
 		*)
-		# unknown option
+				# unknown option
 		;;
 	esac
 	shift

@@ -55,19 +55,19 @@ def get_arg():
     parser_scan.add_argument('-gz', '--gzip', action='store_true', help='input fastq files are gzipped (default: off)')
     parser_scan.add_argument('--noerror', action='store_true', help='do not check for errors (default: off)')
     parser_scan.add_argument('-s', '--steps', default='12345', help='steps to run. The steps are as follows: \
-        step 1: host separation, step 2: assembly, step 3: blast contigs, step 4: orf discovery, step 5: reporting (default: 12345 - i.e, steps 1 through 5).')
+      step 1: host separation, \
+      step 2: assembly, \
+      step 3: blast contigs, \
+      step 4: orf discovery, \
+      step 5: reporting (default: 12345 - i.e, steps 1 through 5).')
     parser_scan.set_defaults(which='scan')
-
-    # create the parser for the 'remap' command
-    parser_remap = subparsers.add_parser('remap', help='map reads back onto contigs')
-    parser_remap.set_defaults(which='remap')
 
     # create the parser for the 'aggregate' command
     parser_agg = subparsers.add_parser('aggregate', help='create report aggregated over multiple sample runs')
     parser_agg.set_defaults(which='aggregate')
 
     # add common arguments
-    for i in [parser_scan, parser_remap, parser_agg]: add_common_args(i)
+    for i in [parser_scan, parser_agg]: add_common_args(i)
 
     args = parser.parse_args()
 
@@ -89,7 +89,6 @@ def main():
     # dict which maps each subcommand name to its corresponding function (reference)
     d = {
              'scan': scan_main,
-             'remap': remap_main,
              'aggregate': agg_main
     }
 
@@ -150,11 +149,41 @@ def scan_main(args):
     # dict which maps each step to 2-tuple, which contains the qsub part of the command,
     # and the shell part of the command
     d = {
-             '1': ('qsub -N hsep', '{}/scripts/host_separation.sh {} {} {} {} {} {} {}'.format(args.scripts, args.mate1, args.mate2, args.refstar, args.refbowtie, args.scripts, int(args.gzip), int(args.noclean))),
-             '2': ('qsub -N asm', '{}/scripts/assembly.sh {} {}'.format(args.scripts, int(args.noclean), args.scripts)),
-             '3': ('qsub -N blst', '{}/scripts/blast_wrapper.sh --threshold {} --db {} --id {} --repodir {} --noclean {} --nosge {}'.format(args.scripts, args.contigthreshold, args.blastdb, args.identifier, args.scripts, int(args.noclean), int(args.noSGE))),
-             '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh {} {}'.format(args.scripts, args.scripts, args.orfthreshold)),
-             '5': ('qsub -N rep', '{}/scripts/reporting.sh {} {} {}'.format(args.scripts, args.scripts, args.identifier, args.blacklist))
+             '1': ('qsub -N hsep', '{}/scripts/host_separation.sh --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --noclean {}'.format(
+                      args.scripts,
+                      args.scripts,
+                      args.mate1,
+                      args.mate2,
+                      args.refstar,
+                      args.refbowtie,
+                      int(args.gzip),
+                      int(args.noclean) )
+                  ),
+             '2': ('qsub -N asm', '{}/scripts/assembly.sh --scripts {} --noclean {}'.format(
+                      args.scripts,
+                      args.scripts,
+                      int(args.noclean) )
+                  ),
+             '3': ('qsub -N blst', '{}/scripts/blast_wrapper.sh --scripts {} --threshold {} --db {} --id {} --noclean {} --nosge {}'.format(
+                      args.scripts,
+                      args.scripts,
+                      args.contigthreshold,
+                      args.blastdb,
+                      args.identifier,
+                      int(args.noclean),
+                      int(args.noSGE) )
+                  ),
+             '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh --scripts {} --threshold {}'.format(
+                      args.scripts,
+                      args.scripts,
+                      args.orfthreshold )
+                  ),
+             '5': ('qsub -N rep', '{}/scripts/reporting.sh --scripts {} --id {} --blacklist {}'.format(
+                      args.scripts,
+                      args.scripts,
+                      args.identifier,
+                      args.blacklist )
+                  )
     }
 
     # run steps
@@ -164,22 +193,17 @@ def scan_main(args):
 
 # -------------------------------------
 
-def remap_main(args):
-    '''Run remap function'''
+def agg_main(args):
+    '''Run aggregate function'''
 
     # dict which maps each step to 2-tuple, which contains the qsub part of the command,
     # and the shell part of the command
-    d = {
-             '1': ('qsub -N rmap', '{}/scripts/remap.sh {}'.format(args.scripts, int(args.noclean)))
-    }
+    #d = {
+    #         '1': ('qsub -N agg', '{}/scripts/aggregate.sh {}'.format(args.scripts, int(args.noclean)))
+    #}
 
-    jid = 0
-    jid = docmd(d['1'], jid, args)
-
-# -------------------------------------
-
-def agg_main(args):
-    '''Run aggregate function'''
+    #jid = 0
+    #jid = docmd(d['1'], jid, args)
 
     pass
 

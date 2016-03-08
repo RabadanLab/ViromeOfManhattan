@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #$ -V
 #$ -cwd
 #$ -o log.out
@@ -7,9 +7,44 @@
 
 # This script generates the report
 
-d=${1}		# directory where the parent script resides
-id=${2}		# sample identifier
-blacklist=${3}	# text file of blacklist taxids
+while [[ $# > 0 ]]; do
+
+	flag=${1}
+
+	case $flag in
+		-o|--outputdir)	# the output directory
+		outputdir="${2}"
+		shift ;;
+
+		-l|--logsdir)	# the logs directory
+		logsdir="${2}"
+		shift ;;
+
+		-d|--scripts)	# the git repository directory
+		d="${2}"
+		shift ;;
+
+		--blacklist)	# text file of blacklist taxids
+		blacklist="${2}"
+		shift ;;
+
+		--id)		# sample identifier
+		id="${2}"
+		shift ;;
+
+		--noclean)	# noclean bool
+		noclean="${2}"
+		shift ;;
+
+		-v|--verbose)	# verbose
+		verbose=true ;;
+
+		*)
+				# unknown option
+		;;
+	esac
+	shift
+done
 
 # exit if previous step produced zero output
 if [ ! -s blast/top.concat.txt ]; then exit; fi

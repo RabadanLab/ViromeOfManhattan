@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #$ -V
 #$ -cwd
 #$ -o log.out
@@ -7,8 +7,40 @@
 
 # This script finds ORFs in the contigs which didn't blast
 
-d=${1}			# directory where the parent script resides
-orfthreshold=${2}	# ORF threshold
+while [[ $# > 0 ]]; do
+
+	flag=${1}
+
+	case $flag in
+		-o|--outputdir)	# the output directory
+		outputdir="${2}"
+		shift ;;
+
+		-l|--logsdir)	# the logs directory
+		logsdir="${2}"
+		shift ;;
+
+		-d|--scripts)	# the git repository directory
+		d="${2}"
+		shift ;;
+
+		--threshold)	# ORF threshold
+		orfthreshold="${2}"
+		shift ;;
+
+		--noclean)	# noclean bool
+		noclean="${2}"
+		shift ;;
+
+		-v|--verbose)	# verbose
+		verbose=true ;;
+
+		*)
+				# unknown option
+		;;
+	esac
+	shift
+done
 
 # exit if previous step produced zero output
 if [ ! -s blast/contigs_no_blastn.fa ]; then exit; fi

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #$ -V
 #$ -cwd
 #$ -o log.out
@@ -10,13 +10,61 @@
 # using a pass of STAR mapping, followed by
 # a pass of bowtie2 mapping
 
-mate1=${1}	# mate 1 
-mate2=${2}	# mate 2
-refstar=${3}	# STAR ref
-refbowtie=${4}	# bowtie ref
-d=${5}		# directory where the parent script resides
-gz=${6}		# gzip boolean
-noclean=${7}	# no clean boolean
+# defaults
+gz=0			# gzip boolean
+noclean=0		# no clean boolean
+
+# argparse derived from http://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+while [[ $# > 0 ]]; do
+
+	flag=${1}
+
+	case $flag in
+		-1|--mate1)	# mate 1
+		mate1="${2}"
+		shift ;;
+
+		-2|--mate2)	# mate 2
+		mate2="${2}"
+		shift ;;
+
+		-o|--outputdir)	# the output directory
+		outputdir="${2}"
+		shift ;;
+
+		-l|--logsdir)	# the logs directory
+		logsdir="${2}"
+		shift ;;
+
+		-d|--scripts)	# the git repository directory
+		d="${2}"
+		shift ;;
+
+		--refstar)	# star reference
+		refstar="${2}"
+		shift ;;
+
+		--refbowtie)	# bowtie reference
+		refbowtie="${2}"
+		shift ;;
+
+		--gzip)		# gzip bool
+		gz="${2}"
+		shift ;;
+
+		--noclean)	# noclean bool
+		noclean="${2}"
+		shift ;;
+
+		-v|--verbose)	# verbose
+		verbose=true ;;
+
+		*)
+				# unknown option
+		;;
+	esac
+	shift
+done
 
 echo "------------------------------------------------------------------"
 echo HOST_SEPARATION START [[ `date` ]]
