@@ -10,7 +10,12 @@ __author__ = 'Rabadan Lab'
 __version__ = 'Revision: 1.0'
 __date__ = 'Date: 11-2015'
 
-import argparse, sys, re, subprocess, os, time
+import argparse
+import sys
+import re
+import subprocess
+import os
+import time
 from helpers import helpers
 from distutils import spawn
 

@@ -42,7 +42,7 @@ The primary subcommand is `scan`, which is a pipeline comprising the following s
 4. ORF search in contigs of unknown origin
 5. Filter and parse blast results into tidy human-readable report
 
-The `remap` subcommand maps the reads which did not map (from `scan` step1) to the assembly of contigs.
+The `aggregate` subcommand [...].
 
 **Usage Examples**
 
