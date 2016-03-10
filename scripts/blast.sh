@@ -5,21 +5,59 @@
 
 # A simple wrapper for blast array job 
 
-wblast=${1}	# which blast (blastn or blastp)
-blastdb=${2}	# blast db
-fmt=${3}	# blast format string
-seqtype=${4}	# seqtype id
-# opts="-task megablast -evalue 0.01"	# blast options
+# defaults
+outputdir="blast"
 
-# if a fifth, argument, set SGE_TASK_ID by hand (for the case where qsub is turned off)
-if [ $# -eq 5 ]; then
-	SGE_TASK_ID=${5}
-fi
+while [[ $# > 0 ]]; do
+
+	flag=${1}
+
+	case $flag in
+		-o|--outputdir)	# the output directory
+		outputdir="${2}"
+		shift ;;
+
+		-d|--scripts)	# the git repository directory
+		d="${2}"
+		shift ;;
+
+		--whichblast)	# which blast (blastn or blastp)
+		wblast="${2}"
+		shift ;;
+
+		--db)		# blast db
+		blastdb="${2}"
+		shift ;;
+
+		--fmt)		# blast format string
+		fmt="${2}"
+		shift ;;
+
+		--sgeid)	# set SGE_TASK_ID by hand (for the case where qsub is turned off)
+		SGE_TASK_ID="${2}"
+		shift ;;
+
+		--noclean)	# noclean bool
+		noclean="${2}"
+		shift ;;
+
+		-v|--verbose)	# verbose
+		verbose=true ;;
+
+		*)
+				# unknown option
+		;;
+	esac
+	shift
+done
+
+# set input
+input="${outputdir}/blast_${SGE_TASK_ID}.fasta"
 
 echo "------------------------------------------------------------------"
 echo BLAST ${SGE_TASK_ID} START [[ `date` ]]
 
-${wblast} -outfmt "6 ${fmt}" -query blast/${seqtype}_${SGE_TASK_ID}.fasta -db ${blastdb} > blast/${seqtype}_${SGE_TASK_ID}.result;
+${wblast} -outfmt "6 ${fmt}" -query ${input} -db ${blastdb} > ${outputdir}/blast_${SGE_TASK_ID}.result;
 
 echo BLAST ${SGE_TASK_ID} END [[ `date` ]]
 echo "------------------------------------------------------------------"

@@ -11,7 +11,6 @@
 outputdir=${1}	# output directory
 logsdir=${2}	# logs directory
 noclean=${3}	# no clean boolean
-seqtype=${4}	# sequence type (id)
 
 # ids that didn't blast
 noblast=""
@@ -23,22 +22,22 @@ for f in ${outputdir}/*.result; do
 		noblast=${noblast}","$( basename $base )
 		cat ${base}.fasta | sed s/X//g
 	fi
-done > ${outputdir}/${seqtype}s_no_blastn.fa
+done > ${outputdir}/no_blastn.fa
 
 if [ ! -z $noblast ]; then
 	echo no blastn hits for $( echo $noblast | sed 's/,//' )
 fi
 
 echo "concatenate blast results"
+# just get top hit
 for i in ${outputdir}/*.result; do head -1 $i; done > ${outputdir}/top.concat.txt
-# cat ${outputdir}/*.result | gzip > ${outputdir}/concat.txt.gz
-# cat ${outputdir}/*.fasta | gzip > ${outputdir}/all_${seqtype}s.fa.gz
+# concat all
 cat ${outputdir}/*.result > ${outputdir}/concat.txt
-cat ${outputdir}/*.fasta > ${outputdir}/${seqtype}s_above_threshold.fa
+cat ${outputdir}/*.fasta > ${outputdir}/above_threshold.fa
 
-# concatenate blast logs and remove folder
+# concat blast logs and remove folder
 echo "concatenate blast logs"
-head ${logsdir}/* > log.blast
+head ${logsdir}/* > ${outputdir}/log.blast
 rm -rf ${logsdir} 
 
 if [ ${noclean} -eq 0 ]; then

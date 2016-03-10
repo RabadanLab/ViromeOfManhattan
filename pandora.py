@@ -48,11 +48,11 @@ def get_arg():
 
     # create the parser for the 'scan' command
     parser_scan = subparsers.add_parser('scan', help='run the pathogen discovery pipeline')
-    parser_scan.add_argument('-r1', '--mate1', required=True, help='first RNAseq mate')
-    parser_scan.add_argument('-r2', '--mate2', required=True, help='second RNAseq mate')
-    parser_scan.add_argument('-sr', '--refstar', required=True, help='STAR host reference')
-    parser_scan.add_argument('-br', '--refbowtie', required=True, help='bowtie2 host reference')
-    parser_scan.add_argument('-db', '--blastdb', required=True, help='blast (nt) database (contigs are the query set)')
+    parser_scan.add_argument('-r1', '--mate1', help='first RNAseq mate')
+    parser_scan.add_argument('-r2', '--mate2', help='second RNAseq mate')
+    parser_scan.add_argument('-sr', '--refstar', help='STAR host reference')
+    parser_scan.add_argument('-br', '--refbowtie', help='bowtie2 host reference')
+    parser_scan.add_argument('-db', '--blastdb', help='blast (nt) database (contigs are the query set)')
     parser_scan.add_argument('-pdb', '--pblastdb', help='blast protein (nr) database (ORFs are the query set)')
     parser_scan.add_argument('-ct', '--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
     parser_scan.add_argument('-ot', '--orfthreshold', default='100', help='threshold on ORF length for protein blast (default: 100)')
@@ -83,6 +83,20 @@ def get_arg():
     # print args
     print(args)
     print
+
+    # error checking
+    if '1' in args.steps and ( (not args.mate1) or (not args.mate2) ):
+        print('[ERROR] Need --mate1 and --mate2 arguments for Step 1')
+	sys.exit(1)
+    if '2' in args.steps and ( (not args.refstar) or (not args.refbowtie) ):
+        print('[ERROR] Need --refstar and --refbowtie arguments for Step 2')
+	sys.exit(1)
+    if '3' in args.steps and (not args.blastdb):
+        print('[ERROR] Need --blastdb argument for Step 3')
+	sys.exit(1)
+    if '4' in args.steps and (not args.pblastdb):
+        print('[ERROR] Need --pblastdb argument for Step 3')
+	sys.exit(1)
 
     return args
 
@@ -178,10 +192,13 @@ def scan_main(args):
                       int(args.noclean),
                       int(args.noSGE) )
                   ),
-             '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh --scripts {} --threshold {}'.format(
+             '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh --scripts {} --id {} --threshold {} --db {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
-                      args.orfthreshold )
+                      args.identifier,
+                      args.orfthreshold,
+                      args.pblastdb,
+                      int(args.noclean) )
                   ),
              '5': ('qsub -N rep', '{}/scripts/reporting.sh --scripts {} --id {} --blacklist {}'.format(
                       args.scripts,
@@ -226,12 +243,13 @@ def check_error(args):
             helpers.check_path(i)
 
     # check if input files gzipped
-    if args.gzip and not (args.mate1[-3:] == '.gz' and args.mate2[-3:] == '.gz'):
-        print('[ERROR] For --gzip option, files must have .gz extension')
-	sys.exit(1)
-    elif (args.mate1[-3:] == '.gz' or args.mate2[-3:] == '.gz') and not args.gzip:
-        print('[ERROR] Files have .gz extension: use --gzip option')
-	sys.exit(1)
+    if args.mate1 and args.mate2:
+        if args.gzip and not (args.mate1[-3:] == '.gz' and args.mate2[-3:] == '.gz'):
+            print('[ERROR] For --gzip option, files must have .gz extension')
+    	    sys.exit(1)
+        elif (args.mate1[-3:] == '.gz' or args.mate2[-3:] == '.gz') and not args.gzip:
+            print('[ERROR] Files have .gz extension: use --gzip option')
+    	    sys.exit(1)
 
 # -------------------------------------
 

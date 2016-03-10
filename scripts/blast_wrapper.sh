@@ -14,7 +14,6 @@ input="assembly/contigs_trinity.fasta"
 outputdir="blast"	# directories
 logsdir="logs_blast"
 lenthreshold=0		# length threshold
-seqtype="contig"	# kind of seq data (e.g., contig, ORF)
 noclean=0		# no clean boolean
 noSGE=0			# sge boolean
 # blast format string
@@ -49,12 +48,8 @@ while [[ $# > 0 ]]; do
 		dbprefix="${2}"
 		shift ;;
 
-		-b|--blast)	# which blast to use (blastn, blastp, etc)
+		--whichblast)	# which blast to use (blastn, blastp, etc)
 		wblast="${2}"
-		shift ;;
-
-		--seqtype)	# an id string for sequence type
-		seqtype="${2}"
 		shift ;;
 
 		--nosge)	# no SGE bool
@@ -87,14 +82,14 @@ echo BLAST START [[ `date` ]]
 
 mkdir -p ${outputdir} ${logsdir}
 
-# return counter for contigs above threshold
-# assume fastajoinlines, i.e., only one sequence line per entry
-j=$( cat ${input} | paste - - | awk -v cutoff=${lenthreshold} -v dir=${outputdir} -v seq=${seqtype} 'BEGIN{counter=0}{
+# return counter for contigs above threshold length
+# (assume fastajoinlines, i.e., only one sequence line per entry)
+j=$( cat ${input} | paste - - | awk -v cutoff=${lenthreshold} -v dir=${outputdir} 'BEGIN{counter=0}{
 	if (length($2) >= cutoff) {
 		counter++;
-		myfile=dir"/"seq"_"counter".fasta";
-		print ">"seq"_"counter" (formerly_"substr($1,2)")" > myfile;
-		print $2 >> myfile
+		myfile=dir"/blast_"counter".fasta";
+		print $1 > myfile;
+		print $2 >> myfile;
 	}
 }END{print counter}' )
 
@@ -102,21 +97,21 @@ echo ${fmt} | sed 's/ /\t/g' > ${outputdir}/header
 
 # if qsub
 if [ ${noSGE} -eq 0 ]; then
-	message=$( qsub -N bc_${id} -e ${logsdir} -o ${logsdir} -t 1-${j} ${d}/scripts/blast.sh ${wblast} ${dbprefix} "${fmt}" ${seqtype} | grep submitted )
+	message=$( qsub -N bc_${id} -e ${logsdir} -o ${logsdir} -t 1-${j} ${d}/scripts/blast.sh --outputdir ${outputdir} --whichblast ${wblast} --db ${dbprefix} --fmt "${fmt}" | grep submitted )
 	echo $message
 	jid=$( echo $message | cut -f3 -d' ' | cut -f1 -d'.' )
 	# message should be like: 'Your job-array 8388982.1-256:1 ("bc_5") has been submitted'
 	# hold the script up here, until all the blast jobs finish
 	# concat top blast hits; concat log files into one, so as not to clutter the file system
-	qsub -N wait_${id} -hold_jid ${jid} -sync y ${d}/scripts/concat.sh ${outputdir} ${logsdir} ${noclean} ${seqtype}
+	qsub -N wait_${id} -hold_jid ${jid} -sync y ${d}/scripts/concat.sh ${outputdir} ${logsdir} ${noclean}
 # if no qsub
 else
 
 	for i in $( seq ${j} ); do
-		${d}/scripts/blast.sh ${wblast} ${dbprefix} "${fmt}" ${seqtype} ${i} > ${logsdir}/bc_${id}.${i}.o 2> ${logsdir}/bc_${id}.${i}.e
+		${d}/scripts/blast.sh --outputdir ${outputdir} --whichblast ${wblast} --db ${dbprefix} --fmt "${fmt}" --sgeid ${i} > ${logsdir}/bc_${id}.${i}.o 2> ${logsdir}/bc_${id}.${i}.e
 	done
 
-	${d}/scripts/concat.sh ${outputdir} ${logsdir} ${noclean} ${seqtype}
+	${d}/scripts/concat.sh ${outputdir} ${logsdir} ${noclean}
 fi
 
 echo BLAST END [[ `date` ]]

@@ -7,11 +7,18 @@
 
 # This script generates the report
 
+# defaults
+input="blast/top.concat.txt"
+
 while [[ $# > 0 ]]; do
 
 	flag=${1}
 
 	case $flag in
+		-i|--input)	# the input fasta
+		input="${2}"
+		shift ;;
+
 		-o|--outputdir)	# the output directory
 		outputdir="${2}"
 		shift ;;
@@ -47,7 +54,7 @@ while [[ $# > 0 ]]; do
 done
 
 # exit if previous step produced zero output
-if [ ! -s blast/top.concat.txt ]; then exit; fi
+if [ ! -s ${input} ]; then exit; fi
 
 echo "------------------------------------------------------------------"
 echo REPORTING START [[ `date` ]]
@@ -56,7 +63,7 @@ mkdir -p report
 
 echo filtering blast results
 # filter PREDICTED; sort by taxids then query sequence length (careful: this line can scramble the header)
-${d}/scripts/makereport.py blast/header blast/top.concat.txt ${id} ${blacklist} | grep -v PREDICTED | sort -k5,5n -k6,6nr > report/blast.topfilter.txt
+${d}/scripts/makereport.py blast/header ${input} ${id} ${blacklist} | grep -v PREDICTED | sort -k5,5n -k6,6nr > report/blast.topfilter.txt
 
 echo REPORTING END [[ `date` ]]
 echo "------------------------------------------------------------------"

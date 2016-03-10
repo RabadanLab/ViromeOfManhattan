@@ -4,7 +4,7 @@
 #$ -o log.out
 #$ -e log.err
 #$ -l mem=16G,time=12::
-#$ -pe smp 4
+#$ -pe smp 4 -R y
 
 # This script removes host (human) reads
 # using a pass of STAR mapping, followed by
