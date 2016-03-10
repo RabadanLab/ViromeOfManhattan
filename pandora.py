@@ -95,7 +95,7 @@ def get_arg():
         print('[ERROR] Need --blastdb argument for Step 3')
 	sys.exit(1)
     if '4' in args.steps and (not args.pblastdb):
-        print('[ERROR] Need --pblastdb argument for Step 3')
+        print('[ERROR] Need --pblastdb argument for Step 4')
 	sys.exit(1)
 
     return args
