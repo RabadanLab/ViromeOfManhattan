@@ -56,6 +56,7 @@ def get_arg():
     parser_scan.add_argument('-pdb', '--pblastdb', help='blast protein (nr) database (ORFs are the query set)')
     parser_scan.add_argument('-ct', '--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
     parser_scan.add_argument('-ot', '--orfthreshold', default='200', help='threshold on ORF length for protein blast (default: 200)')
+    parser_scan.add_argument('-ob', '--orfblast', action='store_true', help='blast the ORFs to protein (nr) database (default: off)')
     parser_scan.add_argument('-bl', '--blacklist', default=mycwd + '/resources/blacklist.txt', help='A text file containing a list of non-pathogen taxids to ignore')
     parser_scan.add_argument('-gz', '--gzip', action='store_true', help='input fastq files are gzipped (default: off)')
     parser_scan.add_argument('--noerror', action='store_true', help='do not check for errors (default: off)')
@@ -94,9 +95,11 @@ def get_arg():
     if '3' in args.steps and (not args.blastdb):
         print('[ERROR] Need --blastdb argument for Step 3')
 	sys.exit(1)
-    if '4' in args.steps and (not args.pblastdb):
-        print('[ERROR] Need --pblastdb argument for Step 4')
+    if '4' in args.steps and args.orfblast and (not args.pblastdb):
+        print('[ERROR] Need --pblastdb argument for Step 4 if blasting ORFs')
 	sys.exit(1)
+    if '4' in args.steps and (not args.orfblast) and args.pblastdb:
+        print('[WARNING] --pblastdb argument supplied but boolean --orfblast is off')
 
     return args
 
@@ -192,12 +195,13 @@ def scan_main(args):
                       int(args.noclean),
                       int(args.noSGE) )
                   ),
-             '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh --scripts {} --id {} --threshold {} --db {} --noclean {}'.format(
+             '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh --scripts {} --id {} --threshold {} --db {} --blast {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
                       args.identifier,
                       args.orfthreshold,
                       args.pblastdb,
+                      int(args.orfblast),
                       int(args.noclean) )
                   ),
              '5': ('qsub -N rep', '{}/scripts/reporting.sh --scripts {} --id {} --blacklist {}'.format(
