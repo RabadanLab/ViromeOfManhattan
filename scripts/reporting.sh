@@ -61,9 +61,16 @@ echo REPORTING START [[ `date` ]]
 
 mkdir -p report
 
+# flag for makereport
+flag=""
+# if blacklist variable set
+if [ -n "${blacklist}" ]; then
+	flag="--blacklist ${blacklist}"
+fi
+
 echo filtering blast results
 # filter PREDICTED; sort by taxids then query sequence length (careful: this line can scramble the header)
-${d}/scripts/makereport.py blast/header ${input} ${id} ${blacklist} | grep -v PREDICTED | sort -k5,5n -k6,6nr > report/blast.topfilter.txt
+${d}/scripts/makereport.py --input ${input} --header blast/header --sample ${id} --id2reads assembly/reads2contigs.stats.txt ${flag} | grep -v PREDICTED | sort -k5,5n -k6,6nr > report/blast.topfilter.txt
 
 echo REPORTING END [[ `date` ]]
 echo "------------------------------------------------------------------"

@@ -119,6 +119,9 @@ samtools view -bS assembly/reads2contigs.sam | samtools sort - assembly/reads2co
 samtools index assembly/reads2contigs.bam
 rm assembly/reads2contigs.sam 
 
+# BAM index stats
+samtools idxstats assembly/reads2contigs.bam > assembly/reads2contigs.stats.txt
+
 if [ ${noclean} -eq 0 ]; then
 	echo clean up
 	rm -r assembly/ref_remap
