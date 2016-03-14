@@ -15,7 +15,7 @@ while [[ $# > 0 ]]; do
 	flag=${1}
 
 	case $flag in
-		-i|--input)	# the input fasta
+		-i|--input)	# the input blast file
 		input="${2}"
 		shift ;;
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
+import subprocess
 
 # The goal of this script is to filter blast results based on taxid
 # Don't want human sequences or anything in the taxid blacklist,
@@ -26,7 +27,7 @@ if len(sys.argv) > 4 and sys.argv[4] != 'None':
 
 # load header
 with open(blastheader, 'r') as f:
-    header = f.read().split()
+    header = map(str.strip, f.read().split())
 
 # get indicies of desired fields
 myindicies = [(j,k) for j,k in enumerate(header) if k in desiredfields]
@@ -34,8 +35,7 @@ myindicies = [(j,k) for j,k in enumerate(header) if k in desiredfields]
 # [(0, 'qseqid'), (1, 'sseqid'), (2, 'saccver'), (3, 'staxids'), (12, 'qlen'), (20, 'evalue'), (21, 'bitscore'), (22, 'stitle')]
 
 # print header:
-print('sampleid\t'),
-print('\t'.join([i[1] for i in myindicies]))
+print('sampleid\t' + '\t'.join([i[1] for i in myindicies]) + '\tnum_reads')
 
 # get index of taxid:
 taxidindex = [i[1] for i in myindicies].index('staxids')
@@ -43,10 +43,13 @@ taxidindex = [i[1] for i in myindicies].index('staxids')
 with open(blastout, 'r') as f:
     for line in f:
         # get desired fields
-        myfields = [line.split('\t')[i] for i in [j[0] for j in myindicies]] 
+        myfields = [line.split('\t')[i].strip() for i in [j[0] for j in myindicies]] 
         taxid = myfields[taxidindex]
 	# bypass human taxids
         if taxid == '9606':
             pass
         elif taxid not in filterlist:
-            print(sampleid + '\t' + '\t'.join(myfields)),
+            # treat the contigs as if they were chromosomes and use idxstats to count reads landing on chromosomes (3rd column)
+            cmd = 'samtools idxstats assembly/reads2contigs.bam | grep {}"	" | cut -f3'.format(myfields[0])
+            N = int(subprocess.check_output(cmd, shell=True).strip())
+            print(sampleid + '\t' + '\t'.join(myfields) + '\t{}'.format(N))

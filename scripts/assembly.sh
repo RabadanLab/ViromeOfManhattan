@@ -115,7 +115,8 @@ bowtie2 -p 4 -x ${refbowtie} -1 ${mate1} -2 ${mate2} -S assembly/reads2contigs.s
 echo Bowtie2 mapping finished [ `date` ]
 
 # convert to bam
-samtools view -bS assembly/reads2contigs.sam > assembly/reads2contigs.bam
+samtools view -bS assembly/reads2contigs.sam | samtools sort - assembly/reads2contigs
+samtools index assembly/reads2contigs.bam
 rm assembly/reads2contigs.sam 
 
 if [ ${noclean} -eq 0 ]; then
