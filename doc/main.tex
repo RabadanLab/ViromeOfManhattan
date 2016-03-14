@@ -14,7 +14,7 @@
 
 \begin{document}
 
-\title{Pandora: microbial characterization of human tissue from RNAseq}
+\title{Pandora: microbial characterization of tumor tissue from whole transcriptome sequencing}
 
 \author{Sakellarios Zairis$^*$, Francesco Abate$^*$, Oliver Elliott, and Raul Rabadan\\
 \\
@@ -40,30 +40,74 @@ Cellular microbe populations nominated by Pandora can indicate global immunocomp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Introduction}
+\section*{Introduction}
+
+In the clinical setting, capture libraries (mRNA, exome) are far more prevalent than shotgun sequencing, since questions of pathogenesis are often more directly answered by focusing on the the human coding genome.
+This limits the opportunity for microbial profiling of clinical sequencing samples, but does not extinguish it entirely.
+[sentence about the increasing recognition of the microbial contribution to cancer.]
+
 
 For over half a century it has been known that bacterial spores from obligate anaerobes can migrate to and germinate within hypoxic regions of mammalian tumors.~\cite{malmgren1955localization}
+We 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Methods}
+\section*{Methods}
 
-For over half a century it has been known that bacterial spores from obligate anaerobes can migrate to and germinate within hypoxic regions of mammalian tumors.~\cite{malmgren1955localization}
+We follow a strategy of ``digital transcriptome subtraction,'' first successfully deployed in the discovery of Merkel cell polyomavirus.~\cite{feng2008clonal}
+The overall Pandora workflow, along with some basic calibration can be seen in Figure \ref{fig:pipeline}
+
+\begin{figure}
+    \begin{subfigure}{0.5\textwidth}
+    \centering
+    \includegraphics[width=2.5in]{fig/schematic.png}
+    \caption{caption goes here.}
+    \end{subfigure}
+    
+    \begin{subfigure}{0.5\textwidth}
+    \centering
+    \includegraphics[width=2.5in]{fig/sensitivity_panel.png}
+    \caption{caption goes here.}
+    \end{subfigure}
+
+    \caption{overall caption.}
+    \label{fig:pipeline}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Results}
+\section*{Results}
 
-For over half a century it has been known that bacterial spores from obligate anaerobes can migrate to and germinate within hypoxic regions of mammalian tumors.~\cite{malmgren1955localization}
+The ideal data set would be total RNA libraries, with matched normal samples, so we investigated the publicly available data accompanying \cite{warren2013co}.
+We also wish to extend the analysis to the mRNA capture libraries of TCGA.
+An example of an old result in alcoholic liver disease can be seen in Figure \ref{fig:alcoholic}
+
+\begin{figure}
+    \begin{subfigure}{0.5\textwidth}
+    \centering
+    \includegraphics[width=2.5in]{fig/liver_patric.pdf}
+    \caption{caption goes here.}
+    \end{subfigure}
+    
+    \begin{subfigure}{0.5\textwidth}
+    \centering
+    \includegraphics[width=2.5in]{fig/liver_KDR.pdf}
+    \caption{caption goes here.}
+    \end{subfigure}
+
+    \caption{overall caption.}
+    \label{fig:alcoholic}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Discussion}
+\section*{Discussion}
 
-For over half a century it has been known that bacterial spores from obligate anaerobes can migrate to and germinate within hypoxic regions of mammalian tumors.~\cite{malmgren1955localization}
+State the result here.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
