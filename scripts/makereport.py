@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-import sys
-import os
-import subprocess
 import argparse
 
 # The goal of this script is to filter blast results based on taxid
@@ -68,7 +65,7 @@ with open(args.input, 'r') as f:
         fields = [line.split('\t')[i].strip() for i in myindicies]
         taxid = fields[taxidindex]
         qseqid = fields[qseqidindex]
-	# bypass human taxids
+        # bypass human taxids
         if taxid == humantaxid:
             pass
         elif taxid not in filterlist:

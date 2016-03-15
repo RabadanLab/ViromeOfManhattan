@@ -29,12 +29,12 @@ with open(args.input, 'r') as f:
     counter = 1
     for line in f:
         # parse fasta
-	if line[0] == '>':
-	    # grab id
+        if line[0] == '>':
+            # grab id
             id = line.rstrip()[1:].replace(' ', '_')
-	    # reset counter
+            # reset counter
             counter = 1
-	else:
+        else:
             # create biopython seq obj
             myseq = Seq(line.rstrip())
             # http://biopython.org/DIST/docs/tutorial/Tutorial.html#htoc292
@@ -45,9 +45,9 @@ with open(args.input, 'r') as f:
                     length = 3 * ((len(myseq)-frame) // 3)
                     # split on the stop codon, a '*' character
                     # don't worry about start codons
-	            for pro in nuc[frame:frame+length].translate(table).split('*'):
+                    for pro in nuc[frame:frame+length].translate(table).split('*'):
                         if len(pro) >= int(args.threshold):
-	    		    # print fasta entry
+                            # print fasta entry
                             print('>%s_ORF%i_len%i_strand%i_frame%i' % (id, counter, len(pro), strand, frame))
                             print(pro)
-	    		    counter += 1
+                            counter += 1
