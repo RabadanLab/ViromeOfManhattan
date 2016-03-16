@@ -9,14 +9,19 @@
 
 # defaults
 input="blast/top.concat.txt"
+input2="discovery/blast/top.concat.txt"
 
 while [[ $# > 0 ]]; do
 
 	flag=${1}
 
 	case $flag in
-		-i|--input)	# the input blast file
+		-i|--input)	# the contig input blast file
 		input="${2}"
+		shift ;;
+
+		-i2|--input2)	# the ORF input blast file
+		input2="${2}"
 		shift ;;
 
 		-o|--outputdir)	# the output directory
@@ -63,9 +68,13 @@ mkdir -p report
 
 # flag for makereport
 flag=""
+# if ORF blast file exists
+if [ -s ${input2} ]; then
+	flag="--input2 ${input2} "
+fi
 # if blacklist variable set
 if [ -n "${blacklist}" ]; then
-	flag="--blacklist ${blacklist}"
+	flag=${flag}"--blacklist ${blacklist}"
 fi
 
 echo filtering blast results

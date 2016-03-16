@@ -15,7 +15,8 @@ desiredfields = ['qseqid', 'sseqid', 'qlen','saccver','staxids','evalue', 'bitsc
 # parse arguments
 prog_description = 'Make tsv report'
 parser = argparse.ArgumentParser(description=prog_description)
-parser.add_argument('-i', '--input', required=True, help='the blast file input')
+parser.add_argument('-i', '--input', required=True, help='the contig blast file input')
+parser.add_argument('-i2', '--input2', help='the ORF blast file input')
 parser.add_argument('--header', required=True, help='the blast header file')
 parser.add_argument('--sample', required=True, help='sample identifier')
 parser.add_argument('--id2reads', required=True, help='the output file of samtools idxstats mapping ids to #reads')
@@ -59,14 +60,22 @@ print('sampleid\t' + '\t'.join(myfields) + '\tnum_reads')
 taxidindex = myfields.index('staxids')
 qseqidindex = myfields.index('qseqid')
 
-with open(args.input, 'r') as f:
-    for line in f:
-        # get desired fields
-        fields = [line.split('\t')[i].strip() for i in myindicies]
-        taxid = fields[taxidindex]
-        qseqid = fields[qseqidindex]
-        # bypass human taxids
-        if taxid == humantaxid:
-            pass
-        elif taxid not in filterlist:
-            print(args.sample + '\t' + '\t'.join(fields) + '\t' + idx[qseqid])
+# list of files
+myfiles = [args.input]
+if args.input2: myfiles.append(args.input2)
+
+for myfile in myfiles:
+    with open(myfile, 'r') as f:
+        for line in f:
+            # get desired fields
+            fields = [line.split('\t')[i].strip() for i in myindicies]
+            taxid = fields[taxidindex]
+            qseqid = fields[qseqidindex]
+            # get read counts
+            readcounts = '-'
+            if qseqid in idx: readcounts = idx[qseqid]
+            # bypass human taxids
+            if taxid == humantaxid:
+                pass
+            elif taxid not in filterlist:
+                print(args.sample + '\t' + '\t'.join(fields) + '\t' + readcounts)
