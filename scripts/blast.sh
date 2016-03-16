@@ -1,28 +1,63 @@
 #!/bin/sh
 #$ -V
 #$ -cwd
-#$ -o logs_blast/
-#$ -e logs_blast/
 #$ -l mem=4G,time=4::
 
 # A simple wrapper for blast array job 
 
-# blast db
-blastdb=${1}
-# blast format string
-fmt=${2}
-# blast options
-# opts="-task megablast -evalue 0.01"
+# defaults
+outputdir="blast"
 
-# if a third, argument, set SGE_TASK_ID by hand (for the case where qsub is turned off)
-if [ $# -eq 3 ]; then
-	SGE_TASK_ID=${3}
-fi
+while [[ $# > 0 ]]; do
+
+	flag=${1}
+
+	case $flag in
+		-o|--outputdir)	# the output directory
+		outputdir="${2}"
+		shift ;;
+
+		-d|--scripts)	# the git repository directory
+		d="${2}"
+		shift ;;
+
+		--whichblast)	# which blast (blastn or blastp)
+		wblast="${2}"
+		shift ;;
+
+		--db)		# blast db
+		blastdb="${2}"
+		shift ;;
+
+		--fmt)		# blast format string
+		fmt="${2}"
+		shift ;;
+
+		--sgeid)	# set SGE_TASK_ID by hand (for the case where qsub is turned off)
+		SGE_TASK_ID="${2}"
+		shift ;;
+
+		--noclean)	# noclean bool
+		noclean="${2}"
+		shift ;;
+
+		-v|--verbose)	# verbose
+		verbose=true ;;
+
+		*)
+				# unknown option
+		;;
+	esac
+	shift
+done
+
+# set input
+input="${outputdir}/blast_${SGE_TASK_ID}.fasta"
 
 echo "------------------------------------------------------------------"
 echo BLAST ${SGE_TASK_ID} START [[ `date` ]]
 
-blastn -outfmt "6 ${fmt}" -query blast/contig_${SGE_TASK_ID}.fasta -db ${blastdb} > blast/contig_${SGE_TASK_ID}.result;
+${wblast} -outfmt "6 ${fmt}" -query ${input} -db ${blastdb} > ${outputdir}/blast_${SGE_TASK_ID}.result;
 
 echo BLAST ${SGE_TASK_ID} END [[ `date` ]]
 echo "------------------------------------------------------------------"

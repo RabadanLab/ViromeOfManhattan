@@ -20,6 +20,10 @@ The following programs must be in your `PATH`:
 - [Trinity](https://github.com/trinityrnaseq/trinityrnaseq/wiki)
 - [BLAST](http://www.ncbi.nlm.nih.gov/books/NBK279671/)
 
+Pandora depends on the following Python modules:
+
+- [Biopython](http://biopython.org/wiki/Main_Page)
+
 **Additional Files**
 
 Pandora needs various references: a host genome indexed for STAR; a host genome indexed for bowtie2; and the BLAST nucleotide collection (nt) database.
@@ -32,24 +36,24 @@ This list contains any taxid children of the nodes chordata (Taxonomy ID: 7711) 
 To accomplish diverse tasks, Pandora has various subcommands (like, say, the program git).
 The primary subcommand is `scan`, which is a pipeline comprising the following steps:
 
-1. Subtraction of reads mapping to human genome
+1. Subtraction of reads mapping to host genome
 2. De-Novo assembly of remaining reads
 3. BLAST of assembled contigs
 4. ORF search in contigs of unknown origin
-5. Filter and parse blast results into tidy human-friendly tsv
+5. Filter and parse blast results into tidy human-readable report
 
-The `remap` subcommand maps the reads which did not map (from scan, step1) to the assembly of contigs.
+The `aggregate` subcommand [...].
 
 **Usage Examples**
 
 ```
-pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --refstar /path/ref/STAR --refbowtie /path/ref/bowtie/hg19 -db /path/ref/blastdb/nt
+pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --refstar /path/ref/STAR --refbowtie /path/ref/bowtie/hg19 -db /path/ref/blastdb/nt
 ```
 
 **Notes**
 
 Currently, Pandora makes use of the [Oracle Grid Engine](https://en.wikipedia.org/wiki/Oracle_Grid_Engine) by default.
-The reason for this is that blast is computationally intensive, easily parallelizable, and lends itself very nicely to cluster computing.
+The reason for this is that blast is computationally intensive, embarrassingly parallelizable, and lends itself very nicely to cluster computing.
 You can turn this off with the `--noSGE` flag, but blast will be very slow.
 
 Note that RNA-seq enriched for poly-A transcripts will miss prokaryotic pathogens.

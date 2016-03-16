@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sys, os
+import sys
+import os
 
 # convert sam file to fastq
 # for this sam file, these reads are unmapped, 

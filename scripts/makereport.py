@@ -1,52 +1,72 @@
 #!/usr/bin/env python
 
-import sys, os
+import argparse
 
 # The goal of this script is to filter blast results based on taxid
 # Don't want human sequences or anything in the taxid blacklist,
 # which contains non-pathogens
 
-blastheader = sys.argv[1]	# the blast header
-blastout = sys.argv[2]		# the blast file
-sampleid = sys.argv[3]		# sample identifier
-# myblacklist = sys.argv[4]	# the file of blacklist taxids
-
-# taxid blacklist
-filterlist = []
-
-# header
-header = []
+# defaults
+# taxid corresponding to homo sapiens
+humantaxid = '9606'
 # desired header
 desiredfields = ['qseqid', 'sseqid', 'qlen','saccver','staxids','evalue', 'bitscore', 'stitle']
 
-# load blacklist if supplied (hacky - fix later)
-if len(sys.argv) > 4 and sys.argv[4] != 'None':
-    with open(sys.argv[4], 'r') as f:
+# parse arguments
+prog_description = 'Make tsv report'
+parser = argparse.ArgumentParser(description=prog_description)
+parser.add_argument('-i', '--input', required=True, help='the blast file input')
+parser.add_argument('--header', required=True, help='the blast header file')
+parser.add_argument('--sample', required=True, help='sample identifier')
+parser.add_argument('--id2reads', required=True, help='the output file of samtools idxstats mapping ids to #reads')
+parser.add_argument('--blacklist', help='the file of blacklist taxids')
+args = parser.parse_args()
+
+# taxid blacklist
+filterlist = []
+# header
+header = []
+# id 2 reads dict (output of samtools idxstats)
+idx = {}
+
+# load blacklist if supplied
+if args.blacklist:
+    with open(args.blacklist, 'r') as f:
         filterlist = f.read().split('\n')[:-1]	# final newline causes empty list elt
 
-# load header
-with open(blastheader, 'r') as f:
-    header = f.read().split()
+# load idx file
+with open(args.id2reads, 'r') as f:
+    for line in f:
+        # map id to #reads
+        idx[line.split()[0].strip()] = line.split()[2].strip()
 
-# get indicies of desired fields
-myindicies = [(j,k) for j,k in enumerate(header) if k in desiredfields]
-# looks something like:
-# [(0, 'qseqid'), (1, 'sseqid'), (2, 'saccver'), (3, 'staxids'), (12, 'qlen'), (20, 'evalue'), (21, 'bitscore'), (22, 'stitle')]
+# load header
+with open(args.header, 'r') as f:
+    header = map(str.strip, f.read().split())
+
+# get indicies,fields in file
+myindicies = []
+myfields = []
+for j,k in enumerate(header):
+    if k in desiredfields:
+        myindicies.append(j)
+        myfields.append(k)
 
 # print header:
-print('sampleid\t'),
-print('\t'.join([i[1] for i in myindicies]))
+print('sampleid\t' + '\t'.join(myfields) + '\tnum_reads')
 
-# get index of taxid:
-taxidindex = [i[1] for i in myindicies].index('staxids')
+# get index of taxid, qseqid:
+taxidindex = myfields.index('staxids')
+qseqidindex = myfields.index('qseqid')
 
-with open(blastout, 'r') as f:
+with open(args.input, 'r') as f:
     for line in f:
         # get desired fields
-        myfields = [line.split('\t')[i] for i in [j[0] for j in myindicies]] 
-        taxid = myfields[taxidindex]
-	# bypass human taxids
-        if taxid == '9606':
+        fields = [line.split('\t')[i].strip() for i in myindicies]
+        taxid = fields[taxidindex]
+        qseqid = fields[qseqidindex]
+        # bypass human taxids
+        if taxid == humantaxid:
             pass
         elif taxid not in filterlist:
-            print(sampleid + '\t' + '\t'.join(myfields)),
+            print(args.sample + '\t' + '\t'.join(fields) + '\t' + idx[qseqid])

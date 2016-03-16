@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sys, pickle
+import sys
+import pickle
 
 # This script associates each taxid with
 # its parent taxid of a specific rank (e.g., phylum)
@@ -26,12 +27,12 @@ print('map taxids to parent taxids')
 # open the nodes.dmp file
 with open(nodesfile, 'r') as f:
     for line in f:
-	# eliminate tabs and split on |
-	l = line.replace('\t', '').split('|')
+        # eliminate tabs and split on |
+        l = line.replace('\t', '').split('|')
         # add taxid to master list
         alltaxid.append(l[0])
-	# map taxid to (parent taxid, rank)
-	id2parentrank[l[0]] = (l[1], l[2])
+        # map taxid to (parent taxid, rank)
+        id2parentrank[l[0]] = (l[1], l[2])
 
 # pickle dict for possible later use
 #print('pickle taxid to parent dict')
@@ -52,34 +53,34 @@ chordata = []
 for i in alltaxid:
     # check if id in dict
     if i in id2parentrank:
-	# copy current taxid
-	j = i
+        # copy current taxid
+        j = i
 
         if verbose:
-	    print('taxid: '),
-	    print(i)
-	    print('rank: '),
+            print('taxid: '),
+            print(i)
+            print('rank: '),
             print(id2parentrank[i])
 
         # if j not 1, move up the tree
         while j != '1':
             # parent taxid
-	    j = id2parentrank[j][0]
+            j = id2parentrank[j][0]
 
-	    if verbose: print('parent taxid: ' + j)
+            if verbose: print('parent taxid: ' + j)
 
             # if member of "other sequences" (Taxonomy ID: 28384), add to list and break
             if j == '28384':
                 otherseq.append(i)
-		break
-	    # if member of chordata
+                break
+            # if member of chordata
             elif j == '7711':
                 chordata.append(i)
-		break
-	    # if not in dict, break to avoid infinite loop
-	    elif not (j in id2parentrank):
-		if verbose: print(i + ' not found')
-		break
+                break
+            # if not in dict, break to avoid infinite loop
+            elif not (j in id2parentrank):
+                if verbose: print(i + ' not found')
+                break
 
 print('save blacklist to file')
 
