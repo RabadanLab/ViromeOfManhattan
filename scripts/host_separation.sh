@@ -79,7 +79,14 @@ if [ ${gz} -eq 1 ]; then
 fi
 
 echo STAR mapping commenced [ `date` ]
-STAR --runThreadN 4 --genomeDir ${refstar} --readFilesIn ${mate1} ${mate2} --outFileNamePrefix host_separation/ --outSAMtype BAM Unsorted --outSAMunmapped Within ${starflag}
+STAR --runThreadN 4 \
+ --genomeDir ${refstar} \
+ --readFilesIn ${mate1} ${mate2} \
+ --outFileNamePrefix host_separation/ \
+ --outSAMtype BAM Unsorted \
+ --outSAMunmapped Within \
+ ${starflag}
+
 echo STAR mapping finished [ `date`  ]
 
 echo find unmapped reads
@@ -88,7 +95,11 @@ samtools view -b -f 13 host_separation/Aligned.out.bam | samtools sort -n - host
 samtools view host_separation/star_unmapped.bam | ${d}/scripts/sam2fastq.py host_separation/star_unmapped
 
 echo Bowtie2 mapping commenced [ `date` ]
-bowtie2 -p 4 -x ${refbowtie} -1 host_separation/star_unmapped_1.fastq -2 host_separation/star_unmapped_2.fastq -S host_separation/bwt2.sam
+bowtie2 -p 4 \
+ -x ${refbowtie} \
+ -1 host_separation/star_unmapped_1.fastq \
+ -2 host_separation/star_unmapped_2.fastq \
+ -S host_separation/bwt2.sam
 echo Bowtie2 mapping finished [ `date` ]
 
 echo find unmapped reads

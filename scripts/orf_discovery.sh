@@ -81,7 +81,15 @@ ${d}/scripts/orf.py -i ${input} -t ${orfthreshold} > discovery/orf.fa
 
 # blastp to nr, if blast flag AND orf.fa nonempty
 if [ ${doblast} -eq 1 -a -s discovery/orf.fa ]; then
-	${d}/scripts/blast_wrapper.sh --scripts ${d} --outputdir discovery/blast -i discovery/orf.fa --logsdir logs_blast2 --whichblast blastp --threshold 100 --db ${dbprefix} --id ${id} --noclean ${noclean}
+	${d}/scripts/blast_wrapper.sh --scripts ${d} \
+	 --outputdir discovery/blast \
+	 -i discovery/orf.fa \
+	 --logsdir logs_blast2 \
+	 --whichblast blastp \
+	 --threshold 100 \
+	 --db ${dbprefix} \
+	 --id ${id} \
+	 --noclean ${noclean}
 fi
 
 echo DISCOVERY END [[ `date` ]]
