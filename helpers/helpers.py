@@ -26,9 +26,10 @@ def check_path(myfile):
     """Check for the existence of a file"""
 
     # expanduser handle tilde
-    if (not os.path.isfile(os.path.expanduser(myfile))):
-        print("[ERROR] Can't find the file " + myfile)
-        sys.exit(1)
+    for f in myfile.split(','):
+        if (not os.path.isfile(os.path.expanduser(f))):
+            print("[ERROR] Can't find the file " + f)
+            sys.exit(1)
 
 # -------------------------------------
 

@@ -86,8 +86,8 @@ def get_arg():
     if '1' in args.steps and ( (not args.mate1) or (not args.mate2) ):
         print('[ERROR] Need --mate1 and --mate2 arguments for Step 1')
         sys.exit(1)
-    if '2' in args.steps and ( (not args.refstar) or (not args.refbowtie) ):
-        print('[ERROR] Need --refstar and --refbowtie arguments for Step 2')
+    if '1' in args.steps and ( (not args.refstar) or (not args.refbowtie) ):
+        print('[ERROR] Need --refstar and --refbowtie arguments for Step 1')
         sys.exit(1)
     if '3' in args.steps and (not args.blastdb):
         print('[ERROR] Need --blastdb argument for Step 3')
