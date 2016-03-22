@@ -1,0 +1,13 @@
+[Step1]
+refstar=/path/to/STAR-ref
+refbowtie=/path/to/bowtie-ref
+
+[Step2]
+
+[Step3]
+blastdb=/path/to/nucleotide-blast/nt-prefix 
+
+[Step4]
+pblastdb=/path/to/protein-blast/nr-prefix 
+
+[Step5]

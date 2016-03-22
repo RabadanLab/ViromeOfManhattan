@@ -14,6 +14,7 @@ import argparse
 import sys
 import subprocess
 import os
+import ConfigParser
 from helpers import helpers
 
 def add_common_args(sub):
@@ -23,9 +24,10 @@ def add_common_args(sub):
 
     # add common args
     sub.add_argument('-id', '--identifier', required=True, help='sample ID (5 chars or less)')
-    sub.add_argument("--noclean", action="store_true", help="do not delete temporary intermediate files (default: off)")
+    sub.add_argument('-c', '--config', help='config file')
+    sub.add_argument('--noclean', action='store_true', help='do not delete temporary intermediate files (default: off)')
     sub.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
-    sub.add_argument("--noSGE", action="store_true", help="do not qsub jobs with the Oracle Grid Engine (default: off)")
+    sub.add_argument('--noSGE', action='store_true', help='do not qsub jobs with the Oracle Grid Engine (default: off)')
 
     return sub
 
@@ -77,6 +79,14 @@ def get_arg():
     # add key-value pairs to the args dict
     # directory where this script resides             
     vars(args)['scripts'] = mycwd
+
+    # if configuration file specified and option not already supplied by flag, read option in from config file
+    if args.config:
+        Config = ConfigParser.ConfigParser()
+        Config.read(args.config)
+    for i in [(args.refstar, 'refstar', 'Step1'), (args.refbowtie, 'refbowtie', 'Step1'), (args.blastdb, 'blastdb', 'Step3'), (args.pblastdb, 'pblastdb', 'Step4'), ]:
+        if not i[0] and i[1] in helpers.ConfigSectionMap(Config, i[2]):
+            vars(args)[i[1]] = helpers.ConfigSectionMap(Config, i[2])[i[1]]
 
     # print args
     print(args)
