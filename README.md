@@ -19,17 +19,11 @@ The following programs must be in your `PATH`:
 - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 - [Trinity](https://github.com/trinityrnaseq/trinityrnaseq/wiki)
 - [BLAST](http://www.ncbi.nlm.nih.gov/books/NBK279671/)
+- [featureCounts](http://subread.sourceforge.net/) (Subread)
 
 Pandora depends on the following Python modules:
 
 - [Biopython](http://biopython.org/wiki/Main_Page)
-
-**Additional Files**
-
-Pandora needs various references: a host genome indexed for STAR; a host genome indexed for bowtie2; and the BLAST nucleotide collection (nt) database.
-Optionally, you can provide a text file of "blacklist" non-pathogen taxids for filtering.
-If you do not provide one, the script will use `resources/blacklist.txt` by default.
-This list contains any taxid children of the nodes chordata (Taxonomy ID: 7711) or "other sequences" (Taxonomy ID: 28384).
 
 **Workflow**
 
@@ -43,6 +37,28 @@ The primary subcommand is `scan`, which is a pipeline comprising the following s
 5. Filter and parse blast results into tidy human-readable report
 
 The `aggregate` subcommand [...].
+
+**Additional Files**
+
+Pandora requires various references and annotation files.
+
+For scan step 1, please provide:
+- a host genome indexed for STAR
+- a host genome indexed for bowtie2
+- (optional) a gtf describing the genes of the host
+
+For scan step 3, please provide:
+- the BLAST nucleotide collection (nt) database.
+
+For scan step 4, you can optionally provide:
+- the BLAST protein collection (nr) database.
+
+For scan step 5, you can optionally provide:
+- a text file of "blacklist" non-pathogen taxids for filtering. If you do not provide one, the script will use `resources/blacklist.txt` by default. This list contains any taxid children of the nodes chordata (Taxonomy ID: 7711) or "other sequences" (Taxonomy ID: 28384).
+
+Because there are a considerable number of files involved, you can specify their paths with a configuration file instead of command line flags.
+See `pandora.config.txt` as an example.
+Note that options specified as flags take precedence over options specified via the configuration file.
 
 **Usage Examples**
 

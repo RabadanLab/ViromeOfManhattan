@@ -53,13 +53,14 @@ def get_arg():
     parser_scan.add_argument('-br', '--refbowtie', help='bowtie2 host reference')
     parser_scan.add_argument('-db', '--blastdb', help='blast (nt) database (contigs are the query set)')
     parser_scan.add_argument('-pdb', '--pblastdb', help='blast protein (nr) database (ORFs are the query set)')
-    parser_scan.add_argument('-ct', '--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
-    parser_scan.add_argument('-ot', '--orfthreshold', default='200', help='threshold on ORF length for protein blast (default: 200)')
-    parser_scan.add_argument('-ob', '--orfblast', action='store_true', help='blast the ORFs to protein (nr) database (default: off)')
-    parser_scan.add_argument('-bl', '--blacklist', default=mycwd + '/resources/blacklist.txt', help='A text file containing a list of non-pathogen taxids to ignore')
-    parser_scan.add_argument('-gz', '--gzip', action='store_true', help='input fastq files are gzipped (default: off)')
+    parser_scan.add_argument('-gtf', '--gtf', help='optional host gft for computing gene coverage after host separation')
+    parser_scan.add_argument('--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
+    parser_scan.add_argument('--orfthreshold', default='200', help='threshold on ORF length for protein blast (default: 200)')
+    parser_scan.add_argument('--orfblast', action='store_true', help='blast the ORFs to protein (nr) database (default: off)')
+    parser_scan.add_argument('--blacklist', default=mycwd + '/resources/blacklist.txt', help='A text file containing a list of non-pathogen taxids to ignore')
+    parser_scan.add_argument('--gzip', action='store_true', help='input fastq files are gzipped (default: off)')
     parser_scan.add_argument('--noerror', action='store_true', help='do not check for errors (default: off)')
-    parser_scan.add_argument('-s', '--steps', default='12345', help='steps to run. The steps are as follows: \
+    parser_scan.add_argument('--steps', default='12345', help='steps to run. The steps are as follows: \
       step 1: host separation, \
       step 2: assembly, \
       step 3: blast contigs, \
@@ -86,6 +87,7 @@ def get_arg():
         Config.read(args.config)
         for i in [(args.refstar, 'refstar', 'Step1'), 
                   (args.refbowtie, 'refbowtie', 'Step1'), 
+                  (args.gtf, 'gtf', 'Step1'),
                   (args.blastdb, 'blastdb', 'Step3'), 
                   (args.pblastdb, 'pblastdb', 'Step4')]:
             if not i[0] and i[1] in helpers.ConfigSectionMap(Config, i[2]):
@@ -181,7 +183,7 @@ def scan_main(args):
     # dict which maps each step to 2-tuple, which contains the qsub part of the command,
     # and the shell part of the command
     d = {
-             '1': ('qsub -N hsep', '{}/scripts/host_separation.sh --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --noclean {}'.format(
+             '1': ('qsub -N hsep', '{}/scripts/host_separation.sh --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --noclean {} --gtf {}'.format(
                       args.scripts,
                       args.scripts,
                       args.mate1,
@@ -189,12 +191,13 @@ def scan_main(args):
                       args.refstar,
                       args.refbowtie,
                       int(args.gzip),
-                      int(args.noclean) )
+                      int(args.noclean),
+                      args.gtf)
                   ),
              '2': ('qsub -N asm', '{}/scripts/assembly.sh --scripts {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
-                      int(args.noclean) )
+                      int(args.noclean))
                   ),
              '3': ('qsub -N blst', '{}/scripts/blast_wrapper.sh --scripts {} --threshold {} --db {} --id {} --noclean {} --nosge {}'.format(
                       args.scripts,
@@ -203,7 +206,7 @@ def scan_main(args):
                       args.blastdb,
                       args.identifier,
                       int(args.noclean),
-                      int(args.noSGE) )
+                      int(args.noSGE))
                   ),
              '4': ('qsub -N orf', '{}/scripts/orf_discovery.sh --scripts {} --id {} --threshold {} --db {} --blast {} --noclean {}'.format(
                       args.scripts,
@@ -212,13 +215,13 @@ def scan_main(args):
                       args.orfthreshold,
                       args.pblastdb,
                       int(args.orfblast),
-                      int(args.noclean) )
+                      int(args.noclean))
                   ),
              '5': ('qsub -N rep', '{}/scripts/reporting.sh --scripts {} --id {} --blacklist {}'.format(
                       args.scripts,
                       args.scripts,
                       args.identifier,
-                      args.blacklist )
+                      args.blacklist)
                   )
     }
 

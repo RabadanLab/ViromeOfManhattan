@@ -48,6 +48,10 @@ while [[ $# > 0 ]]; do
 		refbowtie="${2}"
 		shift ;;
 
+		--gtf)		# host gene feature gtf
+		gtf="${2}"
+		shift ;;
+
 		--gzip)		# gzip bool
 		gz="${2}"
 		shift ;;
@@ -86,7 +90,6 @@ STAR --runThreadN 4 \
  --outSAMtype BAM Unsorted \
  --outSAMunmapped Within \
  ${starflag}
-
 echo STAR mapping finished [ `date`  ]
 
 echo find unmapped reads
@@ -105,6 +108,13 @@ echo Bowtie2 mapping finished [ `date` ]
 echo find unmapped reads
 samtools view -S -b -f 13 host_separation/bwt2.sam | samtools sort -n - host_separation/bwt2_unmapped
 samtools view host_separation/bwt2_unmapped.bam | ${d}/scripts/sam2fastq.py host_separation/bwt2_unmapped
+
+# if gtf variable set, get gene coverage
+if [ -n "${gtf}" ]; then
+	echo featureCounts commenced [ `date` ]
+	featureCounts -a ${gtf} -o host_separation/feature_counts.txt host_separation/Aligned.out.bam
+	echo featureCounts finished [ `date` ]
+fi
 
 if [ ${noclean} -eq 0 ]; then
 	echo clean up
