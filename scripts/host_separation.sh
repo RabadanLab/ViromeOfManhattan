@@ -112,7 +112,7 @@ samtools view host_separation/bwt2_unmapped.bam | ${d}/scripts/sam2fastq.py host
 # if gtf variable set, get gene coverage
 if [ -n "${gtf}" ]; then
 	echo featureCounts commenced [ `date` ]
-	featureCounts -a ${gtf} -o host_separation/feature_counts.txt host_separation/Aligned.out.bam
+	featureCounts -a ${gtf} -o host_separation/host_gene_counts.txt host_separation/Aligned.out.bam
 	echo featureCounts finished [ `date` ]
 fi
 

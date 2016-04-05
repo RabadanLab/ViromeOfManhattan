@@ -194,7 +194,8 @@ def scan_main(args):
                       int(args.noclean),
                       args.gtf)
                   ),
-             '2': ('qsub -N asm', '{}/scripts/assembly.sh --scripts {} --noclean {}'.format(
+             # "sys.executable contains full path of the currently running Python interpreter"
+             '2': ('qsub -S '+ sys.executable + ' -N asm', '{}/scripts/assembly.py --scripts {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
                       int(args.noclean))

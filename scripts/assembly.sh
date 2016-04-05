@@ -122,6 +122,9 @@ rm assembly/reads2contigs.sam
 # BAM index stats
 samtools idxstats assembly/reads2contigs.bam > assembly/reads2contigs.stats.txt
 
+# mpileup
+samtools mpileup -A -B -d 10000 -L 10000 -f ${output} assembly/reads2contigs.bam > assembly/reads2contigs.pileup
+
 if [ ${noclean} -eq 0 ]; then
 	echo clean up
 	rm -r assembly/ref_remap

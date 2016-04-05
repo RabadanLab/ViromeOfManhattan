@@ -122,6 +122,44 @@ def ConfigSectionMap(Config, section):
 
 # -------------------------------------
 
+def mkdirp(mydir):
+    """The loose equivalent of mkdir -p"""
+
+    try:
+        os.mkdir(mydir)
+    except:
+        pass
+
+# -------------------------------------
+
+def fastajoinlines(infile, outfile, idbase):
+    """Put all the sequence portions of a fasta file onto a single line"""
+
+    # a counter for entries
+    counter = 1
+    # a flag
+    flag = 0
+
+    with open(outfile, 'w') as f:
+        with open(infile, 'r') as g:
+            for line in g:
+                line = line.rstrip()
+                # if id line
+                if line[0] == '>':
+                    if flag:
+                        f.write('\n')
+                        counter += 1
+                    f.write('>' + idbase + '_' + str(counter) + '\n')
+                    flag = 1
+                # if sequence line
+                else:
+                    f.write(line)
+        f.write('\n')
+
+    return counter
+
+# -------------------------------------
+
 if __name__ == "__main__":
 
     pass
