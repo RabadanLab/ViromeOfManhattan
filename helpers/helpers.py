@@ -93,6 +93,29 @@ def run_cmd(cmd, bool_verbose, bool_getstdout):
 
 # -------------------------------------
 
+def run_long_cmd(cmd, bool_verbose, myfile):
+    """Run a system (i.e., shell) command that prints a lot of stuff to stdout or stderr"""
+
+    # https://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
+    # "A closer inspection of the subprocess.Popen docs revealed a warning:
+    # "Note: The data read is buffered in memory, so do not use this method if the data size is large or unlimited." ...
+    # Apparently, that warning actually means "Note: if there's any chance that the data read will be more than a couple pages, 
+    # this will deadlock your code." What was happening was that the memory buffer was a fixed size. 
+    # When it filled up, it simply stopped letting the child process write to it. 
+    # The child would then sit and patiently wait to be able to write the rest of its output.
+    # Luckily the solution is fairly simple. Instead of setting stdout and stderr to PIPE, 
+    # they need to be given proper file (or unix pipe) objects that will accept a reasonable amount of data."
+
+    # if verbose, print command
+    if bool_verbose:
+        print("[command] " + cmd)
+
+    with open(myfile, 'w') as f:
+        proc = subprocess.Popen(cmd, shell=True, stdout=f, stderr=f)
+        proc.wait() 
+
+# -------------------------------------
+
 def mytimer(myfunc):
     """Decorator for timing a function"""
     # http://stackoverflow.com/questions/5478351/python-time-measure-function

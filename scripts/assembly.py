@@ -54,6 +54,7 @@ def assembly(args):
 
     # mkdir -p
     hp.mkdirp(args.outputdir)
+    hp.mkdirp('assembly')
 
     # perform Trinity assembly
     print('ASSEMBLY START')
@@ -64,8 +65,11 @@ def assembly(args):
         args.mate1,
         args.mate2
     )
-    hp.run_cmd(cmd, args.verbose, 0)
+    # use run_long_cmd for programs with verbose output
+    hp.run_long_cmd(cmd, args.verbose, 'log.Trinity')
     print('ASSEMBLY END')
+
+    print('POST-PROCESSING START')
 
     # name of expected output file
     myoutput = args.outputdir + '/Trinity.fasta'
@@ -78,20 +82,56 @@ def assembly(args):
     myoutput2 = 'assembly/contigs_trinity.fasta'
     num_contigs = hp.fastajoinlines(myoutput, myoutput2, 'contig')
 
-    # compute simple distribution (TO-DO)
-    # cat ${output} | paste - - | awk '{print length($2)}' | sort -nr | ${d}/scripts/tablecount | awk -v tot=${num_contigs} 'BEGIN{x=0}{x+=$2; print $1"\t"$2"\t"x"/"tot"\t"int(100*x/tot)"%"}' > assembly/contigs.distrib.txt
+    # compute simple distribution
+    # cat assembly/contigs_trinity.fasta | paste - - | awk '{print length($2)}' | sort -nr | ${d}/scripts/tablecount | awk -v tot=${num_contigs} 'BEGIN{x=0}{x+=$2; print $1"\t"$2"\t"x"/"tot"\t"int(100*x/tot)"%"}' > assembly/contigs.distrib.txt
+    computedistrib(myoutput2, 'assembly/contigs.distrib.txt')
 
     if not int(args.noclean):
         cmd = 'rm -r assembly_trinity'
         hp.run_cmd(cmd, args.verbose, 0)
+
+    print('POST-PROCESSING END')
 
     # return the name of assembly file
     return myoutput2
 
 # -------------------------------------
 
+def computedistrib(infile, outfile):
+    """compute simple distribution of contigs"""
+
+    # a list of contig lengths
+    x = []
+
+    with open(infile, 'r') as g:
+        for line in g:
+            if line[0] != '>': 
+                x.append(len(line.rstrip()))
+
+    from collections import Counter
+
+    # count occurences of each length
+    xcount = Counter(x)
+
+    # tot length
+    tot = sum(dict(xcount).values())
+
+    # running sum
+    runningsum = 0
+
+    with open(outfile, 'w') as f:
+        for i in sorted(dict(xcount), reverse=True):
+            runningsum += xcount[i]
+            f.write(str(i) + '\t')
+            f.write(str(xcount[i]) + '\t')
+            f.write(str(runningsum) + '/' + str(tot) + '\t')
+            f.write(str(int(100*runningsum/tot)) + '%')
+            f.write('\n')
+        
+# -------------------------------------
+
 def remap(args, contigs):
-    """Map contigs back onto assembly"""
+    """map contigs back onto assembly"""
 
     print('REMAP START')
 
@@ -106,20 +146,95 @@ def remap(args, contigs):
     hp.run_cmd(cmd, args.verbose, 0)
 
     # convert to bam
-    # BAM index stats
-    # mpileup
-    cmd = 'samtools view -bS assembly/reads2contigs.sam | samtools sort - assembly/reads2contigs; \
-        samtools index assembly/reads2contigs.bam; \
-        rm assembly/reads2contigs.sam; \
-        samtools idxstats assembly/reads2contigs.bam > assembly/reads2contigs.stats.txt; \
-        samtools mpileup -A -B -d 10000 -L 10000 -f ${output} assembly/reads2contigs.bam > assembly/reads2contigs.pileup'
+    cmd = 'samtools view -bS assembly/reads2contigs.sam | samtools sort - assembly/reads2contigs'
     hp.run_cmd(cmd, args.verbose, 0)
+
+    cmd = 'samtools index assembly/reads2contigs.bam'
+    hp.run_cmd(cmd, args.verbose, 0)
+
+    cmd = 'rm assembly/reads2contigs.sam'
+    hp.run_cmd(cmd, args.verbose, 0)
+
+    # BAM index stats
+    cmd = 'samtools idxstats assembly/reads2contigs.bam > assembly/reads2contigs.stats.txt'
+    hp.run_cmd(cmd, args.verbose, 0)
+
+    # mpileup
+    cmd = 'samtools mpileup -A -B -d 100000 -L 100000 -f assembly/contigs_trinity.fasta assembly/reads2contigs.bam > assembly/reads2contigs.pileup'
+    hp.run_cmd(cmd, args.verbose, 0)
+
+    # format pileup file - i.e., add zeros to uncovered positions
+    formatpileup('assembly/reads2contigs.pileup', 'assembly/reads2contigs.stats.txt', 'assembly/reads2contigs.format.pileup')
 
     if not int(args.noclean):
         cmd = 'rm -r assembly/ref_remap'
         hp.run_cmd(cmd, args.verbose, 0)
+        cmd = 'rm assembly/reads2contigs.pileup'
+        hp.run_cmd(cmd, args.verbose, 0)
 
     print('REMAP END')
+
+# -------------------------------------
+
+def formatpileup(infile, idxfile, outfile):
+    """format the pileup file for computing entropy"""
+
+    # id 2 length dict (output of samtools idxstats)
+    idx = {}
+
+    # load idx file
+    with open(idxfile, 'r') as f:
+        for line in f:
+            # map id to length of contig
+            idx[line.split()[0].strip()] = line.split()[1].strip()
+
+    myid = ''    # contig id
+    pos = ''    # position
+
+    with open(outfile, 'w') as f:
+        with open(infile, 'r') as g:
+            for line in g:
+                # get number reads 
+                numrds = line.split()[3]
+
+                # if beginning of a new contig (id != previous id)
+                if line.split()[0] != myid:
+                    # if change (and not first contig), check if previous contig was covered until the end
+                    # if not covered, pad with zeros
+                    if myid: 
+                        if int(idx[myid]) > int(pos): 
+                            for i in range(int(pos) + 1, int(idx[myid]) + 1): 
+                                f.write(myid + '\t' + str(i) + '\t0\n')
+ 
+                    # if contig starts at postion > 1, pad with zeros 
+                    if int(line.split()[1]) > 1: 
+                        for i in range(1, int(line.split()[1])): 
+                            f.write(line.split()[0] + '\t' + str(i) + '\t0\n')
+
+                    # set new id 
+                    myid = line.split()[0]
+
+                    # write current line
+                    f.write(myid + '\t' + line.split()[1] + '\t' + numrds + '\n')
+
+                # if discontinuity (position - previous position > 1), pad with zeros
+                elif (int(line.split()[1]) - int(pos)) > 1:
+                    for i in range(int(pos) + 1, int(line.split()[1])):
+                        f.write(myid + '\t' + str(i) + '\t0\n')
+
+                    f.write(myid + '\t' + line.split()[1] + '\t' + numrds + '\n')
+
+                # otherwise, simply write line
+                else:
+                    f.write(myid + '\t' + line.split()[1] + '\t' + numrds + '\n')
+
+                # get position (this will become previous position for next iteration)
+                pos = line.split()[1]
+
+    # check if last contig covered until the end
+    if int(idx[myid]) > int(pos):
+        for i in range(int(pos) + 1, int(idx[myid]) + 1):
+            f.write(myid + '\t' + str(i) + '\t0\n')
 
 # -------------------------------------
 
