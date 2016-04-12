@@ -15,7 +15,7 @@ import sys
 import subprocess
 import os
 import ConfigParser
-from helpers import helpers
+from helpers import helpers as hp
 
 def add_common_args(sub):
     """A function to add common args to subparers, modified from StackOverflow"""
@@ -90,8 +90,8 @@ def get_arg():
                   (args.gtf, 'gtf', 'Step1'),
                   (args.blastdb, 'blastdb', 'Step3'), 
                   (args.pblastdb, 'pblastdb', 'Step4')]:
-            if not i[0] and i[1] in helpers.ConfigSectionMap(Config, i[2]):
-                vars(args)[i[1]] = helpers.ConfigSectionMap(Config, i[2])[i[1]]
+            if not i[0] and i[1] in hp.ConfigSectionMap(Config, i[2]):
+                vars(args)[i[1]] = hp.ConfigSectionMap(Config, i[2])[i[1]]
 
     # print args
     print(args)
@@ -135,13 +135,6 @@ def main():
 
 # -------------------------------------
 
-def getjid(x):
-    """Parse out and return SGE job id from string"""
-    # the SGE string must look like this: 'Your job 8379811 ("test") has been submitted'
-    return x.split('Your job ')[1].split()[0]
-
-# -------------------------------------
-
 def docmd(mytuple, jid, args):
     """Run a command on the shell or with SGE qsub"""
 
@@ -167,7 +160,7 @@ def docmd(mytuple, jid, args):
         # if verbose, print command
         if args.verbose: print(cmd)
         # run command, get job id
-	return getjid(subprocess.check_output(cmd, shell=True))
+	return hp.getjid(subprocess.check_output(cmd, shell=True))
 
 # -------------------------------------
 
@@ -253,12 +246,12 @@ def check_error(args):
     """Check for errors, check dependencies"""
 
     # check for required programs
-    #helpers.check_dependencies(['samtools', 'bam', 'bowtie2', 'STAR', 'blastn', 'Trinity'])
+    #hp.check_dependencies(['samtools', 'bam', 'bowtie2', 'STAR', 'blastn', 'Trinity'])
 
     # check for existence of files, if supplied
     for i in [args.mate1, args.mate2, args.blacklist]:
         if i:
-            helpers.check_path(i)
+            hp.check_path(i)
 
     # check if input files gzipped
     if args.mate1 and args.mate2:

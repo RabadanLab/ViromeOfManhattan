@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """
-    Miscellaneous helper functions to be imported into the main script
+    Miscellaneous helper functions (shell-related, SGE-related,
+    bioinformatics-related) to be imported as needed
     ~~~~~~
 """
 
@@ -11,6 +12,20 @@ import os
 import time
 import ConfigParser
 from distutils import spawn
+
+# -------------------------------------
+
+### shell-related functions
+
+# -------------------------------------
+
+def mkdirp(mydir):
+    """The loose equivalent of mkdir -p"""
+
+    try:
+        os.mkdir(mydir)
+    except:
+        pass
 
 # -------------------------------------
 
@@ -94,9 +109,10 @@ def run_cmd(cmd, bool_verbose, bool_getstdout):
 # -------------------------------------
 
 def run_long_cmd(cmd, bool_verbose, myfile):
-    """Run a system (i.e., shell) command that prints a lot of stuff to stdout or stderr"""
+    """Run a system command that prints a lot of stuff to stdout or stderr"""
 
     # https://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
+
     # "A closer inspection of the subprocess.Popen docs revealed a warning:
     # "Note: The data read is buffered in memory, so do not use this method if the data size is large or unlimited." ...
     # Apparently, that warning actually means "Note: if there's any chance that the data read will be more than a couple pages, 
@@ -116,42 +132,18 @@ def run_long_cmd(cmd, bool_verbose, myfile):
 
 # -------------------------------------
 
-def mytimer(myfunc):
-    """Decorator for timing a function"""
-    # http://stackoverflow.com/questions/5478351/python-time-measure-function
-
-    def mynewfunc(*args, **kwargs):
-        starttime = time.time()
-        myfunc(*args, **kwargs)
-        print('[step delta t] {} sec'.format(int(time.time() - starttime)))
-
-    return mynewfunc
+### SGE-related functions
 
 # -------------------------------------
 
-def ConfigSectionMap(Config, section):
-    """Process config file"""
-    # https://wiki.python.org/moin/ConfigParserExamples
-
-    dict1 = {}
-    options = Config.options(section)
-    for option in options:
-        try:
-            dict1[option] = Config.get(section, option)
-        except:
-            print("exception on %s!" % option)
-            dict1[option] = None
-    return dict1
+def getjid(x):
+    """Parse out and return SGE job id from string"""
+    # Note: the SGE string must look like this: 'Your job 8379811 ("test") has been submitted'
+    return x.split('Your job ')[1].split()[0]
 
 # -------------------------------------
 
-def mkdirp(mydir):
-    """The loose equivalent of mkdir -p"""
-
-    try:
-        os.mkdir(mydir)
-    except:
-        pass
+### bioinformatics-related functions
 
 # -------------------------------------
 
@@ -179,7 +171,64 @@ def fastajoinlines(infile, outfile, idbase):
                     f.write(line)
         f.write('\n')
 
+    # return the number of entries in the fasta file
     return counter
+
+# -------------------------------------
+
+def fastasplit(infile, filename, cutoff):
+    """Split a fasta file to produce a new file per entry such that seq length > cutoff (assume fastajoinlines)"""
+
+    # a counter for entries
+    counter = 0
+    id = ''
+
+    with open(infile, 'r') as g:
+        for line in g:
+            line = line.rstrip()
+            if line[0] == '>':
+                id = line
+            elif len(line) > cutoff:
+                counter += 1
+                with open(filename + '_' + str(counter) + '.fasta', 'w') as f:
+                    f.write(id + '\n')
+                    f.write(line + '\n')
+
+    # return counter for contigs above threshold length
+    return counter
+
+# -------------------------------------
+
+### Misc
+
+# -------------------------------------
+
+def ConfigSectionMap(Config, section):
+    """Parse a configuration file and return dict"""
+    # https://wiki.python.org/moin/ConfigParserExamples
+
+    dict1 = {}
+    options = Config.options(section)
+    for option in options:
+        try:
+            dict1[option] = Config.get(section, option)
+        except:
+            print("exception on %s!" % option)
+            dict1[option] = None
+    return dict1
+
+# -------------------------------------
+
+def mytimer(myfunc):
+    """Decorator for timing a function"""
+    # http://stackoverflow.com/questions/5478351/python-time-measure-function
+
+    def mynewfunc(*args, **kwargs):
+        starttime = time.time()
+        myfunc(*args, **kwargs)
+        print('[step delta t] {} sec'.format(int(time.time() - starttime)))
+
+    return mynewfunc
 
 # -------------------------------------
 

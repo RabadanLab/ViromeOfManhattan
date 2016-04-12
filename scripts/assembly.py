@@ -56,6 +56,7 @@ def assembly(args):
     hp.mkdirp(args.outputdir)
 
     # perform Trinity assembly
+    print('------------------------------------------------------------------')
     print('ASSEMBLY START')
     cmd = 'Trinity --seqType fq --normalize_reads --max_memory {} --CPU {}  --output {} --left {} --right {}'.format(
         args.trinitymem,
@@ -93,6 +94,7 @@ def assembly(args):
         hp.run_cmd(cmd, args.verbose, 0)
 
     print('POST-PROCESSING END')
+    print('------------------------------------------------------------------')
 
     # return the name of assembly file
     return myoutput2
@@ -135,6 +137,7 @@ def computedistrib(infile, outfile):
 def remap(args, contigs):
     """map contigs back onto assembly"""
 
+    print('------------------------------------------------------------------')
     print('REMAP START')
 
     hp.mkdirp('assembly/ref_remap')
@@ -175,6 +178,7 @@ def remap(args, contigs):
         hp.run_cmd(cmd, args.verbose, 0)
 
     print('REMAP END')
+    print('------------------------------------------------------------------')
 
 # -------------------------------------
 
