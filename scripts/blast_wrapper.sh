@@ -95,6 +95,11 @@ j=$( cat ${input} | paste - - | awk -v cutoff=${lenthreshold} -v dir=${outputdir
 
 echo ${fmt} | sed 's/ /\t/g' > ${outputdir}/header
 
+if [ ${j} -eq 0 ]; then
+	echo "No contigs above "${lenthreshold}". Exiting..."
+	exit
+fi
+
 # if qsub
 if [ ${noSGE} -eq 0 ]; then
 	message=$( qsub -N bc_${id} -e ${logsdir} -o ${logsdir} -t 1-${j} ${d}/scripts/blast.sh --outputdir ${outputdir} --whichblast ${wblast} --db ${dbprefix} --fmt "${fmt}" | grep submitted )

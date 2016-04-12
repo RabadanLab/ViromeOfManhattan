@@ -57,6 +57,11 @@ input="${outputdir}/blast_${SGE_TASK_ID}.fasta"
 echo "------------------------------------------------------------------"
 echo BLAST ${SGE_TASK_ID} START [[ `date` ]]
 
+# tmp hack
+if [ ${wblast} -eq "blastp" ]; then
+	wblast=${wblast}" -task blastp-fast"
+fi
+
 ${wblast} -outfmt "6 ${fmt}" -query ${input} -db ${blastdb} > ${outputdir}/blast_${SGE_TASK_ID}.result;
 
 echo BLAST ${SGE_TASK_ID} END [[ `date` ]]

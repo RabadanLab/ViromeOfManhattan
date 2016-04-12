@@ -52,9 +52,8 @@ def get_arg():
 def assembly(args):
     """Do Trinity assembly"""
 
-    # mkdir -p
+    # mkdir -p assembly_trinity
     hp.mkdirp(args.outputdir)
-    hp.mkdirp('assembly')
 
     # perform Trinity assembly
     print('ASSEMBLY START')
@@ -77,6 +76,9 @@ def assembly(args):
     # exit if no output
     hp.check_file_exists_and_nonzero(myoutput)
 
+    # mkdir -p
+    hp.mkdirp('assembly')
+
     # rename Trinity contigs, join sequence portion of fasta, return number of contigs
     # cat ${outputdir}/Trinity.fasta | awk 'BEGIN{f=0; counter=1}{if ($0~/^>/) {if (f) {printf "\n"; counter++}; print ">contig_"counter; f=1} else printf $0}END{printf "\n"}' > ${output}
     myoutput2 = 'assembly/contigs_trinity.fasta'
@@ -87,7 +89,7 @@ def assembly(args):
     computedistrib(myoutput2, 'assembly/contigs.distrib.txt')
 
     if not int(args.noclean):
-        cmd = 'rm -r assembly_trinity'
+        cmd = 'rm -rf assembly_trinity'
         hp.run_cmd(cmd, args.verbose, 0)
 
     print('POST-PROCESSING END')
