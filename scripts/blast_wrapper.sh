@@ -93,12 +93,12 @@ j=$( cat ${input} | paste - - | awk -v cutoff=${lenthreshold} -v dir=${outputdir
 	}
 }END{print counter}' )
 
-echo ${fmt} | sed 's/ /\t/g' > ${outputdir}/header
-
 if [ ${j} -eq 0 ]; then
 	echo "No contigs above "${lenthreshold}". Exiting..."
 	exit
 fi
+
+echo ${fmt} | sed 's/ /\t/g' > ${outputdir}/header
 
 # if qsub
 if [ ${noSGE} -eq 0 ]; then

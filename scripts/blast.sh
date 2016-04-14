@@ -58,7 +58,7 @@ echo "------------------------------------------------------------------"
 echo BLAST ${SGE_TASK_ID} START [[ `date` ]]
 
 # tmp hack
-if [ ${wblast} -eq "blastp" ]; then
+if [ "${wblast}" == "blastp" ]; then
 	wblast=${wblast}" -task blastp-fast"
 fi
 

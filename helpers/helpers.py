@@ -75,7 +75,7 @@ def check_file_exists_and_nonzero(myfile):
                 print(i + " is empty. Exiting")
                 sys.exit(1)
         else:
-            print("Can't find " + i + ". Exiting.")
+            print("Can't find " + i + ". Exiting")
             sys.exit(1)
 
 # -------------------------------------

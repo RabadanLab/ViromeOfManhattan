@@ -193,7 +193,8 @@ def scan_main(args):
                       args.scripts,
                       int(args.noclean))
                   ),
-             '3': ('qsub -N blst', '{}/scripts/blast_wrapper.sh --scripts {} --threshold {} --db {} --id {} --noclean {} --nosge {}'.format(
+             # '3': ('qsub -N blst', '{}/scripts/blast_wrapper.sh --scripts {} --threshold {} --db {} --id {} --noclean {} --nosge {}'.format(
+             '3': ('qsub -S '+ sys.executable + ' -N blst', '{}/scripts/blast_wrapper.py --scripts {} --threshold {} --db {} --id {} --noclean {} --nosge {}'.format(
                       args.scripts,
                       args.scripts,
                       args.contigthreshold,
