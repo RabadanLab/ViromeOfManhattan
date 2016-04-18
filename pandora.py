@@ -90,8 +90,8 @@ def get_arg():
                   (args.gtf, 'gtf', 'Step1'),
                   (args.blastdb, 'blastdb', 'Step3'), 
                   (args.pblastdb, 'pblastdb', 'Step4')]:
-            if not i[0] and i[1] in hp.ConfigSectionMap(Config, i[2]):
-                vars(args)[i[1]] = hp.ConfigSectionMap(Config, i[2])[i[1]]
+            if not i[0] and i[1] in hp.config_section_map(Config, i[2]):
+                vars(args)[i[1]] = hp.config_section_map(Config, i[2])[i[1]]
 
     # print args
     print(args)

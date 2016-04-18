@@ -126,10 +126,7 @@ def blast(args):
         message = subprocess.check_output(qcmd + cmd, shell=True)
         print(message)
         # get job id
-        # message should be like: 'Your job-array 8388982.1-256:1 ("bc_5") has been submitted'
-        #jid = hp.getjid(message)
-        # FIX THIS HACK so it works for all qsub messages - array and non-array jobs alike - and errors (LD_LIB_PATH)
-        jid = message.split()[2].split('.')[0]
+        jid = hp.getjid(message)
 
         # hold the script up here, until all the blast jobs finish
         # concat top blast hits; concat log files into one, so as not to clutter the file system

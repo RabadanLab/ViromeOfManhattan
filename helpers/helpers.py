@@ -36,8 +36,7 @@ def check_dependencies(required_programs):
 
     for j in required_programs:
         if not spawn.find_executable(j):
-            print("[ERROR] Can't find " + j + ". Please add it to your PATH")
-            sys.exit(1)
+            quitwitherror("Can't find " + j + ". Please add it to your PATH")
 
 # -------------------------------------
 
@@ -47,8 +46,7 @@ def check_path(myfile):
     # expanduser handle tilde
     for f in myfile.split(','):
         if not os.path.isfile(os.path.expanduser(f)):
-            print("[ERROR] Can't find the file " + f)
-            sys.exit(1)
+            quitwitherror("Can't find the file " + f)
 
 # -------------------------------------
 
@@ -59,8 +57,7 @@ def check_null(i):
     # ('input', args.input)
 
     if i[1] is None:
-        print("[ERROR] " + i[0] + " must not be null")
-        sys.exit(1)
+        quitwitherror(i[0] + ' must not be null')
 
 # -------------------------------------
 
@@ -72,11 +69,9 @@ def check_file_exists_and_nonzero(myfile):
         # if (os.path.isfile(i)):
         if os.path.isfile(os.path.expanduser(i)):
             if os.path.getsize(os.path.expanduser(i)) == 0:
-                print(i + " is empty. Exiting")
-                sys.exit(1)
+                quitwitherror(i + ' is empty. Exiting')
         else:
-            print("Can't find " + i + ". Exiting")
-            sys.exit(1)
+            quitwitherror("Can't find " + i + ". Exiting")
 
 # -------------------------------------
 
@@ -136,10 +131,37 @@ def run_long_cmd(cmd, bool_verbose, myfile):
 
 # -------------------------------------
 
-def getjid(x):
+def getjid_deprecated(x):
     """Parse out and return SGE job id from string"""
     # Note: the SGE string must look like this: 'Your job 8379811 ("test") has been submitted'
     return x.split('Your job ')[1].split()[0]
+
+# -------------------------------------
+
+def getjid(x):
+    """Parse out and return SGE job id from qsub message"""
+
+    # Note: must be able to accommodate all of the following messages:
+    # Your job 9902111 ("echo") has been submitted
+    # Your job-array 9902162.1-2:1 ("echo") has been submitted
+    # removed environment variable LD_LIBRARY_PATH from submit environment - it is considered a security issue Your job 9902414 ("echo") has been submitted
+
+    jid = ''
+
+    if 'job-array' in x:
+        # get the element after 'job-array', which should be job id, and split on '.'
+        jid = x.split()[x.split().index('job-array') + 1].split('.')[0]
+    elif 'job' in x:
+        # get the element after 'job', which should be job id (this condition has to be 2nd b/c 'job' in 'job-array')
+        jid = x.split()[x.split().index('job') + 1]
+    else:
+        quitwitherror("Can't parse job id")
+
+    # if the job id is not a proper number
+    if not jid.isdigit():
+        quitwitherror("Can't parse job id (not a digit)")
+
+    return jid
 
 # -------------------------------------
 
@@ -203,7 +225,7 @@ def fastasplit(infile, filename, cutoff):
 
 # -------------------------------------
 
-def ConfigSectionMap(Config, section):
+def config_section_map(Config, section):
     """Parse a configuration file and return dict"""
     # https://wiki.python.org/moin/ConfigParserExamples
 
@@ -229,6 +251,14 @@ def mytimer(myfunc):
         print('[step delta t] {} sec'.format(int(time.time() - starttime)))
 
     return mynewfunc
+
+# -------------------------------------
+
+def quitwitherror(message):
+    """quit the program with an error message"""
+
+    print('[ERROR] ' + message)
+    sys.exit(1)
 
 # -------------------------------------
 
