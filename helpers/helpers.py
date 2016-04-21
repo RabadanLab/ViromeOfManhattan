@@ -255,7 +255,7 @@ def mytimer(myfunc):
 # -------------------------------------
 
 def quitwitherror(message):
-    """quit the program with an error message"""
+    """Quit the program with an error message"""
 
     print('[ERROR] ' + message)
     sys.exit(1)
