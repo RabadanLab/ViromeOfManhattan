@@ -83,7 +83,7 @@ def run_cmd(cmd, bool_verbose, bool_getstdout):
         print("[command] " + cmd)
 
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    proc.wait() 
+    proc.wait()
     # print return code
     # print(proc.returncode) 
     # print stdout stderr tuple
@@ -123,7 +123,21 @@ def run_long_cmd(cmd, bool_verbose, myfile):
 
     with open(myfile, 'w') as f:
         proc = subprocess.Popen(cmd, shell=True, stdout=f, stderr=f)
-        proc.wait() 
+        proc.wait()
+
+# -------------------------------------
+
+def run_log_cmd(cmd, bool_verbose, myout, myerr):
+    """Run a system command and save stdout and stderr to logs"""
+
+    # if verbose, print command
+    if bool_verbose:
+        print("[command] " + cmd)
+
+    with open(myout, 'a') as f:
+        with open(myerr, 'a') as g:
+            proc = subprocess.Popen(cmd, shell=True, stdout=f, stderr=g)
+            proc.wait()
 
 # -------------------------------------
 
@@ -218,6 +232,57 @@ def fastasplit(infile, filename, cutoff):
 
     # return counter for contigs above threshold length
     return counter
+
+# -------------------------------------
+
+def getorf(infile, outfile, threshold):
+    """get ORF (open reading frame)"""
+
+    from Bio.Seq import Seq
+
+    # Find ORFs in a fasta file, borrowing from:
+    # http://biopython.org/DIST/docs/tutorial/Tutorial.html#htoc292
+
+    # define amino acid table (see http://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi)
+    # 1. The Standard Code
+    # 2. The Vertebrate Mitochondrial Code
+    # 3. The Yeast Mitochondrial Code
+    # 4. The Mold, Protozoan, and Coelenterate Mitochondrial Code and the Mycoplasma/Spiroplasma Code
+    # etc...
+    table = 1 # standard code
+
+    # important: assume the sequence portion of the fasta is all on one line
+
+    with open(infile, 'r') as g:
+        with open(outfile, 'w') as f:
+            # fasta id
+            id = ''
+            # ORF counter for a given seq id
+            counter = 1
+            for line in g:
+                # parse fasta
+                if line[0] == '>':
+                    # grab id
+                    id = line.rstrip()[1:].replace(' ', '_')
+                    # reset counter
+                    counter = 1
+                else:
+                    # create biopython seq obj
+                    myseq = Seq(line.rstrip())
+                    # http://biopython.org/DIST/docs/tutorial/Tutorial.html#htoc292
+                    for strand, nuc in [(+1, myseq), (-1, myseq.reverse_complement())]:
+                        for frame in range(3):
+                            # the purpose of this line is get a multiple of three
+                            # e.g., 3/3 * 3 = 3 and 4/3 * 3 = 3
+                            length = 3 * ((len(myseq)-frame) // 3)
+                            # split on the stop codon, a '*' character
+                            # don't worry about start codons
+                            for pro in nuc[frame:frame+length].translate(table).split('*'):
+                                if len(pro) >= int(threshold):
+                                    # print fasta entry
+                                    f.write('>%s_ORF%i_len%i_strand%i_frame%i\n' % (id, counter, len(pro), strand, frame))
+                                    f.write(str(pro) + '\n')
+                                    counter += 1
 
 # -------------------------------------
 
