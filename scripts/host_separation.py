@@ -42,6 +42,12 @@ def get_arg():
     global hp
     from helpers import helpers as hp
 
+    # add key-value pairs to the args dict
+    # vars(args)['olog'] = args.outputdir + '/../' + 'log.hostmap.out'
+    # vars(args)['elog'] = args.outputdir + '/../' + 'log.hostmap.err'
+    vars(args)['olog'] = args.outputdir + '/../' + 'log.out'
+    vars(args)['elog'] = args.outputdir + '/../' + 'log.err'
+
     # print args
     print(args)
     print
@@ -112,7 +118,8 @@ def hostsep(args):
         args.outputdir + '/' + 'star_unmapped_2.fastq',
         args.outputdir + '/' + 'bwt2.sam'
     )
-    hp.run_cmd(cmd, args.verbose, 0)
+    # hp.run_cmd(cmd, args.verbose, 0)
+    hp.run_log_cmd(cmd, args.verbose, args.olog, args.elog)
     print('Bowtie2 mapping finished')
 
     print('find unmapped reads')
@@ -138,7 +145,8 @@ def hostsep(args):
             args.outputdir,
             args.outputdir
         )
-        hp.run_cmd(cmd, args.verbose, 0)
+        # hp.run_cmd(cmd, args.verbose, 0)
+        hp.run_log_cmd(cmd, args.verbose, args.olog, args.elog)
         print('featureCounts finished')
 
     # TO DO: make this code more compact
