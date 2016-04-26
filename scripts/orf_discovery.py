@@ -62,13 +62,6 @@ def discovery(args):
 
     # find ORFs
     hp.getorf(args.input, args.outputdir + '/orf.fa', args.threshold)
-    # cmd = '{}/scripts/orf.py -i {} -t {} > {}/orf.fa'.format(
-    #           args.scripts,
-    #           args.input,
-    #           args.threshold,
-    #           args.outputdir
-    # )
-    # hp.run_cmd(cmd, args.verbose, 0)
 
     # check if output exists
     hp.check_file_exists_and_nonzero(args.outputdir + '/orf.fa')
