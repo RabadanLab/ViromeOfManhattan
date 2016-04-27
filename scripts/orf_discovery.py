@@ -7,7 +7,6 @@
 
 import argparse
 import sys
-import subprocess
 
 # This script finds ORFs in the contigs which didn't blast
 
@@ -66,9 +65,12 @@ def discovery(args):
     # check if output exists
     hp.check_file_exists_and_nonzero(args.outputdir + '/orf.fa')
 
-    hp.mkdirp(args.outputdir + '/blast')
-
+    # if blast discovered ORFs
     if args.blast:
+
+        # make directory
+        hp.mkdirp(args.outputdir + '/blast')
+
         # define command: blastp to nr, if blast flag
         cmd = '{}/scripts/blast_wrapper.sh --scripts {} --outputdir {} -i {} --logsdir {} --whichblast {} --threshold {} --db {} --id {} --noclean {}'.format(
                   args.scripts,
