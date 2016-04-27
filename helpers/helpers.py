@@ -36,7 +36,7 @@ def check_dependencies(required_programs):
 
     for j in required_programs:
         if not spawn.find_executable(j):
-            quitwitherror("Can't find " + j + ". Please add it to your PATH")
+            quitwitherror('Can\'t find ' + j + '. Please add it to your PATH')
 
 # -------------------------------------
 
@@ -46,7 +46,21 @@ def check_path(myfile):
     # expanduser handle tilde
     for f in myfile.split(','):
         if not os.path.isfile(os.path.expanduser(f)):
-            quitwitherror("Can't find the file " + f)
+            quitwitherror('Can\'t find the file ' + f)
+
+# -------------------------------------
+
+def check_path_bool(myfile):
+    """Check for the existence of a file"""
+
+    returnvalue = 1
+
+    # expanduser handle tilde
+    for f in myfile.split(','):
+        if not os.path.isfile(os.path.expanduser(f)):
+            returnvalue = 0
+
+    return returnvalue
 
 # -------------------------------------
 
@@ -71,7 +85,7 @@ def check_file_exists_and_nonzero(myfile):
             if os.path.getsize(os.path.expanduser(i)) == 0:
                 quitwitherror(i + ' is empty. Exiting')
         else:
-            quitwitherror("Can't find " + i + ". Exiting")
+            quitwitherror('Can\'t find ' + i + '. Exiting')
 
 # -------------------------------------
 
@@ -80,26 +94,29 @@ def run_cmd(cmd, bool_verbose, bool_getstdout):
 
     # if verbose, print command
     if bool_verbose:
-        print("[command] " + cmd)
+        print('[command] ' + cmd)
 
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     proc.wait()
-    # print return code
-    # print(proc.returncode) 
-    # print stdout stderr tuple
-    # proc.communicate()
 
+    # print return code if not zero
+    if proc.returncode != 0:
+        print('[nonzero error code] ' + str(proc.returncode))
+
+    # stdout stderr tuple
     (stdout, stderr) = proc.communicate()
 
     # if error, print it
     if stderr:
-        print("[stderror] " + stderr),
+        # print('[stderror] ' + stderr),
+        sys.stderr.write('[stderror] ' + stderr)
 
     # return stdout
     if bool_getstdout: 
         return stdout.rstrip()
     else:
-        return "0" # note: this must return a str
+        # note: this must return a str
+        return '0'
 
 # -------------------------------------
 
@@ -119,7 +136,7 @@ def run_long_cmd(cmd, bool_verbose, myfile):
 
     # if verbose, print command
     if bool_verbose:
-        print("[command] " + cmd)
+        print('[command] ' + cmd)
 
     with open(myfile, 'w') as f:
         proc = subprocess.Popen(cmd, shell=True, stdout=f, stderr=f)
@@ -132,7 +149,7 @@ def run_log_cmd(cmd, bool_verbose, myout, myerr):
 
     # if verbose, print command
     if bool_verbose:
-        print("[command] " + cmd)
+        print('[command] ' + cmd)
 
     with open(myout, 'a') as f:
         with open(myerr, 'a') as g:
@@ -169,11 +186,11 @@ def getjid(x):
         # get the element after 'job', which should be job id (this condition has to be 2nd b/c 'job' in 'job-array')
         jid = x.split()[x.split().index('job') + 1]
     else:
-        quitwitherror("Can't parse job id")
+        quitwitherror('Can\'t parse job id')
 
     # if the job id is not a proper number
     if not jid.isdigit():
-        quitwitherror("Can't parse job id (not a digit)")
+        quitwitherror('Can\'t parse job id (not a digit)')
 
     return jid
 
@@ -300,7 +317,7 @@ def config_section_map(Config, section):
         try:
             dict1[option] = Config.get(section, option)
         except:
-            print("exception on %s!" % option)
+            print('exception on %s!' % option)
             dict1[option] = None
     return dict1
 
@@ -322,7 +339,8 @@ def mytimer(myfunc):
 def quitwitherror(message):
     """Quit the program with an error message"""
 
-    print('[ERROR] ' + message)
+    # print('[ERROR] ' + message)
+    sys.stderr.write('[ERROR] ' + message + '\n')
     sys.exit(1)
 
 # -------------------------------------
