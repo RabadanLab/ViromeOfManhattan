@@ -98,10 +98,10 @@ def get_arg():
     print
 
     # error checking
-    if '1' in args.steps and ( (not args.mate1) or (not args.mate2) ):
+    if '1' in args.steps and ((not args.mate1) or (not args.mate2)):
         print('[ERROR] Need --mate1 and --mate2 arguments for Step 1')
         sys.exit(1)
-    if '1' in args.steps and ( (not args.refstar) or (not args.refbowtie) ):
+    if '1' in args.steps and ((not args.refstar) or (not args.refbowtie)):
         print('[ERROR] Need --refstar and --refbowtie arguments for Step 1')
         sys.exit(1)
     if '3' in args.steps and (not args.blastdb):
@@ -145,20 +145,20 @@ def docmd(mytuple, jid, args):
     # if run in the shell without qsub
     if args.noSGE:
         cmd = mytuple[1]
-        # if verbose, print command
-        if args.verbose: print(cmd)
-        subprocess.check_output(cmd, shell=True)
-        return '0'
+        # subprocess.check_output(cmd, shell=True)
+        return(hp.run_cmd(cmd, args.verbose, 0))
     # if run command with SGE qsub
     else:
         # define qsub part of command
         cmd = mytuple[0] + '_' + args.identifier + ' '
         # if not the first command, hold on previous job id
-        if jid > 0: cmd += '-hold_jid ' + jid + ' '
+        if jid > 0:
+            cmd += '-hold_jid ' + jid + ' '
         # define shell (non-qsub) part of command
         cmd += mytuple[1]
         # if verbose, print command
-        if args.verbose: print(cmd)
+        if args.verbose:
+            print(cmd)
         # run command, get job id
 	return hp.getjid(subprocess.check_output(cmd, shell=True))
 
@@ -168,7 +168,8 @@ def scan_main(args):
     """Run pathogen discovery steps"""
 
     # check for errors
-    if not args.noerror: check_error(args)
+    if not args.noerror:
+        check_error(args)
 
     # start with job id set to zero
     jid = 0
@@ -178,7 +179,7 @@ def scan_main(args):
     d = {
              # '1': ('qsub -N hsep', '{}/scripts/host_separation.sh --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --noclean {} --gtf {}'.format(
              # "sys.executable contains full path of the currently running Python interpreter"
-             '1': ('qsub -S '+ sys.executable + ' -N hsep', '{}/scripts/host_separation.py --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --noclean {} --gtf {}'.format(
+             '1': ('qsub -S ' + sys.executable + ' -N hsep', '{}/scripts/host_separation.py --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --noclean {} --gtf {}'.format(
                       args.scripts,
                       args.scripts,
                       args.mate1,
@@ -189,12 +190,12 @@ def scan_main(args):
                       int(args.noclean),
                       args.gtf)
                   ),
-             '2': ('qsub -S '+ sys.executable + ' -N asm', '{}/scripts/assembly.py --scripts {} --noclean {}'.format(
+             '2': ('qsub -S ' + sys.executable + ' -N asm', '{}/scripts/assembly.py --scripts {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
                       int(args.noclean))
                   ),
-             '3': ('qsub -S '+ sys.executable + ' -N blst', '{}/scripts/blast_wrapper.py --scripts {} --threshold {} --db {} --id {} --noclean {} --nosge {}'.format(
+             '3': ('qsub -S ' + sys.executable + ' -N blst', '{}/scripts/blast_wrapper.py --scripts {} --threshold {} --db {} --id {} --noclean {} --nosge {}'.format(
                       args.scripts,
                       args.scripts,
                       args.contigthreshold,
@@ -203,7 +204,7 @@ def scan_main(args):
                       int(args.noclean),
                       int(args.noSGE))
                   ),
-             '4': ('qsub -S '+ sys.executable + ' -N orf', '{}/scripts/orf_discovery.py --scripts {} --id {} --threshold {} --db {} --blast {} --noclean {}'.format(
+             '4': ('qsub -S ' + sys.executable + ' -N orf', '{}/scripts/orf_discovery.py --scripts {} --id {} --threshold {} --db {} --blast {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
                       args.identifier,
@@ -212,7 +213,7 @@ def scan_main(args):
                       int(args.orfblast),
                       int(args.noclean))
                   ),
-             '5': ('qsub -N rep', '{}/scripts/reporting.sh --scripts {} --id {} --blacklist {}'.format(
+             '5': ('qsub -S ' + sys.executable + ' -N rep', '{}/scripts/makereport.py --scripts {} --id {} --blacklist {}'.format(
                       args.scripts,
                       args.scripts,
                       args.identifier,
