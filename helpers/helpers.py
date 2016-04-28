@@ -51,7 +51,7 @@ def check_path(myfile):
 # -------------------------------------
 
 def check_path_bool(myfile):
-    """Check for the existence of a file"""
+    """Check for the existence of a file and return a boolean"""
 
     returnvalue = 1
 
