@@ -72,7 +72,7 @@ def discovery(args):
         hp.mkdirp(args.outputdir + '/blast')
 
         # define command: blastp to nr, if blast flag
-        cmd = '{}/scripts/blast_wrapper.sh --scripts {} --outputdir {} -i {} --logsdir {} --whichblast {} --threshold {} --db {} --id {} --noclean {}'.format(
+        cmd = '{}/scripts/blast_wrapper.py --scripts {} --outputdir {} -i {} --logsdir {} --whichblast {} --threshold {} --db {} --id {} --noclean {}'.format(
                   args.scripts,
                   args.scripts,
                   args.outputdir  + '/blast',

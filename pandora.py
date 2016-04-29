@@ -145,7 +145,6 @@ def docmd(mytuple, jid, args):
     # if run in the shell without qsub
     if args.noSGE:
         cmd = mytuple[1]
-        # subprocess.check_output(cmd, shell=True)
         return(hp.run_cmd(cmd, args.verbose, 0))
     # if run command with SGE qsub
     else:
