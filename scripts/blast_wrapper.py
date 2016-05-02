@@ -27,7 +27,7 @@ def get_arg():
     parser.add_argument('-l', '--logsdir', default='logs_blast', help='the logs directory')
     parser.add_argument('-d', '--scripts', help='the git repository directory')
     parser.add_argument('--noclean', type=int, default=0, help='do not delete temporary intermediate files (default: off)')
-    parser.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
+    parser.add_argument('--verbose', type=int, default=0, help='verbose mode: echo commands, etc (default: off)')
     parser.add_argument('--threshold', type=int, default=0, help='the length threshold')
     parser.add_argument('--db', help='the database prefix')
     parser.add_argument('--whichblast', default='blastn', choices=['blastn', 'blastp'], help='which blast to use (blastn, blastp)')
@@ -40,19 +40,16 @@ def get_arg():
 
     # add key-value pairs to the args dict
     vars(args)['fmt'] = fmt
+    vars(args)['step'] = 'blast_contigs'
 
     # need this to get local modules
     sys.path.append(args.scripts)
     global hp
     from helpers import helpers as hp
 
-    # print args
-    print(args)
-    print
-
     # error checking: exit if previous step produced zero output
     for i in [args.input]:
-        hp.check_file_exists_and_nonzero(i)
+        hp.check_file_exists_and_nonzero(i, step=args.step)
 
     return args
 
@@ -61,8 +58,11 @@ def get_arg():
 def blast(args):
     """Do blast in parallel"""
 
-    print('------------------------------------------------------------------')
-    print('BLAST START')
+    hp.echostep(args.step)
+
+    # print args
+    print(args)
+    print
 
     # mkdir -p 
     hp.mkdirp(args.outputdir)
@@ -145,8 +145,7 @@ def blast(args):
         message = subprocess.check_output(qcmd + cmd, shell=True)
         print(message)
 
-    print('BLAST END')
-    print('------------------------------------------------------------------')
+    hp.echostep(args.step, start=0)
 
 # -------------------------------------
 

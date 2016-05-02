@@ -34,7 +34,7 @@ def get_arg():
     parser.add_argument('--gtf', help='host gene feature gtf')
     parser.add_argument('--noclean', type=int, default=0, help='do not delete temporary intermediate files (default: off)')
     parser.add_argument('--gzip', type=int, default=0, help='input files are gzipped boolean (default: off)')
-    parser.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
+    parser.add_argument('--verbose', type=int, default=0, help='verbose mode: echo commands, etc (default: off)')
     args = parser.parse_args()
 
     # need this to get local modules
@@ -43,18 +43,15 @@ def get_arg():
     from helpers import helpers as hp
 
     # add key-value pairs to the args dict
+    vars(args)['step'] = 'host_separation'
     # vars(args)['olog'] = args.outputdir + '/../' + 'log.hostmap.out'
     # vars(args)['elog'] = args.outputdir + '/../' + 'log.hostmap.err'
     vars(args)['olog'] = args.outputdir + '/../' + 'log.out'
     vars(args)['elog'] = args.outputdir + '/../' + 'log.err'
 
-    # print args
-    print(args)
-    print
-
     # error checking: exit if input empty 
     for i in [args.mate1, args.mate2]:
-        hp.check_file_exists_and_nonzero(i)
+        hp.check_file_exists_and_nonzero(i, step=args.step)
 
     return args
 
@@ -63,8 +60,11 @@ def get_arg():
 def hostsep(args):
     """Separate host reads"""
 
-    print('------------------------------------------------------------------')
-    print('HOST_SEPARATION START')
+    hp.echostep(args.step)
+
+    # print args
+    print(args)
+    print
 
     # mkdir -p 
     hp.mkdirp(args.outputdir)
@@ -174,8 +174,7 @@ def hostsep(args):
         )
         hp.run_cmd(cmd, args.verbose, 0)
 
-    print('HOST_SEPARATION END')
-    print('------------------------------------------------------------------')
+    hp.echostep(args.step, start=0)
 
 # -------------------------------------
 

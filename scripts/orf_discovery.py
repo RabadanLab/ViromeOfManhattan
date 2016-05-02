@@ -33,18 +33,17 @@ def get_arg():
     parser.add_argument('--id', help='id')
     args = parser.parse_args()
 
+    # add key-value pairs to the args dict
+    vars(args)['step'] = 'orf_discovery'
+
     # need this to get local modules
     sys.path.append(args.scripts)
     global hp
     from helpers import helpers as hp
 
-    # print args
-    print(args)
-    print
-
     # error checking: exit if previous step produced zero output
     for i in [args.input]:
-        hp.check_file_exists_and_nonzero(i)
+        hp.check_file_exists_and_nonzero(i, step=args.step)
 
     return args
 
@@ -53,8 +52,11 @@ def get_arg():
 def discovery(args):
     """ORF Discovery"""
 
-    print('------------------------------------------------------------------')
-    print('DISCOVERY START')
+    hp.echostep(args.step)
+
+    # print args
+    print(args)
+    print
 
     # mkdir -p 
     hp.mkdirp(args.outputdir)
@@ -86,8 +88,7 @@ def discovery(args):
         )
         hp.run_cmd(cmd, args.verbose, 0)
 
-    print('DISCOVERY END')
-    print('------------------------------------------------------------------')
+    hp.echostep(args.step, start=0)
 
 # -------------------------------------
 

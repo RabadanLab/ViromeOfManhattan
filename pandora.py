@@ -178,7 +178,7 @@ def scan_main(args):
     d = {
              # '1': ('qsub -N hsep', '{}/scripts/host_separation.sh --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --noclean {} --gtf {}'.format(
              # "sys.executable contains full path of the currently running Python interpreter"
-             '1': ('qsub -S ' + sys.executable + ' -N hsep', '{}/scripts/host_separation.py --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --noclean {} --gtf {}'.format(
+             '1': ('qsub -S ' + sys.executable + ' -N hsep', '{}/scripts/host_separation.py --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --verbose {} --noclean {} --gtf {}'.format(
                       args.scripts,
                       args.scripts,
                       args.mate1,
@@ -186,36 +186,41 @@ def scan_main(args):
                       args.refstar,
                       args.refbowtie,
                       int(args.gzip),
+                      int(args.verbose),
                       int(args.noclean),
                       args.gtf)
                   ),
-             '2': ('qsub -S ' + sys.executable + ' -N asm', '{}/scripts/assembly.py --scripts {} --noclean {}'.format(
+             '2': ('qsub -S ' + sys.executable + ' -N asm', '{}/scripts/assembly.py --scripts {} --verbose {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
+                      int(args.verbose),
                       int(args.noclean))
                   ),
-             '3': ('qsub -S ' + sys.executable + ' -N blst', '{}/scripts/blast_wrapper.py --scripts {} --threshold {} --db {} --id {} --noclean {} --nosge {}'.format(
+             '3': ('qsub -S ' + sys.executable + ' -N blst', '{}/scripts/blast_wrapper.py --scripts {} --threshold {} --db {} --id {} --verbose {} --noclean {} --nosge {}'.format(
                       args.scripts,
                       args.scripts,
                       args.contigthreshold,
                       args.blastdb,
                       args.identifier,
+                      int(args.verbose),
                       int(args.noclean),
                       int(args.noSGE))
                   ),
-             '4': ('qsub -S ' + sys.executable + ' -N orf', '{}/scripts/orf_discovery.py --scripts {} --id {} --threshold {} --db {} --blast {} --noclean {}'.format(
+             '4': ('qsub -S ' + sys.executable + ' -N orf', '{}/scripts/orf_discovery.py --scripts {} --id {} --threshold {} --db {} --blast {} --verbose {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
                       args.identifier,
                       args.orfthreshold,
                       args.pblastdb,
                       int(args.orfblast),
+                      int(args.verbose),
                       int(args.noclean))
                   ),
-             '5': ('qsub -S ' + sys.executable + ' -N rep', '{}/scripts/makereport.py --scripts {} --id {} --blacklist {}'.format(
+             '5': ('qsub -S ' + sys.executable + ' -N rep', '{}/scripts/makereport.py --scripts {} --id {} --verbose {} --blacklist {}'.format(
                       args.scripts,
                       args.scripts,
                       args.identifier,
+                      int(args.verbose),
                       args.blacklist)
                   )
     }

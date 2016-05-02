@@ -75,7 +75,7 @@ def check_null(i):
 
 # -------------------------------------
 
-def check_file_exists_and_nonzero(myfile):
+def check_file_exists_and_nonzero(myfile, step=''):
     """Check for the existence and nonzero-ness of a file"""
 
     # loop through comma-delimited list of files
@@ -83,18 +83,19 @@ def check_file_exists_and_nonzero(myfile):
         # if (os.path.isfile(i)):
         if os.path.isfile(os.path.expanduser(i)):
             if os.path.getsize(os.path.expanduser(i)) == 0:
-                quitwitherror(i + ' is empty. Exiting')
+                quitwitherror(i + ' is empty. Exiting', step=step)
         else:
-            quitwitherror('Can\'t find ' + i + '. Exiting')
+            quitwitherror('Can\'t find ' + i + '. Exiting', step=step)
 
 # -------------------------------------
 
-def run_cmd(cmd, bool_verbose, bool_getstdout):
+def run_cmd(cmd, bool_verbose, bool_getstdout, step=''):
     """Run a system (i.e., shell) command"""
 
     # if verbose, print command
     if bool_verbose:
         print('[command] ' + cmd)
+        sys.stdout.flush()
 
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     proc.wait()
@@ -109,7 +110,7 @@ def run_cmd(cmd, bool_verbose, bool_getstdout):
     # if error, print it
     if stderr:
         # print('[stderror] ' + stderr),
-        sys.stderr.write('[stderror] ' + stderr)
+        sys.stderr.write('[stderror ' + step + '] ' + stderr)
 
     # return stdout
     if bool_getstdout: 
@@ -137,6 +138,7 @@ def run_long_cmd(cmd, bool_verbose, myfile):
     # if verbose, print command
     if bool_verbose:
         print('[command] ' + cmd)
+        sys.stdout.flush()
 
     with open(myfile, 'w') as f:
         proc = subprocess.Popen(cmd, shell=True, stdout=f, stderr=f)
@@ -150,6 +152,7 @@ def run_log_cmd(cmd, bool_verbose, myout, myerr):
     # if verbose, print command
     if bool_verbose:
         print('[command] ' + cmd)
+        sys.stdout.flush()
 
     with open(myout, 'a') as f:
         with open(myerr, 'a') as g:
@@ -336,12 +339,28 @@ def mytimer(myfunc):
 
 # -------------------------------------
 
-def quitwitherror(message):
+def quitwitherror(message, step=''):
     """Quit the program with an error message"""
 
     # print('[ERROR] ' + message)
-    sys.stderr.write('[ERROR] ' + message + '\n')
+    sys.stderr.write('[ERROR ' + step + '] ' + message + '\n')
     sys.exit(1)
+
+# -------------------------------------
+
+def echostep(step, start=1):
+    """Print text to define start or end of a step"""
+
+    if start:
+        print('------------------------------------------------------------------')
+        print(step.upper() + ' START')
+        sys.stderr.write('------------------------------------------------------------------\n')
+        sys.stderr.write(step.upper() + ' START\n')
+    else:
+        print(step.upper() + ' END')
+        print('------------------------------------------------------------------')
+        sys.stderr.write(step.upper() + ' END\n')
+        sys.stderr.write('------------------------------------------------------------------\n')
 
 # -------------------------------------
 

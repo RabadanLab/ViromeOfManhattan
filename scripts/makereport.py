@@ -34,18 +34,17 @@ def get_arg():
     parser.add_argument('--id', required=True, help='sample identifier')
     args = parser.parse_args()
 
+    # add key-value pairs to the args dict
+    vars(args)['step'] = 'reporting'
+
     # need this to get local modules
     sys.path.append(args.scripts)
     global hp
     from helpers import helpers as hp
 
-    # print args
-    print(args)
-    print
-
     # error checking: exit if previous step produced zero output
     for i in [args.input, args.header, args.id2reads]:
-        hp.check_file_exists_and_nonzero(i)
+        hp.check_file_exists_and_nonzero(i, step=args.step)
 
     return args
 
@@ -58,8 +57,11 @@ def makerep(args):
     # Don't want human sequences or anything in the taxid blacklist,
     # which contains non-pathogens
 
-    print('------------------------------------------------------------------')
-    print('REPORTING START')
+    hp.echostep(args.step)
+
+    # print args
+    print(args)
+    print
 
     # mkdir -p
     hp.mkdirp(args.outputdir)
@@ -143,8 +145,7 @@ def makerep(args):
 
     os.remove(args.outputdir + '/blast.topfilter.unsort.txt')
 
-    print('REPORTING END')
-    print('------------------------------------------------------------------')
+    hp.echostep(args.step, start=0)
 
 # -------------------------------------
 

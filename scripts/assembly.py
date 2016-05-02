@@ -29,21 +29,20 @@ def get_arg():
     parser.add_argument('-l', '--logsdir', help='the logs directory')
     parser.add_argument('-d', '--scripts', help='the git repository directory')
     parser.add_argument('--noclean', help='do not delete temporary intermediate files (default: off)')
-    parser.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
+    parser.add_argument('--verbose', type=int, default=0, help='verbose mode: echo commands, etc (default: off)')
     args = parser.parse_args()
+
+    # add key-value pairs to the args dict
+    vars(args)['step'] = 'assembly'
 
     # need this to get local modules
     sys.path.append(args.scripts)
     global hp
     from helpers import helpers as hp
 
-    # print args
-    print(args)
-    print
-
     # error checking: exit if previous step produced zero output
     for i in [args.mate1, args.mate2]:
-        hp.check_file_exists_and_nonzero(i)
+        hp.check_file_exists_and_nonzero(i, step=args.step)
 
     return args
 
@@ -52,12 +51,16 @@ def get_arg():
 def assembly(args):
     """Do Trinity assembly"""
 
+    hp.echostep(args.step)
+
+    # print args
+    print(args)
+    print
+
     # mkdir -p assembly_trinity
     hp.mkdirp(args.outputdir)
 
     # perform Trinity assembly
-    print('------------------------------------------------------------------')
-    print('ASSEMBLY START')
     cmd = 'Trinity --seqType fq --normalize_reads --max_memory {} --CPU {}  --output {} --left {} --right {}'.format(
         args.trinitymem,
         args.trinitycores,
@@ -67,9 +70,8 @@ def assembly(args):
     )
     # use run_long_cmd for programs with verbose output
     hp.run_long_cmd(cmd, args.verbose, 'log.Trinity')
-    print('ASSEMBLY END')
 
-    print('POST-PROCESSING START')
+    print('Trinity complete')
 
     # name of expected output file
     myoutput = args.outputdir + '/Trinity.fasta'
@@ -93,8 +95,7 @@ def assembly(args):
         cmd = 'rm -rf assembly_trinity'
         hp.run_cmd(cmd, args.verbose, 0)
 
-    print('POST-PROCESSING END')
-    print('------------------------------------------------------------------')
+    hp.echostep(args.step, start=0)
 
     # return the name of assembly file
     return myoutput2
@@ -137,8 +138,7 @@ def computedistrib(infile, outfile):
 def remap(args, contigs):
     """map contigs back onto assembly"""
 
-    print('------------------------------------------------------------------')
-    print('REMAP START')
+    hp.echostep('remap')
 
     hp.mkdirp('assembly/ref_remap')
 
@@ -177,8 +177,7 @@ def remap(args, contigs):
         cmd = 'rm assembly/reads2contigs.pileup'
         hp.run_cmd(cmd, args.verbose, 0)
 
-    print('REMAP END')
-    print('------------------------------------------------------------------')
+    hp.echostep('remap', start=0)
 
 # -------------------------------------
 

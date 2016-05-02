@@ -18,7 +18,7 @@ The following programs must be in your `PATH`:
 - [STAR](https://github.com/alexdobin/STAR)
 - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 - [Trinity](https://github.com/trinityrnaseq/trinityrnaseq/wiki)
-- [BLAST](http://www.ncbi.nlm.nih.gov/books/NBK279671/) 2.2.3x
+- [BLAST](http://www.ncbi.nlm.nih.gov/books/NBK279671/) 2.3.x
 - [featureCounts](http://subread.sourceforge.net/) (Subread)
 
 Pandora depends on the following Python modules:
