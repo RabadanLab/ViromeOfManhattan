@@ -37,7 +37,7 @@ cat ${outputdir}/*.fasta > ${outputdir}/above_threshold.fa
 
 # concat blast logs and remove folder
 echo "concatenate blast logs"
-head ${logsdir}/* > ${outputdir}/log.blast
+head -100 ${logsdir}/* > ${outputdir}/log.blast
 rm -rf ${logsdir} 
 
 if [ ${noclean} -eq 0 ]; then
