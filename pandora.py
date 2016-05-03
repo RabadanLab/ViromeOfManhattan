@@ -145,7 +145,8 @@ def main():
 def docmd(myqcmd, mycmd, jid, args):
     """Run a command on the shell or with SGE qsub"""
 
-    # mytuple - a tuple containing (qsub part, shell part) for a given command
+    # myqcmd - qsub portion (or prefix) of the command
+    # mycmd - ordinary shell command
     # jid - job id
     # args - args dict
 
@@ -156,6 +157,7 @@ def docmd(myqcmd, mycmd, jid, args):
     # if run command with SGE qsub
     else:
         # define qsub part of command
+        # "sys.executable contains full path of the currently running Python interpreter"
         cmd = 'qsub -S ' + sys.executable + ' ' + myqcmd + ' '
         # if not the first command, hold on previous job id
         if jid != '0':
@@ -177,9 +179,8 @@ def scan_main(args):
     if not args.noerror:
         check_error(args)
 
-    # dict which maps each step to the qsub part of the command,
+    # dict which maps each step to the qsub part of the command
     q = {
-             # "sys.executable contains full path of the currently running Python interpreter"
              '1': '-N hsep_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=16G,time=12:: -pe smp 4 -R y',
              '2': '-N asm_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=12G,time=12:: -pe smp 8 -R y',
              '3': '-N blst_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=4G,time=8::',
