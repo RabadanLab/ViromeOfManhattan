@@ -80,6 +80,8 @@ def get_arg():
     # add key-value pairs to the args dict
     # directory where this script resides             
     vars(args)['scripts'] = mycwd
+    # qsub parameters
+    vars(args)['qparam'] = {}
 
     # if configuration file specified and option not already supplied by flag, read option in from config file
     if args.config:
@@ -92,6 +94,11 @@ def get_arg():
                   (args.pblastdb, 'pblastdb', 'Step4')]:
             if not i[0] and i[1] in hp.config_section_map(Config, i[2]):
                 vars(args)[i[1]] = hp.config_section_map(Config, i[2])[i[1]]
+
+        # get qsub params from config file, if specified
+        for i in map(str, range(1,6)):
+            if 'qparam' in hp.config_section_map(Config, 'Step' + i):
+                vars(args)['qparam'][i] = hp.config_section_map(Config, 'Step' + i)['qparam']
 
     # print args
     print(args)
@@ -135,7 +142,7 @@ def main():
 
 # -------------------------------------
 
-def docmd(mytuple, jid, args):
+def docmd(myqcmd, mycmd, jid, args):
     """Run a command on the shell or with SGE qsub"""
 
     # mytuple - a tuple containing (qsub part, shell part) for a given command
@@ -144,17 +151,17 @@ def docmd(mytuple, jid, args):
 
     # if run in the shell without qsub
     if args.noSGE:
-        cmd = mytuple[1]
-        return(hp.run_cmd(cmd, args.verbose, 0))
+        print(hp.run_cmd(mycmd, args.verbose, 1))
+        return '0'
     # if run command with SGE qsub
     else:
         # define qsub part of command
-        cmd = mytuple[0] + '_' + args.identifier + ' '
+        cmd = 'qsub -S ' + sys.executable + ' ' + myqcmd + ' '
         # if not the first command, hold on previous job id
-        if jid > 0:
+        if jid != '0':
             cmd += '-hold_jid ' + jid + ' '
         # define shell (non-qsub) part of command
-        cmd += mytuple[1]
+        cmd += mycmd
         # if verbose, print command
         if args.verbose:
             print(cmd)
@@ -170,15 +177,19 @@ def scan_main(args):
     if not args.noerror:
         check_error(args)
 
-    # start with job id set to zero
-    jid = 0
-
-    # dict which maps each step to 2-tuple, which contains the qsub part of the command,
-    # and the shell part of the command
-    d = {
-             # '1': ('qsub -N hsep', '{}/scripts/host_separation.sh --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --noclean {} --gtf {}'.format(
+    # dict which maps each step to the qsub part of the command,
+    q = {
              # "sys.executable contains full path of the currently running Python interpreter"
-             '1': ('qsub -S ' + sys.executable + ' -N hsep', '{}/scripts/host_separation.py --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --verbose {} --noclean {} --gtf {}'.format(
+             '1': '-N hsep_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=16G,time=12:: -pe smp 4 -R y',
+             '2': '-N asm_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=12G,time=12:: -pe smp 8 -R y',
+             '3': '-N blst_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=4G,time=8::',
+             '4': '-N orf_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=2G,time=2::',
+             '5': '-N rep_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=1G,time=1::'
+    }
+
+    # dict which maps each step to the shell part of the command
+    d = {
+             '1': '{}/scripts/host_separation.py --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --verbose {} --noclean {} --gtf {}'.format(
                       args.scripts,
                       args.scripts,
                       args.mate1,
@@ -188,15 +199,13 @@ def scan_main(args):
                       int(args.gzip),
                       int(args.verbose),
                       int(args.noclean),
-                      args.gtf)
-                  ),
-             '2': ('qsub -S ' + sys.executable + ' -N asm', '{}/scripts/assembly.py --scripts {} --verbose {} --noclean {}'.format(
+                      args.gtf),
+             '2': '{}/scripts/assembly.py --scripts {} --verbose {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
                       int(args.verbose),
-                      int(args.noclean))
-                  ),
-             '3': ('qsub -S ' + sys.executable + ' -N blst', '{}/scripts/blast_wrapper.py --scripts {} --threshold {} --db {} --id {} --verbose {} --noclean {} --nosge {}'.format(
+                      int(args.noclean)),
+             '3': '{}/scripts/blast_wrapper.py --scripts {} --threshold {} --db {} --id {} --verbose {} --noclean {} --nosge {}'.format(
                       args.scripts,
                       args.scripts,
                       args.contigthreshold,
@@ -204,9 +213,8 @@ def scan_main(args):
                       args.identifier,
                       int(args.verbose),
                       int(args.noclean),
-                      int(args.noSGE))
-                  ),
-             '4': ('qsub -S ' + sys.executable + ' -N orf', '{}/scripts/orf_discovery.py --scripts {} --id {} --threshold {} --db {} --blast {} --verbose {} --noclean {}'.format(
+                      int(args.noSGE)),
+             '4': '{}/scripts/orf_discovery.py --scripts {} --id {} --threshold {} --db {} --blast {} --verbose {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
                       args.identifier,
@@ -214,21 +222,30 @@ def scan_main(args):
                       args.pblastdb,
                       int(args.orfblast),
                       int(args.verbose),
-                      int(args.noclean))
-                  ),
-             '5': ('qsub -S ' + sys.executable + ' -N rep', '{}/scripts/makereport.py --scripts {} --id {} --verbose {} --blacklist {}'.format(
+                      int(args.noclean)),
+             '5': '{}/scripts/makereport.py --scripts {} --id {} --verbose {} --blacklist {}'.format(
                       args.scripts,
                       args.scripts,
                       args.identifier,
                       int(args.verbose),
                       args.blacklist)
-                  )
     }
+
+    # start with job id set to zero string
+    jid = '0'
 
     # run steps
     for i in args.steps:
-        jid = docmd(d[i], jid, args)
-        print('Step ' + i + ', jid = ' + jid)
+        # if qsub params specified in config file
+        if i in args.qparam:
+            jid = docmd(args.qparam[i], d[i], jid, args)
+        # if not, use default from dict q
+        else:
+            jid = docmd(q[i], d[i], jid, args)
+
+        # only print step name if qsub-ing
+        if not args.noSGE:
+            print('Step ' + i + ', jid = ' + jid)
 
 # -------------------------------------
 

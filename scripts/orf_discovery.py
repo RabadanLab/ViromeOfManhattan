@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-#$ -V
-#$ -cwd
-#$ -o log.out
-#$ -e log.err
-#$ -l mem=2G,time=2::
 
 import argparse
 import sys

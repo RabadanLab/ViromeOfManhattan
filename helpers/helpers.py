@@ -109,8 +109,10 @@ def run_cmd(cmd, bool_verbose, bool_getstdout, step=''):
 
     # if error, print it
     if stderr:
-        # print('[stderror] ' + stderr),
-        sys.stderr.write('[stderror ' + step + '] ' + stderr)
+	if step:
+            sys.stderr.write('[stderror ' + step + '] ' + stderr)
+        else:
+            sys.stderr.write('[stderror] ' + stderr)
 
     # return stdout
     if bool_getstdout: 
@@ -361,6 +363,8 @@ def echostep(step, start=1):
         print('------------------------------------------------------------------')
         sys.stderr.write(step.upper() + ' END\n')
         sys.stderr.write('------------------------------------------------------------------\n')
+
+    sys.stdout.flush()
 
 # -------------------------------------
 

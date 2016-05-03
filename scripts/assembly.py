@@ -1,10 +1,4 @@
 #!/usr/bin/env python
-#$ -V
-#$ -cwd
-#$ -o log.out
-#$ -e log.err
-#$ -l mem=12G,time=12::
-#$ -pe smp 8 -R y
 
 import argparse
 import sys
