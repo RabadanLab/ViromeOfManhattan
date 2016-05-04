@@ -66,6 +66,8 @@ def get_arg():
       step 3: blast contigs, \
       step 4: orf discovery, \
       step 5: reporting (default: 12345 - i.e, steps 1 through 5).')
+    parser_scan.add_argument('--trinitymem', default='50G', help='max memory for Trinity (default: 50G)')
+    parser_scan.add_argument('--trinitycores', default='8', help='number of cores for Trinity (default: 8)')
     parser_scan.set_defaults(which='scan')
 
     # create the parser for the 'aggregate' command
@@ -201,9 +203,11 @@ def scan_main(args):
                       int(args.verbose),
                       int(args.noclean),
                       args.gtf),
-             '2': '{}/scripts/assembly.py --scripts {} --verbose {} --noclean {}'.format(
+             '2': '{}/scripts/assembly.py --scripts {} --trinitymem {} --trinitycores {} --verbose {} --noclean {}'.format(
                       args.scripts,
                       args.scripts,
+                      args.trinitymem,
+                      args.trinitycores,
                       int(args.verbose),
                       int(args.noclean)),
              '3': '{}/scripts/blast_wrapper.py --scripts {} --threshold {} --db {} --id {} --verbose {} --noclean {} --nosge {}'.format(
