@@ -81,7 +81,7 @@ def blast(args):
             logs_out = args.logsdir + '/' + 'bc_' + args.id + '.' + str(i) + '.o'
             logs_err = args.logsdir + '/' + 'bc_' + args.id + '.' + str(i) + '.e'
 	    # define command: run blast in series (this will be slow!)
-            cmd = '{}/scripts/blast.sh --outputdir {} --whichblast {} --db {} --fmt "{}" --sgeid {} > {} 2> {}'.format(
+            cmd = '{}/scripts/blast.py --outputdir {} --whichblast {} --db {} --fmt "{}" --sgeid {} > {} 2> {}'.format(
                       args.scripts,
                       args.outputdir,
                       args.whichblast,
@@ -103,14 +103,15 @@ def blast(args):
         hp.run_cmd(cmd, args.verbose, 0)
     else:
         # qsub part of command (array job)
-        qcmd = 'qsub -N bc_{} -e {} -o {} -t 1-{} '.format(
+        qcmd = 'qsub -S ' + sys.executable + ' -N bc_{} -e {} -o {} -t 1-{} '.format(
                   args.id,
                   args.logsdir,
                   args.logsdir,
                   filecount,
         )
         # regular part of command
-        cmd = '{}/scripts/blast.sh --outputdir {} --whichblast {} --db {} --fmt "{}"'.format(
+        cmd = '{}/scripts/blast.py --scripts {} --outputdir {} --whichblast {} --db {} --fmt "{}"'.format(
+                  args.scripts,
                   args.scripts,
                   args.outputdir,
                   args.whichblast,
@@ -118,6 +119,7 @@ def blast(args):
                   args.fmt
         )
         # print qsub message
+        print(qcmd + cmd)
         message = subprocess.check_output(qcmd + cmd, shell=True)
         print(message)
         # get job id

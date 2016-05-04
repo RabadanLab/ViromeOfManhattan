@@ -52,11 +52,10 @@ def blastnp(args):
 
     hp.echostep(args.step)
 
-    # print(args)
-    # print
-
+    # extra blast flags
     flag = ''
 
+    # if blastp, use blastp-fast
     if args.whichblast == 'blastp':
         flag = '-task blastp-fast'
 
