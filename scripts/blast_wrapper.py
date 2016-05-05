@@ -3,6 +3,9 @@
 import argparse
 import sys
 import subprocess
+import os
+import glob
+import shutil
 
 # This script blasts the entries of a fasta file,
 # provided they're over the length threshold
@@ -118,8 +121,8 @@ def blast(args):
                   args.db,
                   args.fmt
         )
-        # print qsub message
-        print(qcmd + cmd)
+	if args.verbose:
+            print(qcmd + cmd)
         message = subprocess.check_output(qcmd + cmd, shell=True)
         print(message)
         # get job id
@@ -128,21 +131,87 @@ def blast(args):
         # hold the script up here, until all the blast jobs finish
         # concat top blast hits; concat log files into one, so as not to clutter the file system
         # qsub part of command
-        qcmd = 'qsub -N wait_{} -hold_jid {} -sync y '.format(
+        qcmd = 'qsub -V -b y -cwd -o log.out -e log.err -l mem=1G,time=1:: -N wait_{} -hold_jid {} -sync y echo wait_here'.format(
                   args.id,
                   jid
         )
-        # regular part of command
-        cmd = '{}/scripts/concat.sh {} {} {}'.format(
-                  args.scripts,
-                  args.outputdir,
-                  args.logsdir,
-                  int(args.noclean)
-        )
-        message = subprocess.check_output(qcmd + cmd, shell=True)
+        message = subprocess.check_output(qcmd, shell=True)
         print(message)
 
+        # now concatenate blast results
+        concat(args)
+
     hp.echostep(args.step, start=0)
+
+# -------------------------------------
+
+def concat(args):
+    """concatenate blast files and logs, so as not to leave many files messily scattered about"""
+
+    print('CONCATENATE START')
+
+    # ids that didn't blast
+    noblast = []
+
+    # fasta file of entries that didn't blast
+    noblastfile = open(args.outputdir + '/no_blastn.fa', 'w')
+    # file of top blast hits
+    tophitsfile = open(args.outputdir + '/top.concat.txt', 'w')
+    # file of all blast hits
+    allhitsfile = open(args.outputdir + '/concat.txt', 'w')
+    # all fasta entries
+    fastafile = open(args.outputdir + '/above_threshold.fa', 'w')
+
+    # glob blast files
+    files = glob.glob(args.outputdir + '/*.result')
+
+    for f in files: 
+        # get file length
+	cmd = 'cat ' + f + ' | wc -l'
+        len = subprocess.check_output(cmd, shell=True).strip()
+
+        # get the name of the fasta file (remove last 6 characters 'result')
+        g = f[:-6] + 'fasta'
+
+        with open(f, 'r') as h:
+            for line in h:
+                allhitsfile.write(line)
+        with open(g, 'r') as h:
+            for line in h:
+                fastafile.write(line)
+
+	# if length of file is zero
+        if len == '0':
+            noblast.append(os.path.basename(f))
+            # cat ${base}.fasta | sed s/X//g
+            with open(g, 'r') as h:
+                for line in h:
+                    noblastfile.write(line)
+	# else write tophits file
+        else:
+            with open(f, 'r') as h:
+                tophitsfile.write(h.readline())
+
+        if not args.noclean:
+            os.remove(f)
+            os.remove(g)
+
+    noblastfile.close()
+    tophitsfile.close()
+    allhitsfile.close()
+    fastafile.close()
+
+    print('No blast hits for: ' + ' '.join(noblast))
+
+    # concat blast logs and remove folder
+    print('concatenate blast logs')
+    cmd = 'head -100 ' + args.logsdir + '/* > ' + args.outputdir + '/log.blast'
+    hp.run_cmd(cmd, args.verbose, 0)
+
+    if not args.noclean:
+        shutil.rmtree(args.logsdir)
+
+    print('CONCATENATE END')
 
 # -------------------------------------
 

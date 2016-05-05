@@ -81,7 +81,7 @@ def discovery(args):
                   args.id,
                   args.noclean,
         )
-        hp.run_cmd(cmd, args.verbose, 0)
+        hp.run_cmd(cmd, args.verbose, 1)
 
     hp.echostep(args.step, start=0)
 
