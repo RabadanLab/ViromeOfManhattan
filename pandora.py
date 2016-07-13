@@ -47,8 +47,9 @@ def get_arg():
 
     # create the parser for the 'scan' command
     parser_scan = subparsers.add_parser('scan', help='run the pathogen discovery pipeline')
-    parser_scan.add_argument('-r1', '--mate1', help='first RNAseq mate')
-    parser_scan.add_argument('-r2', '--mate2', help='second RNAseq mate')
+    parser_scan.add_argument('-r1', '--mate1', default=None, help='RNA-seq mate 1 fastq input')
+    parser_scan.add_argument('-r2', '--mate2', default=None, help='RNA-seq mate 2 fastq input')
+    parser_scan.add_argument('--bam', default=None, help='bam file input (provide this as an alternative to fastq\'s')
     parser_scan.add_argument('-sr', '--refstar', help='STAR host reference')
     parser_scan.add_argument('-br', '--refbowtie', help='bowtie2 host reference')
     parser_scan.add_argument('-db', '--blastdb', help='blast (nt) database (contigs are the query set)')
@@ -107,8 +108,8 @@ def get_arg():
     print
 
     # error checking
-    if '1' in args.steps and ((not args.mate1) or (not args.mate2)):
-        print('[ERROR] Need --mate1 and --mate2 arguments for Step 1')
+    if '1' in args.steps and not ((args.mate1 and args.mate2) or args.bam):
+        print('[ERROR] Need --mate1 and --mate2 arguments OR --bam argument for Step 1')
         sys.exit(1)
     if '1' in args.steps and ((not args.refstar) or (not args.refbowtie)):
         print('[ERROR] Need --refstar and --refbowtie arguments for Step 1')
@@ -121,6 +122,14 @@ def get_arg():
         sys.exit(1)
     if '4' in args.steps and (not args.orfblast) and args.pblastdb:
         print('[WARNING] --pblastdb argument supplied but boolean --orfblast is off')
+
+    # cast as various bools as ints
+    for name in 'gzip verbose noclean noSGE orfblast'.split():
+        setattr(args, name, int(getattr(args, name, 0)))
+
+    # set bam file to abs path
+    if args.bam: 
+        setattr(args, 'bam', os.path.abspath(os.path.expanduser(args.bam)))
 
     return args
 
@@ -183,57 +192,24 @@ def scan_main(args):
 
     # dict which maps each step to the qsub part of the command
     q = {
-             '1': '-N hsep_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=16G,time=12:: -pe smp 4 -R y',
-             '2': '-N asm_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=12G,time=12:: -pe smp 8 -R y',
-             '3': '-N blst_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=4G,time=8::',
-             '4': '-N orf_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=2G,time=2::',
-             '5': '-N rep_' + args.identifier + ' -V -cwd -o log.out -e log.err -l mem=1G,time=1::'
+             '1': '-N hsep_{args.identifier} -V -cwd -o log.out -e log.err -l mem=16G,time=12:: -pe smp 4 -R y'.format(args=args),
+             '2': '-N asm_{args.identifier} -V -cwd -o log.out -e log.err -l mem=12G,time=12:: -pe smp 8 -R y'.format(args=args),
+             '3': '-N blst_{args.identifier} -V -cwd -o log.out -e log.err -l mem=4G,time=8::'.format(args=args),
+             '4': '-N orf_{args.identifier} -V -cwd -o log.out -e log.err -l mem=2G,time=2::'.format(args=args),
+             '5': '-N rep_{args.identifier} -V -cwd -o log.out -e log.err -l mem=1G,time=1::'.format(args=args)
     }
 
     # dict which maps each step to the shell part of the command
     d = {
-             '1': '{}/scripts/host_separation.py --scripts {} -1 {} -2 {} --refstar {} --refbowtie {} --gzip {} --verbose {} --noclean {} --gtf {}'.format(
-                      args.scripts,
-                      args.scripts,
-                      args.mate1,
-                      args.mate2,
-                      args.refstar,
-                      args.refbowtie,
-                      int(args.gzip),
-                      int(args.verbose),
-                      int(args.noclean),
-                      args.gtf),
-             '2': '{}/scripts/assembly.py --scripts {} --trinitymem {} --trinitycores {} --verbose {} --noclean {}'.format(
-                      args.scripts,
-                      args.scripts,
-                      args.trinitymem,
-                      args.trinitycores,
-                      int(args.verbose),
-                      int(args.noclean)),
-             '3': '{}/scripts/blast_wrapper.py --scripts {} --threshold {} --db {} --id {} --verbose {} --noclean {} --nosge {}'.format(
-                      args.scripts,
-                      args.scripts,
-                      args.contigthreshold,
-                      args.blastdb,
-                      args.identifier,
-                      int(args.verbose),
-                      int(args.noclean),
-                      int(args.noSGE)),
-             '4': '{}/scripts/orf_discovery.py --scripts {} --id {} --threshold {} --db {} --blast {} --verbose {} --noclean {}'.format(
-                      args.scripts,
-                      args.scripts,
-                      args.identifier,
-                      args.orfthreshold,
-                      args.pblastdb,
-                      int(args.orfblast),
-                      int(args.verbose),
-                      int(args.noclean)),
-             '5': '{}/scripts/makereport.py --scripts {} --id {} --verbose {} --blacklist {}'.format(
-                      args.scripts,
-                      args.scripts,
-                      args.identifier,
-                      int(args.verbose),
-                      args.blacklist)
+             '1': '{args.scripts}/scripts/host_separation.py --scripts {args.scripts} -1 {args.mate1} -2 {args.mate2} --bam {args.bam} --refstar {args.refstar} --refbowtie {args.refbowtie} --gzip {args.gzip} --verbose {args.verbose} --noclean {args.noclean} --gtf {args.gtf}'.format(args=args),
+
+             '2': '{args.scripts}/scripts/assembly.py --scripts {args.scripts} --trinitymem {args.trinitymem} --trinitycores {args.trinitycores} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
+
+             '3': '{args.scripts}/scripts/blast_wrapper.py --scripts {args.scripts} --threshold {args.contigthreshold} --db {args.blastdb} --id {args.identifier} --verbose {args.verbose} --noclean {args.noclean} --nosge {args.noSGE}'.format(args=args),
+
+             '4': '{args.scripts}/scripts/orf_discovery.py --scripts {args.scripts} --id {args.identifier} --threshold {args.orfthreshold} --db {args.pblastdb} --blast {args.orfblast} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
+
+             '5': '{args.scripts}/scripts/makereport.py --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist}'.format(args=args)
     }
 
     # start with job id set to zero string
@@ -277,7 +253,7 @@ def check_error(args):
     #hp.check_dependencies(['samtools', 'bam', 'bowtie2', 'STAR', 'blastn', 'Trinity'])
 
     # check for existence of files, if supplied
-    for i in [args.mate1, args.mate2, args.blacklist]:
+    for i in [args.mate1, args.mate2, args.bam, args.blacklist]:
         if i:
             hp.check_path(i)
 
@@ -288,6 +264,12 @@ def check_error(args):
             sys.exit(1)
         elif (args.mate1[-3:] == '.gz' or args.mate2[-3:] == '.gz') and not args.gzip:
             print('[ERROR] Files have .gz extension: use --gzip option')
+            sys.exit(1)
+
+    # check if proper extention
+    if args.bam:
+        if not (args.bam[-4:] == '.bam'):
+            print('[ERROR] For --bam option, files must have .bam extension')
             sys.exit(1)
 
 # -------------------------------------

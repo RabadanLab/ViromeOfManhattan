@@ -77,6 +77,8 @@ def blast(args):
     with open(args.outputdir + '/header', 'w') as f:
         f.write(args.fmt.replace(' ', '\t') + '\n')
 
+    args.noclean = int(args.noclean)
+
     # if no qsub
     if args.nosge:
         for i in range(1,filecount+1):
@@ -84,43 +86,17 @@ def blast(args):
             logs_out = args.logsdir + '/' + 'bc_' + args.id + '.' + str(i) + '.o'
             logs_err = args.logsdir + '/' + 'bc_' + args.id + '.' + str(i) + '.e'
 	    # define command: run blast in series (this will be slow!)
-            cmd = '{}/scripts/blast.py --outputdir {} --whichblast {} --db {} --fmt "{}" --sgeid {} > {} 2> {}'.format(
-                      args.scripts,
-                      args.outputdir,
-                      args.whichblast,
-                      args.db,
-                      args.fmt,
-                      str(i),
-                      logs_out,
-                      logs_err
-            )
+            cmd = '{args.scripts}/scripts/blast.py --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --fmt "{args.fmt}" --sgeid {i} > {o} 2> {e}'.format(args=args, i=str(i), o=logs_out, e=logs_err)
             hp.run_cmd(cmd, args.verbose, 0)
 
         # concatenate results
-        cmd = '{}/scripts/concat.sh {} {} {}'.format(
-                  args.scripts,
-                  args.outputdir,
-                  args.logsdir,
-                  int(args.noclean)
-        )
+        cmd = '{args.scripts}/scripts/concat.sh {args.outputdir} {args.logsdir} {args.noclean}'.format(args=args)
         hp.run_cmd(cmd, args.verbose, 0)
     else:
         # qsub part of command (array job)
-        qcmd = 'qsub -S ' + sys.executable + ' -N bc_{} -e {} -o {} -t 1-{} '.format(
-                  args.id,
-                  args.logsdir,
-                  args.logsdir,
-                  filecount,
-        )
+        qcmd = 'qsub -S {mypython} -N bc_{args.id} -e {args.logsdir} -o {args.logsdir} -t 1-{filecount} '.format(mypython=sys.executable, args=args, filecount=filecount)
         # regular part of command
-        cmd = '{}/scripts/blast.py --scripts {} --outputdir {} --whichblast {} --db {} --fmt "{}"'.format(
-                  args.scripts,
-                  args.scripts,
-                  args.outputdir,
-                  args.whichblast,
-                  args.db,
-                  args.fmt
-        )
+        cmd = '{args.scripts}/scripts/blast.py --scripts {args.scripts} --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --fmt "{args.fmt}"'.format(args=args)
 	if args.verbose:
             print(qcmd + cmd)
         message = subprocess.check_output(qcmd + cmd, shell=True)
@@ -131,10 +107,7 @@ def blast(args):
         # hold the script up here, until all the blast jobs finish
         # concat top blast hits; concat log files into one, so as not to clutter the file system
         # qsub part of command
-        qcmd = 'qsub -V -b y -cwd -o log.out -e log.err -l mem=1G,time=1:: -N wait_{} -hold_jid {} -sync y echo wait_here'.format(
-                  args.id,
-                  jid
-        )
+        qcmd = 'qsub -V -b y -cwd -o log.out -e log.err -l mem=1G,time=1:: -N wait_{args.id} -hold_jid {jid} -sync y echo wait_here'.format(args=args, jid=jid)
         message = subprocess.check_output(qcmd, shell=True)
         print(message)
 
@@ -205,7 +178,7 @@ def concat(args):
 
     # concat blast logs and remove folder
     print('concatenate blast logs')
-    cmd = 'head -100 ' + args.logsdir + '/* > ' + args.outputdir + '/log.blast'
+    cmd = 'head -100 {args.logsdir}/* > {args.outputdir}/log.blast'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
     if not args.noclean:

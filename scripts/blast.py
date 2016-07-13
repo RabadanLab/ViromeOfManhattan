@@ -60,15 +60,7 @@ def blastnp(args):
         flag = '-task blastp-fast'
 
     # do blastn or blastp
-    cmd = '{} -outfmt "6 {}" -query {} -db {} {} > {}/blast_{}.result'.format(
-        args.whichblast,
-        args.fmt,
-        args.input,
-        args.db,
-        flag,
-        args.outputdir,
-        args.sgeid
-    )
+    cmd = '{args.whichblast} -outfmt "6 {args.fmt}" -query {args.input} -db {args.db} {flag} > {args.outputdir}/blast_{args.sgeid}.result'.format(args=args, flag=flag)
     hp.run_cmd(cmd, args.verbose, 0)
 
     hp.echostep(args.step, start=0)

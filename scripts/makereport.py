@@ -132,10 +132,7 @@ def makerep(args):
 
     # sort by staxids then qlen (with bash)
     # careful: you're including the header in the file (make sure it's sorted properly)
-    cmd = 'sort -k5,5n -k6,6nr {} > {}'.format(
-              args.outputdir + '/blast.topfilter.unsort.txt',
-              args.outputdir + '/blast.topfilter.txt',
-    )
+    cmd = 'sort -k5,5n -k6,6nr {args.outputdir}/blast.topfilter.unsort.txt > {args.outputdir}/blast.topfilter.txt'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
     os.remove(args.outputdir + '/blast.topfilter.unsort.txt')
