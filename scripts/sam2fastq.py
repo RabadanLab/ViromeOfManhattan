@@ -50,5 +50,5 @@ with open(fastq1, 'w') as f:
 	    if (( int(flag) & 64 ) >> 6):
                 f.write('@' + id + '/1\n' + myread + '\n' + '+\n' + qual + '\n')
             # else if mate 2 read
-            else:
+	    elif (( int(flag) & 128 ) >> 7):
                 g.write('@' + id + '/2\n' + myread + '\n' + '+\n' + qual + '\n')

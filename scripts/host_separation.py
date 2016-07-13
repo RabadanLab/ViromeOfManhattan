@@ -72,6 +72,8 @@ def hostsep(args):
     cmd = 'samtools flagstat {args.outputdir}/Aligned.out.bam > {args.outputdir}/mapping_stats.txt'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
+    # bin(13) = '0b1101', which corresponds to SAM flag bits:
+    # read paired; read unmapped; mate unmapped
     cmd = 'samtools view -b -f 13 {args.outputdir}/Aligned.out.bam | samtools sort -n - {args.outputdir}/star_unmapped'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
