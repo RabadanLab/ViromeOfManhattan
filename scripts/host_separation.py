@@ -130,7 +130,10 @@ def getunmapped(args):
 
     print('find unmapped reads')
 
-    cmd = 'samtools view {args.bam} | {args.scripts}/scripts/sam2fastq.py {args.outputdir}/unmapped'.format(args=args)
+    cmd = 'samtools view -b -f 13 {args.bam} | samtools sort -n - {args.outputdir}/unmapped'.format(args=args)
+    hp.run_cmd(cmd, args.verbose, 0)
+
+    cmd = 'samtools view {args.outputdir}/unmapped.bam | {args.scripts}/scripts/sam2fastq.py {args.outputdir}/unmapped'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
     # if gtf variable set, get gene coverage
@@ -143,6 +146,11 @@ def getunmapped(args):
     # zip both mates
     for i in ['1', '2']:
         cmd = 'gzip {args.outputdir}/unmapped_{i}.fastq'.format(args=args, i=i)
+        hp.run_cmd(cmd, args.verbose, 0)
+
+    if not args.noclean:
+        print('clean up')
+        cmd = 'rm -rf ' + args.outputdir + '/' + 'unmapped.bam'
         hp.run_cmd(cmd, args.verbose, 0)
 
     hp.echostep(args.step, start=0)
