@@ -12,6 +12,7 @@ import os
 import time
 import ConfigParser
 from distutils import spawn
+from datetime import datetime
 
 # -------------------------------------
 
@@ -358,10 +359,12 @@ def echostep(step, start=1):
         print(step.upper() + ' START')
         sys.stderr.write('------------------------------------------------------------------\n')
         sys.stderr.write(step.upper() + ' START\n')
+        sys.stderr.write(str(datetime.now()) + '\n')
     else:
         print(step.upper() + ' END')
         print('------------------------------------------------------------------')
         sys.stderr.write(step.upper() + ' END\n')
+        sys.stderr.write(str(datetime.now()) + '\n')
         sys.stderr.write('------------------------------------------------------------------\n')
 
     sys.stdout.flush()
