@@ -56,6 +56,10 @@ def get_arg():
 def hostsep(args):
     """Separate host reads"""
 
+    print('Counting input reads')
+    cmd = 'wc -l {args.mate1} > {args.outputdir}/mapping_percent.txt'.format(args=args)
+    hp.run_cmd(cmd, args.verbose, 0)
+
     # flags for STAR
     starflag=''
     # if input files are gzipped
@@ -78,6 +82,9 @@ def hostsep(args):
     hp.run_cmd(cmd, args.verbose, 0)
 
     cmd = 'samtools view {args.outputdir}/star_unmapped.bam | {args.scripts}/scripts/sam2fastq.py {args.outputdir}/star_unmapped'.format(args=args)
+    hp.run_cmd(cmd, args.verbose, 0)
+
+    cmd = 'wc -l {args.outputdir}/star_unmapped_1.fastq >> {args.outputdir}/mapping_percent.txt'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
     print('Bowtie2 mapping commenced')
@@ -118,6 +125,9 @@ def hostsep(args):
 
         cmd = 'gzip {args.outputdir}/unmapped_{i}.fastq'.format(args=args, i=i)
         hp.run_cmd(cmd, args.verbose, 0)
+
+    cmd = 'wc -l {args.outputdir}/unmapped_1.fastq.gz >> {args.outputdir}/mapping_percent.txt'.format(args=args)
+    hp.run_cmd(cmd, args.verbose, 0)
 
     hp.echostep(args.step, start=0)
 
