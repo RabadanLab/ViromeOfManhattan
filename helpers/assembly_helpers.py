@@ -106,6 +106,8 @@ def formatpileup(infile, idxfile, outfile):
 
 if __name__ == "__main__":
 
+    # to execute as a stand-alone script, give the name of the function 
+    # as the first arg, followed by the args to the function
     if sys.argv[1] in globals():
         try:
             globals()[sys.argv[1]](*sys.argv[2:])
