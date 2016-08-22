@@ -373,4 +373,10 @@ def echostep(step, start=1):
 
 if __name__ == "__main__":
 
-    pass
+    if sys.argv[1] in globals():
+        try:
+            globals()[sys.argv[1]](*sys.argv[2:])
+	except:
+            print('Error! Are you sure you\'re using the correct arguments?')
+    else:
+        print('Function not found')

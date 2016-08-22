@@ -63,6 +63,7 @@ Note that options specified as flags take precedence over options specified via 
 **Usage Examples**
 
 ```
+pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --verbose -c pandora.config.txt
 pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --refstar /path/ref/STAR --refbowtie /path/ref/bowtie/hg19 -db /path/ref/blastdb/nt
 ```
 
