@@ -48,10 +48,10 @@ For `scan` step 1, please provide:
 - (optional) a gtf describing the genes of the host
 
 For `scan` step 3, please provide:
-- the BLAST nucleotide collection (nt) database
+- [the BLAST nucleotide collection (nt) database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/)
 
 For `scan` step 4, you can optionally provide:
-- the BLAST protein collection (nr) database
+- [the BLAST protein collection (nr) database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/)
 
 For `scan` step 5, you can optionally provide:
 - a text file of "blacklist" non-pathogen taxids for filtering. If you do not provide one, the script will use `resources/blacklist.txt` by default. This list contains any taxid children of the nodes chordata (Taxonomy ID: 7711) or "other sequences" (Taxonomy ID: 28384)
@@ -63,13 +63,13 @@ Note that options specified as flags take precedence over options specified via 
 **Usage Examples**
 
 ```
-pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --verbose -c pandora.config.txt
+pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --refstar /path/ref/STAR --refbowtie /path/ref/bowtie/hg19 -db /path/ref/blastdb/nt
 ```
 
 Here is an example command using a configuration file:
 
 ```
-pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --refstar /path/ref/STAR --refbowtie /path/ref/bowtie/hg19 -db /path/ref/blastdb/nt
+pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --verbose -c pandora.config.txt
 ```
 
 **Notes**
