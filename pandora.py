@@ -67,7 +67,7 @@ def get_arg():
       step 3: blast contigs, \
       step 4: orf discovery, \
       step 5: reporting (default: 12345 - i.e, steps 1 through 5).')
-    parser_scan.add_argument('--trinitymem', default='50G', help='max memory for Trinity (default: 50G)')
+    parser_scan.add_argument('--trinitymem', default='50', help='max memory for Trinity in gigabytes (default: 50)')
     parser_scan.add_argument('--trinitycores', default='8', help='number of cores for Trinity (default: 8)')
     parser_scan.set_defaults(which='scan')
 

@@ -57,7 +57,7 @@ def assembly(args):
     hp.mkdirp(args.outputdir)
 
     # perform Trinity assembly
-    cmd = 'Trinity --seqType fq --normalize_reads --max_memory {args.trinitymem} --CPU {args.trinitycores} --output {args.outputdir} --left {args.mate1} --right {args.mate2}'.format(args=args)
+    cmd = 'Trinity --seqType fq --normalize_reads --max_memory {args.trinitymem}G --CPU {args.trinitycores} --output {args.outputdir} --left {args.mate1} --right {args.mate2}'.format(args=args)
     # use run_long_cmd for programs with verbose output
     hp.run_long_cmd(cmd, args.verbose, 'log.Trinity')
 
