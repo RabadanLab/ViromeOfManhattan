@@ -17,12 +17,18 @@ def get_arg():
     """
     # parse arguments
 
+    # if SGE_TASK_ID is not defined in the shell, this avoids error
+    try:
+        sgeid_default = os.environ['SGE_TASK_ID']
+    except:
+        sgeid_default = 'undefined'
+
     prog_description = 'A wrapper for blast'
     parser = argparse.ArgumentParser(description=prog_description)
     # parser.add_argument('-i', '--input', help='the input fasta')
     parser.add_argument('-o', '--outputdir', default='blast', help='the output directory')
     parser.add_argument('-d', '--scripts', help='the git repository directory')
-    parser.add_argument('--sgeid', default=os.environ['SGE_TASK_ID'], help='SGE_TASK_ID (set by hand only if qsub is turned off)')
+    parser.add_argument('--sgeid', default=sgeid_default, help='SGE_TASK_ID (set by hand only if qsub is turned off)')
     parser.add_argument('--whichblast', default='blastn', choices=['blastn', 'blastp'], help='which blast to use (blastn, blastp)')
     parser.add_argument('--db', help='the database prefix')
     parser.add_argument('--fmt', help='blast format string')
