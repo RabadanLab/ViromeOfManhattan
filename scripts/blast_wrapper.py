@@ -86,7 +86,7 @@ def blast(args):
             logs_out = args.logsdir + '/' + 'bc_' + args.id + '.' + str(i) + '.o'
             logs_err = args.logsdir + '/' + 'bc_' + args.id + '.' + str(i) + '.e'
 	    # define command: run blast in series (this will be slow!)
-            cmd = '{args.scripts}/scripts/blast.py --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --fmt "{args.fmt}" --sgeid {i} > {o} 2> {e}'.format(args=args, i=str(i), o=logs_out, e=logs_err)
+            cmd = '{args.scripts}/scripts/blast.py --scripts {args.scripts} --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --fmt "{args.fmt}" --sgeid {i} > {o} 2> {e}'.format(args=args, i=str(i), o=logs_out, e=logs_err)
             hp.run_cmd(cmd, args.verbose, 0)
 
         # concatenate results
