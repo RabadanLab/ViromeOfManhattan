@@ -163,7 +163,7 @@ def docmd(myqcmd, mycmd, jid, args):
 
     # if run in the shell without qsub
     if args.noSGE:
-        print(hp.run_cmd(mycmd, args.verbose, 1))
+        print(hp.run_long_cmd(mycmd, args.verbose, 'log.steps'))
         return '0'
     # if run command with SGE qsub
     else:
