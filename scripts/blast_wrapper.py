@@ -90,8 +90,7 @@ def blast(args):
             hp.run_cmd(cmd, args.verbose, 0)
 
         # concatenate results
-        cmd = '{args.scripts}/scripts/concat.sh {args.outputdir} {args.logsdir} {args.noclean}'.format(args=args)
-        hp.run_cmd(cmd, args.verbose, 0)
+        concat(args)
     else:
         # qsub part of command (array job)
         qcmd = 'qsub -S {mypython} -N bc_{args.id} -e {args.logsdir} -o {args.logsdir} -t 1-{filecount} '.format(mypython=sys.executable, args=args, filecount=filecount)
