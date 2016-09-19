@@ -29,6 +29,7 @@ def get_arg():
     parser.add_argument('--threshold', type=int, default=0, help='the length threshold')
     parser.add_argument('--db', help='the database prefix')
     parser.add_argument('--whichblast', default='blastn', choices=['blastn', 'blastp'], help='which blast to use (blastn, blastp)')
+    parser.add_argument('--threads', default='1', help='blast -num_threads option')
     parser.add_argument('--nosge', type=int, default=0, help='no SGE bool')
     parser.add_argument('--id', help='id')
     args = parser.parse_args()
@@ -86,7 +87,7 @@ def blast(args):
             logs_out = args.logsdir + '/' + 'bc_' + args.id + '.' + str(i) + '.o'
             logs_err = args.logsdir + '/' + 'bc_' + args.id + '.' + str(i) + '.e'
 	    # define command: run blast in series (this will be slow!)
-            cmd = '{args.scripts}/scripts/blast.py --scripts {args.scripts} --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --fmt "{args.fmt}" --sgeid {i} > {o} 2> {e}'.format(args=args, i=str(i), o=logs_out, e=logs_err)
+            cmd = '{args.scripts}/scripts/blast.py --scripts {args.scripts} --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --threads {args.threads} --fmt "{args.fmt}" --sgeid {i} > {o} 2> {e}'.format(args=args, i=str(i), o=logs_out, e=logs_err)
             hp.run_cmd(cmd, args.verbose, 0)
 
         # concatenate results
@@ -95,7 +96,7 @@ def blast(args):
         # qsub part of command (array job)
         qcmd = 'qsub -S {mypython} -N bc_{args.id} -e {args.logsdir} -o {args.logsdir} -t 1-{filecount} '.format(mypython=sys.executable, args=args, filecount=filecount)
         # regular part of command
-        cmd = '{args.scripts}/scripts/blast.py --scripts {args.scripts} --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --fmt "{args.fmt}"'.format(args=args)
+        cmd = '{args.scripts}/scripts/blast.py --scripts {args.scripts} --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --threads {args.threads} --fmt "{args.fmt}"'.format(args=args)
 	if args.verbose:
             print(qcmd + cmd)
         message = subprocess.check_output(qcmd + cmd, shell=True)

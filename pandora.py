@@ -53,6 +53,7 @@ def get_arg():
     parser_scan.add_argument('-sr', '--refstar', help='STAR host reference')
     parser_scan.add_argument('-br', '--refbowtie', help='bowtie2 host reference')
     parser_scan.add_argument('-db', '--blastdb', help='blast (nt) database (contigs are the query set)')
+    parser_scan.add_argument('--blast_threads', default='1', help='number of threads for the blast (blast -num_threads) (default: 1)')
     parser_scan.add_argument('-pdb', '--pblastdb', help='blast protein (nr) database (ORFs are the query set)')
     parser_scan.add_argument('-gtf', '--gtf', help='optional host gft for computing gene coverage after host separation')
     parser_scan.add_argument('--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
@@ -205,7 +206,7 @@ def scan_main(args):
 
              '2': '{args.scripts}/scripts/assembly.py --scripts {args.scripts} --trinitymem {args.trinitymem} --trinitycores {args.trinitycores} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
 
-             '3': '{args.scripts}/scripts/blast_wrapper.py --scripts {args.scripts} --threshold {args.contigthreshold} --db {args.blastdb} --id {args.identifier} --verbose {args.verbose} --noclean {args.noclean} --nosge {args.noSGE}'.format(args=args),
+             '3': '{args.scripts}/scripts/blast_wrapper.py --scripts {args.scripts} --threshold {args.contigthreshold} --db {args.blastdb} --threads {args.blast_threads} --id {args.identifier} --verbose {args.verbose} --noclean {args.noclean} --nosge {args.noSGE}'.format(args=args),
 
              '4': '{args.scripts}/scripts/orf_discovery.py --scripts {args.scripts} --id {args.identifier} --threshold {args.orfthreshold} --db {args.pblastdb} --blast {args.orfblast} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
 

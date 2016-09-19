@@ -30,6 +30,7 @@ def get_arg():
     parser.add_argument('-d', '--scripts', help='the git repository directory')
     parser.add_argument('--sgeid', default=sgeid_default, help='SGE_TASK_ID (set by hand only if qsub is turned off)')
     parser.add_argument('--whichblast', default='blastn', choices=['blastn', 'blastp'], help='which blast to use (blastn, blastp)')
+    parser.add_argument('--threads', default='1', help='blast -num_threads option')
     parser.add_argument('--db', help='the database prefix')
     parser.add_argument('--fmt', help='blast format string')
     parser.add_argument('--noclean', type=int, default=0, help='do not delete temporary intermediate files (default: off)')
@@ -66,7 +67,7 @@ def blastnp(args):
         flag = '-task blastp-fast'
 
     # do blastn or blastp
-    cmd = '{args.whichblast} -outfmt "6 {args.fmt}" -query {args.input} -db {args.db} {flag} > {args.outputdir}/blast_{args.sgeid}.result'.format(args=args, flag=flag)
+    cmd = '{args.whichblast} -outfmt "6 {args.fmt}" -query {args.input} -db {args.db} -num_threads {args.threads} {flag} > {args.outputdir}/blast_{args.sgeid}.result'.format(args=args, flag=flag)
     hp.run_cmd(cmd, args.verbose, 0)
 
     hp.echostep(args.step, start=0)
