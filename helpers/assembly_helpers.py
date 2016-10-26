@@ -97,10 +97,10 @@ def formatpileup(infile, idxfile, outfile):
                 # get position (this will become previous position for next iteration)
                 pos = line.split()[1]
 
-    # check if last contig covered until the end
-    if int(idx[myid]) > int(pos):
-        for i in range(int(pos) + 1, int(idx[myid]) + 1):
-            f.write(myid + '\t' + str(i) + '\t0\n')
+        # check if last contig covered until the end
+        if int(idx[myid]) > int(pos):
+            for i in range(int(pos) + 1, int(idx[myid]) + 1):
+                f.write(myid + '\t' + str(i) + '\t0\n')
 
 # -------------------------------------
 
