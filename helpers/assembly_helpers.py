@@ -6,8 +6,18 @@
 """
 
 import sys
+import numpy as np
+import pandas as pd
+from scipy.stats import entropy
 
 # -------------------------------------
+
+def norm_entropy(count_list):
+    count_vector = np.array(count_list)
+    prob_vector = count_vector / float(count_vector.sum())
+    prob_uniform = np.array([1.0/len(prob_vector)] * len(prob_vector))
+    H_norm = entropy(prob_vector) / entropy(prob_uniform)
+    return H_norm 
 
 def computedistrib(infile, outfile):
     """compute simple distribution of contigs"""
