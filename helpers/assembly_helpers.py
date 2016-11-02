@@ -13,6 +13,8 @@ from scipy.stats import entropy
 # -------------------------------------
 
 def norm_entropy(count_list):
+    """compute entropy from coverage"""
+
     count_vector = np.array(count_list)
     prob_vector = count_vector / float(count_vector.sum())
     prob_uniform = np.array([1.0/len(prob_vector)] * len(prob_vector))
@@ -52,8 +54,18 @@ def computedistrib(infile, outfile):
         
 # -------------------------------------
 
-def formatpileup(infile, idxfile, outfile):
-    """format the pileup file for computing entropy"""
+def formatpileup(infile, idxfile, outfile, outfile2):
+    """format the pileup file for computing entropy
+
+       Parameters:
+	   infile: samtools pileup file
+	   idxfile: samtools idx file
+	   outfile: formatted pileup file (with 0s patching the discontinuties)
+	   outfile2: col1=contig, col2=entropy (intuition: high entropy means uniform coverage, low means a cov spike)
+
+       Returns:
+           nothing
+   """
 
     # id 2 length dict (output of samtools idxstats)
     idx = {}
@@ -66,51 +78,70 @@ def formatpileup(infile, idxfile, outfile):
 
     myid = ''    # contig id
     pos = ''    # position
+    coveragelist = []    # a list of the coverages for all positions in the contig
 
-    with open(outfile, 'w') as f:
-        with open(infile, 'r') as g:
-            for line in g:
-                # get number reads 
-                numrds = line.split()[3]
+    with open(outfile, 'w') as f, open(outfile2, 'w') as h, open(infile, 'r') as g:
+        for line in g:
+            # get number reads
+            numrds = line.split()[3]
 
-                # if beginning of a new contig (id != previous id)
-                if line.split()[0] != myid:
-                    # if change (and not first contig), check if previous contig was covered until the end
-                    # if not covered, pad with zeros
-                    if myid: 
-                        if int(idx[myid]) > int(pos): 
-                            for i in range(int(pos) + 1, int(idx[myid]) + 1): 
-                                f.write(myid + '\t' + str(i) + '\t0\n')
- 
-                    # if contig starts at postion > 1, pad with zeros 
-                    if int(line.split()[1]) > 1: 
-                        for i in range(1, int(line.split()[1])): 
-                            f.write(line.split()[0] + '\t' + str(i) + '\t0\n')
+            # if beginning of a new contig (id != previous id)
+            if line.split()[0] != myid:
+                # if change (and not first contig), check if previous contig was covered until the end
+                # if not covered, pad with zeros
+                if myid:
+                    # print previous list
+                    # print(myid + '\t' + str(coveragelist))
+                    # print(myid + '\t' + str(len(coveragelist)))
+                    # print(myid + '\t' + str(norm_entropy(map(int, coveragelist))))
+                    # h.write(myid + '\t' + str(coveragelist) + '\n')
+                    h.write(myid + '\t' + str(norm_entropy(map(int, coveragelist))) + '\n')
+                    # clear coverage list
+                    coveragelist = []
 
-                    # set new id 
-                    myid = line.split()[0]
+                    if int(idx[myid]) > int(pos):
+                        for i in range(int(pos) + 1, int(idx[myid]) + 1):
+                            coveragelist.append('0')
+                            f.write(myid + '\t' + str(i) + '\t0\n')
 
-                    # write current line
-                    f.write(myid + '\t' + line.split()[1] + '\t' + numrds + '\n')
+                # if contig starts at postion > 1, pad with zeros
+                if int(line.split()[1]) > 1:
+                    # coveragelist = [0]*(int(line.split()[1])-1)
+                    for i in range(1, int(line.split()[1])):
+                        coveragelist.append('0')
+                        f.write(line.split()[0] + '\t' + str(i) + '\t0\n')
 
-                # if discontinuity (position - previous position > 1), pad with zeros
-                elif (int(line.split()[1]) - int(pos)) > 1:
-                    for i in range(int(pos) + 1, int(line.split()[1])):
-                        f.write(myid + '\t' + str(i) + '\t0\n')
+                # set new id
+                myid = line.split()[0]
 
-                    f.write(myid + '\t' + line.split()[1] + '\t' + numrds + '\n')
+                # write current line
+                coveragelist.append(numrds)
+                f.write(myid + '\t' + line.split()[1] + '\t' + numrds + '\n')
 
-                # otherwise, simply write line
-                else:
-                    f.write(myid + '\t' + line.split()[1] + '\t' + numrds + '\n')
+            # if discontinuity (position - previous position > 1), pad with zeros
+            elif (int(line.split()[1]) - int(pos)) > 1:
+                for i in range(int(pos) + 1, int(line.split()[1])):
+                    coveragelist.append('0')
+                    f.write(myid + '\t' + str(i) + '\t0\n')
 
-                # get position (this will become previous position for next iteration)
-                pos = line.split()[1]
+                f.write(myid + '\t' + line.split()[1] + '\t' + numrds + '\n')
 
+            # otherwise, simply write line
+            else:
+                coveragelist.append(numrds)
+                f.write(myid + '\t' + line.split()[1] + '\t' + numrds + '\n')
+
+            # get position (this will become previous position for next iteration)
+            pos = line.split()[1]
+
+        # deal with last contig
         # check if last contig covered until the end
         if int(idx[myid]) > int(pos):
             for i in range(int(pos) + 1, int(idx[myid]) + 1):
+                coveragelist.append('0')
                 f.write(myid + '\t' + str(i) + '\t0\n')
+        # print(myid + '\t' + str(norm_entropy(map(int, coveragelist))))
+        h.write(myid + '\t' + str(norm_entropy(map(int, coveragelist))) + '\n')
 
 # -------------------------------------
 

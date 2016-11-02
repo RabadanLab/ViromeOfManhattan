@@ -126,7 +126,7 @@ def remap(args, contigs):
     hp.run_cmd(cmd, args.verbose, 0)
 
     # format pileup file - i.e., add zeros to uncovered positions
-    ahp.formatpileup('assembly/reads2contigs.pileup', 'assembly/reads2contigs.stats.txt', 'assembly/reads2contigs.format.pileup')
+    ahp.formatpileup('assembly/reads2contigs.pileup', 'assembly/reads2contigs.stats.txt', 'assembly/reads2contigs.format.pileup', 'assembly/reads2contigs.entropy')
 
     if not int(args.noclean):
         cmd = 'rm -r assembly/ref_remap'
