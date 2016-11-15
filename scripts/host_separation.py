@@ -56,15 +56,20 @@ def get_arg():
 def hostsep(args):
     """Separate host reads"""
 
-    print('Counting input reads')
-    cmd = 'wc -l {args.mate1} > {args.outputdir}/mapping_percent.txt'.format(args=args)
-    hp.run_cmd(cmd, args.verbose, 0)
-
     # flags for STAR
     starflag=''
+    # pipe into gunzip
+    gunzip_pipe = ''
     # if input files are gzipped
     if args.gzip: 
         starflag='--readFilesCommand zcat'
+        gunzip_pipe = 'gunzip |'
+
+    print('Counting input reads')
+    cmd = 'cat {args.mate1} | {gunzip_pipe} wc -l | tr "\n" " " > {args.outputdir}/mapping_percent.txt'.format(args=args, gunzip_pipe=gunzip_pipe)
+    hp.run_cmd(cmd, args.verbose, 0)
+    cmd = 'echo {args.mate1} >> {args.outputdir}/mapping_percent.txt'.format(args=args)
+    hp.run_cmd(cmd, args.verbose, 0)
 
     print('STAR mapping commenced')
     cmd = 'STAR --runThreadN {args.numthreads} --genomeDir {args.refstar} --readFilesIn {args.mate1} {args.mate2} --outFileNamePrefix {args.outputdir}/ --outSAMtype BAM Unsorted --outSAMunmapped Within {starflag}'.format(args=args, starflag=starflag)
@@ -112,11 +117,14 @@ def hostsep(args):
     # TO DO: make this code more compact
     if not args.noclean:
         print('clean up')
-        cmd = 'rm -rf ' + args.outputdir + '/' + '_STARtmp'
+        cmd = 'rm -rf {args.outputdir}/_STARtmp'.format(args=args)
         hp.run_cmd(cmd, args.verbose, 0)
         for i in ['Aligned.out.bam', 'Log.*', 'SJ.out.tab', 'star_unmapped.bam', 'star_unmapped_*.fastq', 'bwt2.sam', 'bwt2_unmapped.bam']:
             cmd = 'rm {args.outputdir}/{i}'.format(args=args, i=i)
             hp.run_cmd(cmd, args.verbose, 0)
+
+    cmd = 'wc -l {args.outputdir}/bwt2_unmapped_1.fastq >> {args.outputdir}/mapping_percent.txt'.format(args=args)
+    hp.run_cmd(cmd, args.verbose, 0)
 
     # rename and zip both mates
     for i in ['1', '2']:
@@ -125,9 +133,6 @@ def hostsep(args):
 
         cmd = 'gzip {args.outputdir}/unmapped_{i}.fastq'.format(args=args, i=i)
         hp.run_cmd(cmd, args.verbose, 0)
-
-    cmd = 'wc -l {args.outputdir}/unmapped_1.fastq.gz >> {args.outputdir}/mapping_percent.txt'.format(args=args)
-    hp.run_cmd(cmd, args.verbose, 0)
 
     hp.echostep(args.step, start=0)
 
