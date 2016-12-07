@@ -14,7 +14,7 @@ As input, Pandora takes paired fastq files; as output, it produces a report.
 The following programs must be in your `PATH`:
 
 - python 2.7.x
-- [Samtools](http://www.htslib.org/)
+- [Samtools](http://www.htslib.org/) 1.2 (*note*: samtools 1.3 is not yet supported)
 - [STAR](https://github.com/alexdobin/STAR)
 - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 - [Trinity](https://github.com/trinityrnaseq/trinityrnaseq/wiki)
