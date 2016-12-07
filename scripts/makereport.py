@@ -3,6 +3,7 @@
 import argparse
 import sys
 import os
+import collections
 
 # This script generates the report
 
@@ -21,6 +22,8 @@ def get_arg():
     parser.add_argument('-o', '--outputdir', default='report', help='the output directory')
     parser.add_argument('-l', '--logsdir', help='the logs directory')
     parser.add_argument('-d', '--scripts', help='the git repository directory')
+    parser.add_argument('--contigreport', default='report.contig.txt', help='name of the contig report (default: report.contig.txt)')
+    parser.add_argument('--taxonreport', default='report.taxon.txt', help='name of the taxon report (default: report.taxon.txt)')
     parser.add_argument('--header', default='blast/header', help='the blast header file')
     parser.add_argument('--id2reads', default='assembly/reads2contigs.stats.txt', help='the output file of samtools idxstats mapping ids to #reads')
     parser.add_argument('--blacklist', help='the file of blacklist taxids')
@@ -71,8 +74,10 @@ def makerep(args):
     filterlist = []
     # header
     header = []
-    # id 2 reads dict (output of samtools idxstats)
+    # id 2 #reads dict (output of samtools idxstats)
     idx = {}
+    # a dictionary to map taxon to sum of uniq reads, longest contig id, longest contig length, number of contigs
+    taxonstats = collections.defaultdict(dict)
 
     # load blacklist if supplied
     if args.blacklist:
@@ -101,41 +106,67 @@ def makerep(args):
     # get index of taxid, qseqid:
     taxidindex = myfields.index('staxids')
     qseqidindex = myfields.index('qseqid')
+    qlenindex = myfields.index('qlen')
 
-    # list of files
+    # list of input files
     myfiles = [args.input]
+    # if there's a valid file produced by the ORF discovery step, examine that file also
     if hp.check_path_bool(args.input2):
         myfiles.append(args.input2)
 
+    # write file keyed on contig
     with open(args.outputdir + '/blast.topfilter.unsort.txt', 'w') as f:
         # print header:
         f.write('sampleid\t' + '\t'.join(myfields) + '\tnum_reads\n')
-        # loop through inputs
+        # loop through inputs (blast, ORF discovery)
         for myfile in myfiles:
             with open(myfile, 'r') as g:
                 for line in g:
                     # don't want lines with predicted (as opposed to real) genes
-                    if not 'PREDICTED' in line:
-                        # get desired fields
-                        fields = [line.split('\t')[i].strip() for i in myindicies]
-                        taxid = fields[taxidindex]
-                        qseqid = fields[qseqidindex]
-                        # get read counts
-                        readcounts = '-'
-                        if qseqid in idx:
-                            readcounts = idx[qseqid]
-                        # bypass human taxids
-                        if taxid == humantaxid:
-                            pass
-                        elif taxid not in filterlist:
-                            f.write(args.id + '\t' + '\t'.join(fields) + '\t' + readcounts + '\n')
+                    if 'PREDICTED' in line:
+                        continue
+                    # get desired fields
+                    fields = [line.split('\t')[i].strip() for i in myindicies]
+                    taxid = fields[taxidindex]
+                    qseqid = fields[qseqidindex]
+                    qlen = fields[qlenindex]
+                    # bypass human taxids or specifically filtered taxids
+                    if taxid == humantaxid or taxid in filterlist:
+                        continue
+                    # multiple taxids not supported
+                    if ';' in taxid:
+                        print('[WARNING] semicolon detected: multiple taxids not supported')
+                    # get read counts
+                    readcounts = '-'
+                    if qseqid in idx:
+                        readcounts = idx[qseqid]
+                    # write to file
+                    f.write(args.id + '\t' + '\t'.join(fields) + '\t' + readcounts + '\n')
+                    # set taxonstats dictionary
+                    taxonstats[taxid]['num'] = taxonstats[taxid].get('num', 0) + 1
+                    taxonstats[taxid]['longest'] = qseqid
+                    taxonstats[taxid]['longestlength'] = max(taxonstats[taxid].get('longestlength', 0), int(qlen))
+                    if not readcounts == '-':
+                        taxonstats[taxid]['sum'] = taxonstats[taxid].get('sum', 0) + int(readcounts)
 
     # sort by staxids then qlen (with bash)
     # careful: you're including the header in the file (make sure it's sorted properly)
-    cmd = 'sort -k5,5n -k6,6nr {args.outputdir}/blast.topfilter.unsort.txt > {args.outputdir}/blast.topfilter.txt'.format(args=args)
+    cmd = 'sort -k5,5n -k6,6nr {args.outputdir}/blast.topfilter.unsort.txt > {args.outputdir}/{args.contigreport}'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
-    os.remove(args.outputdir + '/blast.topfilter.unsort.txt')
+    # write file keyed on taxon
+    with open(args.outputdir + '/' + args.taxonreport, 'w') as f:
+        # print header:
+        f.write('sampleid\ttaxid\tsum_reads\tnum_contigs\tid_longest_contig\tlen_longest_contig\n')
+        for taxid in taxonstats:
+            mytaxonattributes = [str(taxonstats[taxid]['sum']), str(taxonstats[taxid]['num']), taxonstats[taxid]['longest'], str(taxonstats[taxid]['longestlength'])]
+            f.write(args.id + '\t' + taxid + '\t' + '\t'.join(mytaxonattributes) + '\n')
+
+#    if args.verbose:
+#        print(dict(taxonstats))
+
+    if not args.noclean:
+        os.remove(args.outputdir + '/blast.topfilter.unsort.txt')
 
     hp.echostep(args.step, start=0)
 
