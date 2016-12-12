@@ -10,7 +10,8 @@ import collections
 # -------------------------------------
 
 def get_arg():
-    """Get Arguments
+    """
+    Get Arguments
     :rtype: object
     """
 
@@ -51,7 +52,7 @@ def get_arg():
 def get_reads_mapped_to_host(args):
     """
     Get the total number of reads properly mapped to host
-    return value: number of reads (int)
+    :rtype: int (number of reads)
     """
 
     num_reads_to_host = 0
@@ -159,9 +160,7 @@ def makerep(args):
                     if ';' in taxid:
                         print('[WARNING] semicolon detected: multiple taxids not supported')
                     # get read counts
-                    readcounts = '-'
-                    if qseqid in idx:
-                        readcounts = idx[qseqid]
+                    readcounts = idx.get(qseqid, '-')
                     # write to file
                     f.write(args.id + '\t' + '\t'.join(fields) + '\t' + readcounts + '\n')
                     # set taxonstats dictionary
