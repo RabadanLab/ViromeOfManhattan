@@ -24,6 +24,7 @@ The following programs must be in your `PATH`:
 Pandora depends on the following Python modules:
 
 - [Biopython](http://biopython.org/wiki/Main_Page)
+- [Pandas](http://pandas.pydata.org/)
 
 **Workflow**
 
@@ -55,6 +56,7 @@ For `scan` step 4, you can optionally provide:
 
 For `scan` step 5, you can optionally provide:
 - a text file of "blacklist" non-pathogen taxids for filtering. If you do not provide one, the script will use `resources/blacklist.txt` by default. This list contains any taxid children of the nodes chordata (Taxonomy ID: 7711) or "other sequences" (Taxonomy ID: 28384)
+- the names.dmp file mapping taxID to names from [ncbi](ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz)
 
 Because there are a considerable number of files involved, you can specify their paths with a configuration file instead of command line flags.
 See `pandora.config.txt` for example formatting.
@@ -63,7 +65,7 @@ Note that options specified as flags take precedence over options specified via 
 **Usage Examples**
 
 ```
-pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --refstar /path/ref/STAR --refbowtie /path/ref/bowtie/hg19 -db /path/ref/blastdb/nt
+pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --refstar /path/ref/STAR --refbowtie /path/ref/bowtie/hg19 -db /path/ref/blastdb/nt --taxid2names /path/names.dmp
 ```
 
 Here is an example command using a configuration file:
