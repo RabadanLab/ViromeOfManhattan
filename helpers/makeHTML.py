@@ -46,7 +46,7 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
     donutString = ""
     for i in range(0,len(df.index)):
         df['name'][i] = nameDump[(nameDump[0] == df['taxID'][i]) & (nameDump[3] == 'scientific name')][[1]].to_string(header=False,index=False)
-        temp = "{y:"+df['RPMH'][i].astype(str)+",label:'"+df['name'][i]+" - '},"
+        temp = "{y:"+df['RPMH'][i].astype(str)+",label:'"+df['name'][i]+" -'},"
         df['taxID'][i] = '<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id='+ str(df['taxID'][i]) +'">'+str(df['taxID'][i])+'</a>'
         donutString=donutString+temp
     donutString=donutString.rstrip(',')
@@ -63,7 +63,7 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
         <head >
             <style>
                 h1,h2,table{
-                    font-family: "Arial";
+                    font-family: "Open Sans","Arial",sans-serif;
                     color:#3C3C3C;
                 }
                 h1{
@@ -72,6 +72,11 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
                 h2{
                     font-size: 28px;
                     padding-left: 5px;
+                    margin-bottom: 5px;
+                }
+                body{
+                    margin-left: 50px;
+                    margin-right:50px;
                 }
                 tr:hover{
                     background-color:#f5f5f5;
@@ -89,11 +94,12 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
                     padding-left:10px;
                 }
             </style>
-            <script type="text/javascript">'''\
-            + canvasString + '''
-            </script>
+            <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
             <script type="text/javascript">'''\
             + jqueryString + '''
+            </script>
+            <script type="text/javascript">'''\
+            + canvasString + '''
             </script>
             <script type="text/javascript">'''\
             + datatablesString + '''
@@ -117,11 +123,6 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
                     var chart = new CanvasJS.Chart(
                         "chartContainer",
                         {
-                            title:{
-                                text: "Pathogen Abundance",
-                                verticalAlign: 'top',
-                                horizontalAlign: 'left'
-                            },
                                     animationEnabled: true,
                             data: [
                             {        
@@ -143,7 +144,8 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
         </head>
         <body>
             <h1>PANDORA Scan - "''' + sampleID +'''"</h1>
-                <div id="chartContainer" style="height: 400px; width: 100%;"></div>
+            <h2>Pathogen Abundance</h2>
+            <div id="chartContainer" style="height: 400px; width: 100%;"></div>
             <h2>Results</h2>
             <div class="tablediv">
             '''+ tableString +'''
@@ -152,5 +154,5 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
     </html>'''
     
     #write to html file
-    with open(outputLoc+'/dataviz.html', 'w') as f:
+    with open(outputLoc+'/report.taxon.html', 'w') as f:
         f.write(htmloutput)
