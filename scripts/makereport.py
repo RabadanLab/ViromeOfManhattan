@@ -202,14 +202,14 @@ def makerep(args):
             f.write(args.id + '\t' + taxid + '\t' + '\t'.join(mytaxonattributes) + '\n')
     
     # geneate and write html report
-    if args.taxid2names:
+    if args.taxid2names != 'None':
         makeHTML.generateHTML(
             args.outputdir + '/' + args.taxonreport,
             args.scripts,
             args.taxid2names,
             args.outputdir)
     else: 
-        print('[WARNING] missing taxID to names file names.dmp. HTML report will not be generated.')
+        print('[WARNING] missing names.dmp, the file mapping taxids to names. HTML report will not be generated.')
     
 #    if args.verbose:
 #        print(dict(taxonstats))

@@ -52,7 +52,7 @@ def get_arg():
     parser_scan.add_argument('--bam', default=None, help='bam file input (provide this as an alternative to fastq\'s')
     parser_scan.add_argument('-sr', '--refstar', help='STAR host reference')
     parser_scan.add_argument('-br', '--refbowtie', help='bowtie2 host reference')
-    parser_scan.add_argument('--taxid2names', help='location of .dmp file mapping taxid to names')
+    parser_scan.add_argument('--taxid2names', default=None, help='location of names.dmp file mapping taxid to names')
     parser_scan.add_argument('-db', '--blastdb', help='blast (nt) database (contigs are the query set)')
     parser_scan.add_argument('--blast_threads', default='1', help='number of threads for the blast (blast -num_threads) (default: 1)')
     parser_scan.add_argument('-pdb', '--pblastdb', help='blast protein (nr) database (ORFs are the query set)')
@@ -96,7 +96,8 @@ def get_arg():
                   (args.refbowtie, 'refbowtie', 'Step1'), 
                   (args.gtf, 'gtf', 'Step1'),
                   (args.blastdb, 'blastdb', 'Step3'), 
-                  (args.pblastdb, 'pblastdb', 'Step4')]:
+                  (args.pblastdb, 'pblastdb', 'Step4'),
+                  (args.taxid2names, 'taxid2names', 'Step5')]:
             if not i[0] and i[1] in hp.config_section_map(Config, i[2]):
                 vars(args)[i[1]] = hp.config_section_map(Config, i[2])[i[1]]
 
