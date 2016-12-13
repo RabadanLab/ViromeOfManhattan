@@ -26,6 +26,7 @@ def get_arg():
     parser.add_argument('--taxonreport', default='report.taxon.txt', help='name of the taxon report (default: report.taxon.txt)')
     parser.add_argument('--header', default='blast/header', help='the blast header file')
     parser.add_argument('--id2reads', default='assembly/reads2contigs.stats.txt', help='the output file of samtools idxstats mapping ids to #reads')
+    parser.add_argument('--taxid2names', help='location of .dmp file mapping taxid to names')
     parser.add_argument('--blacklist', help='the file of blacklist taxids')
     parser.add_argument('--noclean', type=int, default=0, help='do not delete temporary intermediate files (default: off)')
     parser.add_argument('--verbose', type=int, default=0, help='verbose mode: echo commands, etc (default: off)')
@@ -38,7 +39,9 @@ def get_arg():
     # need this to get local modules
     sys.path.append(args.scripts)
     global hp
+    global makeHTML
     from helpers import helpers as hp
+    from helpers import makeHTML
 
     # error checking: exit if previous step produced zero output
     for i in [args.input, args.header, args.id2reads]:
@@ -161,7 +164,18 @@ def makerep(args):
         for taxid in taxonstats:
             mytaxonattributes = [str(taxonstats[taxid]['sum']), str(taxonstats[taxid]['num']), taxonstats[taxid]['longest'], str(taxonstats[taxid]['longestlength'])]
             f.write(args.id + '\t' + taxid + '\t' + '\t'.join(mytaxonattributes) + '\n')
-
+    
+    # geneate and write html report
+    try:
+        if args.taxid2names:
+            makeHTML.generateHTML(
+                args.outputdir + '/' + args.taxonreport,
+                args.scripts,
+                args.taxid2names,
+                args.outputdir)
+    except:
+        print('[WARNING] missing taxID to names file names.dmp. HTML report will not be generated.')
+    
 #    if args.verbose:
 #        print(dict(taxonstats))
 
