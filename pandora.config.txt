@@ -12,3 +12,4 @@ blastdb=/path/to/nucleotide-blast/nt-prefix
 pblastdb=/path/to/protein-blast/nr-prefix 
 
 [Step5]
+taxid2names=/path/to/names.dmp
