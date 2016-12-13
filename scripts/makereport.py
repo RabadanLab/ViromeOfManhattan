@@ -10,7 +10,8 @@ import collections
 # -------------------------------------
 
 def get_arg():
-    """Get Arguments
+    """
+    Get Arguments
     :rtype: object
     """
 
@@ -26,7 +27,7 @@ def get_arg():
     parser.add_argument('--taxonreport', default='report.taxon.txt', help='name of the taxon report (default: report.taxon.txt)')
     parser.add_argument('--header', default='blast/header', help='the blast header file')
     parser.add_argument('--id2reads', default='assembly/reads2contigs.stats.txt', help='the output file of samtools idxstats mapping ids to #reads')
-    parser.add_argument('--taxid2names', help='location of .dmp file mapping taxid to names')
+    parser.add_argument('--taxid2names', help='location of names.dmp file mapping taxid to names')
     parser.add_argument('--blacklist', help='the file of blacklist taxids')
     parser.add_argument('--noclean', type=int, default=0, help='do not delete temporary intermediate files (default: off)')
     parser.add_argument('--verbose', type=int, default=0, help='verbose mode: echo commands, etc (default: off)')
@@ -51,8 +52,30 @@ def get_arg():
 
 # -------------------------------------
 
+def get_reads_mapped_to_host(args):
+    """
+    Get the total number of reads properly mapped to host
+    :rtype: int (number of reads)
+    """
+
+    num_reads_to_host = 0
+
+    for myfile in ['host_separation/mapping_stats.STAR.txt', 'host_separation/mapping_stats.bwt.txt']:
+        try:
+            with open(myfile, 'r') as f:
+                contents = f.read()
+            # trying to parse lines that look like this: "115056674 + 0 mapped (80.95%:-nan%)"
+            # assume that the first occurrence of the word 'mapped' is the line we want
+            num_reads_to_host += int([i for i in contents.split('\n') if 'mapped' in i][0].split()[0])
+        except:
+            print('[Error] Can\'t find flagstat file')
+
+    return num_reads_to_host
+
 def makerep(args):
-    """Make report"""
+    """
+    Make report
+    """
 
     # The goal of this function is to filter blast results based on taxid
     # Don't want human sequences or anything in the taxid blacklist,
@@ -140,9 +163,7 @@ def makerep(args):
                     if ';' in taxid:
                         print('[WARNING] semicolon detected: multiple taxids not supported')
                     # get read counts
-                    readcounts = '-'
-                    if qseqid in idx:
-                        readcounts = idx[qseqid]
+                    readcounts = idx.get(qseqid, '-')
                     # write to file
                     f.write(args.id + '\t' + '\t'.join(fields) + '\t' + readcounts + '\n')
                     # set taxonstats dictionary
@@ -157,24 +178,38 @@ def makerep(args):
     cmd = 'sort -k5,5n -k6,6nr {args.outputdir}/blast.topfilter.unsort.txt > {args.outputdir}/{args.contigreport}'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
+    # get num reads to host
+    num_reads_to_host = get_reads_mapped_to_host(args)
+    if args.verbose:
+        print('Number of reads properly mapped to host: {reads}'.format(reads=num_reads_to_host))
+#       print(dict(taxonstats))
+
     # write file keyed on taxon
     with open(args.outputdir + '/' + args.taxonreport, 'w') as f:
         # print header:
-        f.write('sampleid\ttaxid\tsum_reads\tnum_contigs\tid_longest_contig\tlen_longest_contig\n')
+        f.write('sampleid\ttaxid\tsum_reads\tnum_contigs\tid_longest_contig\tlen_longest_contig\tpathogen_reads/(host_reads/10^6)\n')
         for taxid in taxonstats:
-            mytaxonattributes = [str(taxonstats[taxid]['sum']), str(taxonstats[taxid]['num']), taxonstats[taxid]['longest'], str(taxonstats[taxid]['longestlength'])]
+            # pathogen reads / host reads
+	    sumdivhost = '-'
+            # if num_reads_to_host nonzero
+            if num_reads_to_host:
+                sumdivhost = str(round(1000000*taxonstats[taxid]['sum']/float(num_reads_to_host),2))
+            mytaxonattributes = [str(taxonstats[taxid]['sum']),
+                                 str(taxonstats[taxid]['num']),
+                                 taxonstats[taxid]['longest'],
+                                 str(taxonstats[taxid]['longestlength']),
+                                 sumdivhost]
             f.write(args.id + '\t' + taxid + '\t' + '\t'.join(mytaxonattributes) + '\n')
     
     # geneate and write html report
-    try:
-        if args.taxid2names:
-            makeHTML.generateHTML(
-                args.outputdir + '/' + args.taxonreport,
-                args.scripts,
-                args.taxid2names,
-                args.outputdir)
-    except:
-        print('[WARNING] missing taxID to names file names.dmp. HTML report will not be generated.')
+    if args.taxid2names != 'None':
+        makeHTML.generateHTML(
+            args.outputdir + '/' + args.taxonreport,
+            args.scripts,
+            args.taxid2names,
+            args.outputdir)
+    else: 
+        print('[WARNING] missing names.dmp, the file mapping taxids to names. HTML report will not be generated.')
     
 #    if args.verbose:
 #        print(dict(taxonstats))
