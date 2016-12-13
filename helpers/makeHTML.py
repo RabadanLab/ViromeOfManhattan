@@ -12,7 +12,7 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
     
     
     #reportLoc = "report.taxon.txt"
-    canvasLoc = repoLoc+"/scripts/vendor/canvasjs.min.js"
+    canvasLoc = repoLoc+"/scripts/vendor/jquery.canvasjs.min.js"
     jqueryLoc = repoLoc+"/scripts/vendor/jquery-3.1.1.slim.min.js"
     datatablesLoc = repoLoc+"/scripts/vendor/datatables.min.js"
     #namesLoc = "/names.dmp"
