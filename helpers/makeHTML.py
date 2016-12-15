@@ -21,7 +21,7 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
     df = pd.read_table(reportLoc)
     df.applymap(str)
     df.columns = ['name','taxID','#_of_read','#_of_contigs','longest_contig','len_longest_contig','RPMH']
-    sampleID = df['name'][0].astype(str)
+    sampleID = str(df['name'][0])
     
     #load canvasJS
     with open(canvasLoc,'r') as canvasjs:
@@ -46,7 +46,7 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
     donutString = ""
     for i in range(0,len(df.index)):
         df['name'][i] = nameDump[(nameDump[0] == df['taxID'][i]) & (nameDump[3] == 'scientific name')][[1]].to_string(header=False,index=False)
-        temp = "{y:"+df['RPMH'][i].astype(str)+",label:'"+df['name'][i]+" -'},"
+        temp = "{y:"+str(df['RPMH'][i])+",label:'"+df['name'][i]+" -'},"
         df['taxID'][i] = '<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id='+ str(df['taxID'][i]) +'">'+str(df['taxID'][i])+'</a>'
         donutString=donutString+temp
     donutString=donutString.rstrip(',')
