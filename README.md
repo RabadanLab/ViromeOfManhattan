@@ -25,6 +25,14 @@ Pandora depends on the following Python modules:
 
 - [Biopython](http://biopython.org/wiki/Main_Page)
 - [Pandas](http://pandas.pydata.org/)
+- scipy
+
+The exact list, with versions, is provided in the `requirements.txt` file.
+And the best way to install these is the usual best practice of starting a [virtualenv](https://virtualenv.pypa.io/en/stable/) and running:
+
+```
+pip install -r requirements.txt
+```
 
 **Workflow**
 
