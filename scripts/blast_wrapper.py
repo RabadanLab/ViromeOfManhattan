@@ -163,7 +163,53 @@ def concat(args):
 	# else write tophits file
         else:
             with open(f, 'r') as h:
-                tophitsfile.write(h.readline())
+                ## Filtering function based on entire list of blast hits for every given contig (and tax id and alignment parameters)
+                
+                # Index reference in blast report file:
+                accession_index = 2
+                tax_id_index = 3
+                contig_len_index = 12
+                alignment_length_index = 5
+                score_index = 21
+                name_index = 22
+                e_val_index = 20
+
+
+                skip_blast_hit = False
+
+                top_line = h.readline()
+    
+                top_contig = top_line.split('\t')[0].strip()
+
+                top_score = float(top_line.split('\t')[score_index].strip())
+                
+                # Top number of BLAST hits to parse through in order to determine whether top hit can be trusted as truly non-human
+                top_number = 10
+    
+                if top_line == "":
+                    skip_blast_hit = True
+                    break
+    
+                else:
+                    count = 0
+                    while count <= top_number:
+                        next_line = h.readline()
+            
+                        if next_line == "" or next_line.split('\t')[0].strip() != top_contig:
+                            break
+                        else:
+                            # condition to eliminate contig if accurate mapping to human genome
+                            row_values = next_line.split('\t')
+
+                            row_score = float(row_values[score_index].strip())
+
+                            if (row_values[tax_id_index].strip() == '9606') &  ( float(row_values[e_val_index].strip()) < 10**(-4) ) & (row_score > 0.95 * top_score):
+                                skip_blast_hit = True
+                                break
+                
+                # Only include the contig in the top concat.txt report of top blast hits if it is NOT a suspected high-alignment score human read
+                if not skip_blast_hit:
+                    tophitsfile.write(top_line)
 
         if not args.noclean:
             os.remove(f)

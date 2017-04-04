@@ -50,14 +50,20 @@ def get_arg():
     parser_scan.add_argument('-r1', '--mate1', default=None, help='RNA-seq mate 1 fastq input')
     parser_scan.add_argument('-r2', '--mate2', default=None, help='RNA-seq mate 2 fastq input')
     parser_scan.add_argument('--bam', default=None, help='bam file input (provide this as an alternative to fastq\'s')
+
+    ## Additional parameter to handle single-end input reads: --single y OR Y
+    parser_scan.add_argument('--single', default = None, help = 'handles single end seq data, either as single mate1 file or .bam input file')
+    
     parser_scan.add_argument('-sr', '--refstar', help='STAR host reference')
     parser_scan.add_argument('-br', '--refbowtie', help='bowtie2 host reference')
-    parser_scan.add_argument('--taxid2names', default=None, help='location of names.dmp file mapping taxid to names')
     parser_scan.add_argument('-db', '--blastdb', help='blast (nt) database (contigs are the query set)')
     parser_scan.add_argument('--blast_threads', default='1', help='number of threads for the blast (blast -num_threads) (default: 1)')
     parser_scan.add_argument('-pdb', '--pblastdb', help='blast protein (nr) database (ORFs are the query set)')
     parser_scan.add_argument('-gtf', '--gtf', help='optional host gft for computing gene coverage after host separation')
-    parser_scan.add_argument('--contigthreshold', default='500', help='threshold on contig length for blast (default: 500)')
+    
+    ## Modfied contigthreshold to 99 from 500, i.e. default is to try to map all the human un-mapped reads to microbial species 
+    parser_scan.add_argument('--contigthreshold', default='99', help='threshold on contig length for blast (default: 500)')
+    
     parser_scan.add_argument('--orfthreshold', default='200', help='threshold on ORF length for protein blast (default: 200)')
     parser_scan.add_argument('--orfblast', action='store_true', help='blast the ORFs to protein (nr) database (default: off)')
     parser_scan.add_argument('--blacklist', default=mycwd + '/resources/blacklist.txt', help='A text file containing a list of non-pathogen taxids to ignore')
@@ -96,8 +102,7 @@ def get_arg():
                   (args.refbowtie, 'refbowtie', 'Step1'), 
                   (args.gtf, 'gtf', 'Step1'),
                   (args.blastdb, 'blastdb', 'Step3'), 
-                  (args.pblastdb, 'pblastdb', 'Step4'),
-                  (args.taxid2names, 'taxid2names', 'Step5')]:
+                  (args.pblastdb, 'pblastdb', 'Step4')]:
             if not i[0] and i[1] in hp.config_section_map(Config, i[2]):
                 vars(args)[i[1]] = hp.config_section_map(Config, i[2])[i[1]]
 
@@ -111,8 +116,8 @@ def get_arg():
     print
 
     # error checking
-    if '1' in args.steps and not ((args.mate1 and args.mate2) or args.bam):
-        print('[ERROR] Need --mate1 and --mate2 arguments OR --bam argument for Step 1')
+    if '1' in args.steps and not ((args.mate1 and args.mate2) or args.bam or (args.single and (args.mate1 or args.bam))):
+        print('[ERROR] Need --mate1 and --mate2 arguments OR --bam argument OR --single argument for Step 1')
         sys.exit(1)
     if '1' in args.steps and ((not args.refstar) or (not args.refbowtie)):
         print('[ERROR] Need --refstar and --refbowtie arguments for Step 1')
@@ -204,15 +209,15 @@ def scan_main(args):
 
     # dict which maps each step to the shell part of the command
     d = {
-             '1': '{args.scripts}/scripts/host_separation.py --scripts {args.scripts} -1 {args.mate1} -2 {args.mate2} --bam {args.bam} --refstar {args.refstar} --refbowtie {args.refbowtie} --gzip {args.gzip} --verbose {args.verbose} --noclean {args.noclean} --gtf {args.gtf}'.format(args=args),
+             '1': '{args.scripts}/scripts/host_separation.py --scripts {args.scripts} -1 {args.mate1} -2 {args.mate2} --bam {args.bam} --single {args.single} --refstar {args.refstar} --refbowtie {args.refbowtie} --gzip {args.gzip} --verbose {args.verbose} --noclean {args.noclean} --gtf {args.gtf}'.format(args=args),
 
-             '2': '{args.scripts}/scripts/assembly.py --scripts {args.scripts} --trinitymem {args.trinitymem} --trinitycores {args.trinitycores} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
+             '2': '{args.scripts}/scripts/assembly.py --scripts {args.scripts} --single {args.single} --trinitymem {args.trinitymem} --trinitycores {args.trinitycores} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
 
              '3': '{args.scripts}/scripts/blast_wrapper.py --scripts {args.scripts} --threshold {args.contigthreshold} --db {args.blastdb} --threads {args.blast_threads} --id {args.identifier} --verbose {args.verbose} --noclean {args.noclean} --nosge {args.noSGE}'.format(args=args),
 
              '4': '{args.scripts}/scripts/orf_discovery.py --scripts {args.scripts} --id {args.identifier} --threshold {args.orfthreshold} --db {args.pblastdb} --blast {args.orfblast} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
 
-             '5': '{args.scripts}/scripts/makereport.py --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names}'.format(args=args)
+             '5': '{args.scripts}/scripts/makereport.py --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist}'.format(args=args)
     }
 
     # start with job id set to zero string
@@ -267,6 +272,10 @@ def check_error(args):
             sys.exit(1)
         elif (args.mate1[-3:] == '.gz' or args.mate2[-3:] == '.gz') and not args.gzip:
             print('[ERROR] Files have .gz extension: use --gzip option')
+            sys.exit(1)
+    elif args.mate1 and ('y' in args.single or 'Y' in args.single):
+        if (args.gzip and not (args.mate1[-3:] == '.gz')) or  ((args.mate1[-3:] == '.gz') and not args.gzip):
+            print('[ERROR] Zip flag and file type do not match')
             sys.exit(1)
 
     # check if proper extention
