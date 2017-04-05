@@ -64,7 +64,7 @@ For `scan` step 4, you can optionally provide:
 
 For `scan` step 5, you can optionally provide:
 - a text file of "blacklist" non-pathogen taxids for filtering. If you do not provide one, the script will use `resources/blacklist.txt` by default. This list contains any taxid children of the nodes chordata (Taxonomy ID: 7711) or "other sequences" (Taxonomy ID: 28384)
-- the names.dmp file mapping taxID to names from ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+- the `names.dmp` file mapping taxID to names from ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
 
 Because there are a considerable number of files involved, you can specify their paths with a configuration file instead of command line flags.
 See `pandora.config.txt` for example formatting.
