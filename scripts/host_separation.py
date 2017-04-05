@@ -23,7 +23,7 @@ def get_arg():
     parser.add_argument('-o', '--outputdir', default='host_separation', help='the output directory')
     parser.add_argument('-l', '--logsdir', help='the logs directory')
     parser.add_argument('-d', '--scripts', help='the git repository directory')
-    parser.add_argument('--numthreads', default='4', help='the number of threads with which to run STAR and bowtie')
+    parser.add_argument('--threads', default='4', help='the number of threads with which to run STAR and bowtie')
     parser.add_argument('--refstar', help='the star reference')
     parser.add_argument('--refbowtie', help='the bowtie reference')
     parser.add_argument('--gtf', help='host gene feature gtf')
@@ -72,7 +72,7 @@ def hostsep(args):
     hp.run_cmd(cmd, args.verbose, 0)
 
     print('STAR mapping commenced')
-    cmd = 'STAR --runThreadN {args.numthreads} --genomeDir {args.refstar} --readFilesIn {args.mate1} {args.mate2} --outFileNamePrefix {args.outputdir}/ --outSAMtype BAM Unsorted --outSAMunmapped Within {starflag}'.format(args=args, starflag=starflag)
+    cmd = 'STAR --runThreadN {args.threads} --genomeDir {args.refstar} --readFilesIn {args.mate1} {args.mate2} --outFileNamePrefix {args.outputdir}/ --outSAMtype BAM Unsorted --outSAMunmapped Within {starflag}'.format(args=args, starflag=starflag)
     hp.run_cmd(cmd, args.verbose, 0)
     print('STAR mapping finished')
 
@@ -93,7 +93,7 @@ def hostsep(args):
     hp.run_cmd(cmd, args.verbose, 0)
 
     print('Bowtie2 mapping commenced')
-    cmd = 'bowtie2 -p {args.numthreads} -x {args.refbowtie} -1 {args.outputdir}/star_unmapped_1.fastq -2 {args.outputdir}/star_unmapped_2.fastq -S {args.outputdir}/bwt2.sam'.format(args=args)
+    cmd = 'bowtie2 -p {args.threads} -x {args.refbowtie} -1 {args.outputdir}/star_unmapped_1.fastq -2 {args.outputdir}/star_unmapped_2.fastq -S {args.outputdir}/bwt2.sam'.format(args=args)
     # hp.run_cmd(cmd, args.verbose, 0)
     hp.run_log_cmd(cmd, args.verbose, args.olog, args.elog)
     print('Bowtie2 mapping finished')
