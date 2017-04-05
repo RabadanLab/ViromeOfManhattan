@@ -196,8 +196,8 @@ def scan_main(args):
 
     # dict which maps each step to the qsub part of the command
     q = {
-             '1': '-N hsep_{args.identifier} -V -cwd -o log.out -e log.err -l mem=16G,time=12:: -pe smp 4 -R y'.format(args=args),
-             '2': '-N asm_{args.identifier} -V -cwd -o log.out -e log.err -l mem=12G,time=12:: -pe smp 8 -R y'.format(args=args),
+             '1': '-N hsep_{args.identifier} -V -cwd -o log.out -e log.err -l mem=16G,time=12:: -pe smp {args.map_threads} -R y'.format(args=args),
+             '2': '-N asm_{args.identifier} -V -cwd -o log.out -e log.err -l mem=12G,time=12:: -pe smp {args.trinitycores} -R y'.format(args=args),
              '3': '-N blst_{args.identifier} -V -cwd -o log.out -e log.err -l mem=4G,time=8::'.format(args=args),
              '4': '-N orf_{args.identifier} -V -cwd -o log.out -e log.err -l mem=2G,time=2::'.format(args=args),
              '5': '-N rep_{args.identifier} -V -cwd -o log.out -e log.err -l mem=1G,time=1::'.format(args=args)
