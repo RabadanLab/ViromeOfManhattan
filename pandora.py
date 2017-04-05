@@ -54,6 +54,7 @@ def get_arg():
     parser_scan.add_argument('-br', '--refbowtie', help='bowtie2 host reference')
     parser_scan.add_argument('--taxid2names', default=None, help='location of names.dmp file mapping taxid to names')
     parser_scan.add_argument('-db', '--blastdb', help='blast (nt) database (contigs are the query set)')
+    parser_scan.add_argument('--map_threads', default='4', help='number of threads for the short read alignment (default: 4)')
     parser_scan.add_argument('--blast_threads', default='1', help='number of threads for the blast (blast -num_threads) (default: 1)')
     parser_scan.add_argument('-pdb', '--pblastdb', help='blast protein (nr) database (ORFs are the query set)')
     parser_scan.add_argument('-gtf', '--gtf', help='optional host gft for computing gene coverage after host separation')
@@ -204,7 +205,7 @@ def scan_main(args):
 
     # dict which maps each step to the shell part of the command
     d = {
-             '1': '{args.scripts}/scripts/host_separation.py --scripts {args.scripts} -1 {args.mate1} -2 {args.mate2} --bam {args.bam} --refstar {args.refstar} --refbowtie {args.refbowtie} --gzip {args.gzip} --verbose {args.verbose} --noclean {args.noclean} --gtf {args.gtf}'.format(args=args),
+             '1': '{args.scripts}/scripts/host_separation.py --scripts {args.scripts} -1 {args.mate1} -2 {args.mate2} --bam {args.bam} --threads {args.map_threads} --refstar {args.refstar} --refbowtie {args.refbowtie} --gzip {args.gzip} --verbose {args.verbose} --noclean {args.noclean} --gtf {args.gtf}'.format(args=args),
 
              '2': '{args.scripts}/scripts/assembly.py --scripts {args.scripts} --trinitymem {args.trinitymem} --trinitycores {args.trinitycores} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
 
