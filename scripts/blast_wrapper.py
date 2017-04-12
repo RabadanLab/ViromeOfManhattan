@@ -65,34 +65,51 @@ def blast(args):
 
     # mkdir -p 
     hp.mkdirp(args.outputdir)
-    hp.mkdirp(args.logsdir)
 
-    # split fasta file on contigs above threshold length (and return count)
-    filecount = hp.fastasplit(args.input, args.outputdir + '/blast', args.threshold)
-
-    if filecount == 0:
-        print("No contigs above threshold. Exiting")
-        sys.exit(1)
+    args.noclean = int(args.noclean)
 
     # generate header
     with open(args.outputdir + '/header', 'w') as f:
         f.write(args.fmt.replace(' ', '\t') + '\n')
 
-    args.noclean = int(args.noclean)
-
     # if no qsub
     if args.nosge:
-        for i in range(1,filecount+1):
-            # define log files
-            logs_out = args.logsdir + '/' + 'bc_' + args.id + '.' + str(i) + '.o'
-            logs_err = args.logsdir + '/' + 'bc_' + args.id + '.' + str(i) + '.e'
-	    # define command: run blast in series (this will be slow!)
-            cmd = '{args.scripts}/scripts/blast.py --scripts {args.scripts} --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --threads {args.threads} --fmt "{args.fmt}" --sgeid {i} > {o} 2> {e}'.format(args=args, i=str(i), o=logs_out, e=logs_err)
-            hp.run_cmd(cmd, args.verbose, 0)
+        # filter fasta file on contigs above threshold length and hardcode name for blast.py
+        # (splitting files doesnt make sense if no cluster)
+        filecount = hp.fastafilter(args.input, args.outputdir + '/blast_1.fasta', args.threshold)
 
-        # concatenate results
-        concat(args)
+        if filecount == 0:
+            print("No contigs above threshold. Exiting")
+            sys.exit(1)
+
+        # define log files
+        logs_out = args.outputdir + '/' + 'blast_log_' + args.id + '.o'
+        logs_err = args.outputdir + '/' + 'blast_log_' + args.id + '.e'
+        # define command
+        cmd = '{args.scripts}/scripts/blast.py --scripts {args.scripts} --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --threads {args.threads} --fmt "{args.fmt}" --sgeid 1 > {o} 2> {e}'.format(args=args, o=logs_out, e=logs_err)
+        hp.run_cmd(cmd, args.verbose, 0)
+
+        # make link
+        cmd = 'ln -s blast_1.result {args.outputdir}/concat.txt'.format(args=args)
+        hp.run_cmd(cmd, args.verbose, 0)
+
+        # get top hits
+        hp.tophitsfilter(args.outputdir + '/blast_1.result', args.outputdir + '/top.concat.txt')
+        # get fasta file of entries that didn't blast
+        hp.getnohits(args.outputdir + '/top.concat.txt', args.outputdir + '/blast_1.fasta', args.outputdir + '/no_blastn.fa')
+
+    # if qsub
     else:
+        # mkdir -p
+        hp.mkdirp(args.logsdir)
+
+        # split fasta file on contigs above threshold length (and return count)
+        filecount = hp.fastasplit(args.input, args.outputdir + '/blast', args.threshold)
+
+        if filecount == 0:
+            print("No contigs above threshold. Exiting")
+            sys.exit(1)
+
         # qsub part of command (array job)
         qcmd = 'qsub -S {mypython} -N bc_{args.id} -e {args.logsdir} -o {args.logsdir} -t 1-{filecount} '.format(mypython=sys.executable, args=args, filecount=filecount)
         # regular part of command
