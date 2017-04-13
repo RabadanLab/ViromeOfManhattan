@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
 import sys
+<<<<<<< HEAD
 import pickle
+=======
+#import pickle
+>>>>>>> 7f353779ca4a3af9d7a6fa1a47e2038cd13a60d4
 
 # This script takes taxids and traces back up through the taxonomic heirarchy
 # E.g., 
