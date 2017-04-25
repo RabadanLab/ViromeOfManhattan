@@ -25,6 +25,7 @@ def get_arg():
     parser.add_argument('-o', '--outputdir', default='assembly_trinity', help='the output directory')
     parser.add_argument('--trinitymem', required=True, help='max memory for Trinity')
     parser.add_argument('--trinitycores', required=True, help='number of cores for Trinity')
+    parser.add_argument('--trinitythreshold', required=True, help='number of cores for Trinity')
     parser.add_argument('-l', '--logsdir', help='the logs directory')
     parser.add_argument('-d', '--scripts', help='the git repository directory')
     parser.add_argument('--noclean', help='do not delete temporary intermediate files (default: off)')
@@ -42,8 +43,8 @@ def get_arg():
     from helpers import assembly_helpers as ahp
 
     # error checking: exit if previous step produced zero output
-    
-    if (args.single and ('y' in args.single or 'Y' in args.single)):
+
+    if (args.single):
         hp.check_file_exists_and_nonzero(args.mate1, step=args.step)
     else:
         for i in [args.mate1, args.mate2]:
@@ -66,12 +67,10 @@ def assembly(args):
     hp.mkdirp(args.outputdir)
 
     # perform Trinity assembly
-    if (args.single and ('y' in args.single or 'Y' in args.single)):
-        # hard-coding a lower threshold for contig length (111 < default = 200)
-        # for detection of species: impose no bound on the contig length in assembly
-        cmd = 'Trinity --seqType fq --normalize_reads --min_contig_length=99 --max_memory {args.trinitymem}G --CPU {args.trinitycores} --output {args.outputdir} --single {args.mate1}'.format(args=args)
+    if (args.single):
+        cmd = 'Trinity --seqType fq --normalize_reads --min_contig_length={args.trinitythreshold} --max_memory {args.trinitymem}G --CPU {args.trinitycores} --output {args.outputdir} --single {args.mate1}'.format(args=args)
     else:
-        cmd = 'Trinity --seqType fq --normalize_reads --max_memory {args.trinitymem}G --CPU {args.trinitycores} --output {args.outputdir} --left {args.mate1} --right {args.mate2}'.format(args=args)
+        cmd = 'Trinity --seqType fq --normalize_reads --min_contig_length={args.trinitythreshold} --max_memory {args.trinitymem}G --CPU {args.trinitycores} --output {args.outputdir} --left {args.mate1} --right {args.mate2}'.format(args=args)
     # use run_long_cmd for programs with verbose output
     hp.run_long_cmd(cmd, args.verbose, 'log.Trinity')
 
@@ -118,7 +117,7 @@ def remap(args, contigs):
     cmd = 'bowtie2-build {} {}'.format(contigs, refbowtie)
     hp.run_cmd(cmd, args.verbose, 0)
 
-    if (args.single and ('y' in args.single or 'Y' in args.single)):
+    if (args.single):
         cmd = 'bowtie2 -p 4 -x {} -U {} -S {}'.format(refbowtie, args.mate1, 'assembly/reads2contigs.sam')
     else:
         cmd = 'bowtie2 -p 4 -x {} -1 {} -2 {} -S {}'.format(refbowtie, args.mate1, args.mate2, 'assembly/reads2contigs.sam')
@@ -144,8 +143,7 @@ def remap(args, contigs):
     hp.run_cmd(cmd, args.verbose, 0)
 
     # format pileup file - i.e., add zeros to uncovered positions
-    ahp.formatpileup('assembly/reads2contigs.pileup', 'assembly/reads2contigs.stats.txt', 'assembly/reads2contigs.format.pileup')
-    # in LAST version of Pandora only 3 parameters to formatpileup() assembly helper function 'assembly/reads2contigs.entropy'
+    ahp.formatpileup('assembly/reads2contigs.pileup', 'assembly/reads2contigs.stats.txt', 'assembly/reads2contigs.format.pileup', 'assembly/reads2contigs.entropy')
 
     if not int(args.noclean):
         cmd = 'rm -r assembly/ref_remap'
