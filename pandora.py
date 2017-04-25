@@ -65,6 +65,9 @@ def get_arg():
 
     ## Modfied contigthreshold to 99 from 500, i.e. default is to try to map all the human un-mapped reads to microbial species
     parser_scan.add_argument('--contigthreshold', default='99', help='threshold on contig length for blast (default: 99)')
+    # Trinity default contig length is 200
+    # Ioan: for detection of species, impose no bound on the contig length in assembly
+    parser_scan.add_argument('--trinitycontigthreshold', default='99', help='threshold on contig length for Trinity (default: 99)')
 
     parser_scan.add_argument('--orfthreshold', default='200', help='threshold on ORF length for protein blast (default: 200)')
     parser_scan.add_argument('--orfblast', action='store_true', help='blast the ORFs to protein (nr) database (default: off)')
@@ -213,7 +216,7 @@ def scan_main(args):
     # dict which maps each step to the shell part of the command
     d = {
              '1': '{args.scripts}/scripts/host_separation.py --scripts {args.scripts} -1 {args.mate1} -2 {args.mate2} --bam {args.bam} --threads {args.map_threads} --single {args.single} --refstar {args.refstar} --refbowtie {args.refbowtie} --gzip {args.gzip} --verbose {args.verbose} --noclean {args.noclean} --gtf {args.gtf}'.format(args=args),
-             '2': '{args.scripts}/scripts/assembly.py --scripts {args.scripts} --single {args.single} --trinitymem {args.trinitymem} --trinitycores {args.trinitycores} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
+             '2': '{args.scripts}/scripts/assembly.py --scripts {args.scripts} --single {args.single} --trinitymem {args.trinitymem} --trinitycores {args.trinitycores} --trinitythreshold {args.trinitycontigthreshold} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
              '3': '{args.scripts}/scripts/blast_wrapper.py --scripts {args.scripts} --threshold {args.contigthreshold} --db {args.blastdb} --threads {args.blast_threads} --id {args.identifier} --verbose {args.verbose} --noclean {args.noclean} --nosge {args.noSGE}'.format(args=args),
              '4': '{args.scripts}/scripts/orf_discovery.py --scripts {args.scripts} --id {args.identifier} --threshold {args.orfthreshold} --db {args.pblastdb} --blast {args.orfblast} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
              '5': '{args.scripts}/scripts/makereport.py --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist}'.format(args=args)
