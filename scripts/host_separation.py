@@ -20,9 +20,7 @@ def get_arg():
     parser.add_argument('-1', '--mate1', help='mate1 fastq')
     parser.add_argument('-2', '--mate2', help='mate2 fastq')
     parser.add_argument('--bam', help='bam file')
-
     parser.add_argument('--single', default=None)
-
     parser.add_argument('-o', '--outputdir', default='host_separation', help='the output directory')
     parser.add_argument('-l', '--logsdir', help='the logs directory')
     parser.add_argument('-d', '--scripts', help='the git repository directory')
@@ -30,6 +28,7 @@ def get_arg():
     parser.add_argument('--refstar', help='the star reference')
     parser.add_argument('--refbowtie', help='the bowtie reference')
     parser.add_argument('--gtf', help='host gene feature gtf')
+    parser.add_argument('--readlenfilter', type=int, default=25, help='filter reads smaller or equal to this (default: 25)')
     parser.add_argument('--noclean', type=int, default=0, help='do not delete temporary intermediate files (default: off)')
     parser.add_argument('--gzip', type=int, default=0, help='input files are gzipped boolean (default: off)')
     parser.add_argument('--verbose', type=int, default=0, help='verbose mode: echo commands, etc (default: off)')
@@ -76,10 +75,11 @@ def hostsep(args):
 
     print('STAR mapping commenced')
 
-    # STAR option  --outFilterMultimapNmax 1 to only output alignments if a read uniquely maps to reference;
+    # Ioan: STAR option --outFilterMultimapNmax 1 to only output alignments if a read uniquely maps to reference;
     # HERE: allow up to 10 multi-hits reported --> will not affect feature counts downstream, nor Pandora results (b/c human multi-mapping here)
-    # This option should not modify the downstream counts (of genes) with featureCounts, which only counts features that are uniquely mapped (per BAM input marking info) 
-    if (args.single and ('y' in args.single or 'Y' in args.single)):
+    # This option should not modify the downstream counts (of genes) with featureCounts,
+    # which only counts features that are uniquely mapped (per BAM input marking info)
+    if (args.single):
         cmd = 'STAR --runThreadN {args.threads} --genomeDir {args.refstar} --readFilesIn {args.mate1} --outFileNamePrefix {args.outputdir}/ --outSAMtype BAM Unsorted --outFilterMultimapNmax 10 --outSAMunmapped Within {starflag}'.format(args=args, starflag=starflag)
     else:
         cmd = 'STAR --runThreadN {args.threads} --genomeDir {args.refstar} --readFilesIn {args.mate1} {args.mate2} --outFileNamePrefix {args.outputdir}/ --outSAMtype BAM Unsorted --outFilterMultimapNmax 10 --outSAMunmapped Within {starflag}'.format(args=args, starflag=starflag)
@@ -95,7 +95,7 @@ def hostsep(args):
 
     # bin(13) = '0b1101', which corresponds to SAM flag bits:
     # read paired; read unmapped; mate unmapped
-    if (args.single and ('y' in args.single or 'Y' in args.single)):
+    if (args.single):
         ## Flag for unmapped single paired reads is 4
         ## Samtools version compatibility issues: -o flag for output and .bam need to be specified
         cmd = 'samtools view -b -f 4 {args.outputdir}/Aligned.out.bam | samtools sort -n -o {args.outputdir}/star_unmapped.bam'.format(args=args)
@@ -104,7 +104,7 @@ def hostsep(args):
 
     hp.run_cmd(cmd, args.verbose, 0)
 
-    cmd = 'samtools view {args.outputdir}/star_unmapped.bam | {args.scripts}/scripts/sam2fastq.py {args.single} {args.outputdir}/star_unmapped'.format(args=args)
+    cmd = 'samtools view {args.outputdir}/star_unmapped.bam | {args.scripts}/scripts/sam2fastq.py {args.outputdir}/star_unmapped {args.single}'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
     cmd = 'wc -l {args.outputdir}/star_unmapped_1.fastq >> {args.outputdir}/mapping_percent.txt'.format(args=args)
@@ -112,7 +112,7 @@ def hostsep(args):
 
     print('Bowtie2 mapping commenced')
 
-    if (args.single and ('y' in args.single or 'Y' in args.single)):
+    if (args.single):
         cmd = 'bowtie2 -p {args.threads} -x {args.refbowtie} -U {args.outputdir}/star_unmapped_1.fastq -S {args.outputdir}/bwt2.sam'.format(args=args)
     else:
         cmd = 'bowtie2 -p {args.threads} -x {args.refbowtie} -1 {args.outputdir}/star_unmapped_1.fastq -2 {args.outputdir}/star_unmapped_2.fastq -S {args.outputdir}/bwt2.sam'.format(args=args)
@@ -125,41 +125,32 @@ def hostsep(args):
     print('find unmapped reads')
 
     ## Samtools version compatibility issues: -o flag for output and .bam need to be specified
-    if (args.single and ('y' in args.single or 'Y' in args.single)):
+    if (args.single):
         cmd = 'samtools view -S -b -f 4 {args.outputdir}/bwt2.sam | samtools sort -n -o {args.outputdir}/bwt2_unmapped.bam'.format(args=args)
     else:
         cmd = 'samtools view -S -b -f 13 {args.outputdir}/bwt2.sam | samtools sort -n -o {args.outputdir}/bwt2_unmapped.bam'.format(args=args)
-    
+
     hp.run_cmd(cmd, args.verbose, 0)
 
-    cmd = 'samtools view {args.outputdir}/bwt2_unmapped.bam | {args.scripts}/scripts/sam2fastq.py {args.single} {args.outputdir}/bwt2_unmapped'.format(args=args)
+    cmd = 'samtools view {args.outputdir}/bwt2_unmapped.bam | {args.scripts}/scripts/sam2fastq.py {args.outputdir}/bwt2_unmapped {args.single}'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
     cmd = 'wc -l {args.outputdir}/bwt2_unmapped_1.fastq >> {args.outputdir}/mapping_percent.txt'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
-
     ## rename and zip both mates, or single mate if unpaired reads
-    ## cleanup the fastq files of short or erroneous reads at the same time
+    ## Ioan: filter short reads
     for i in ['1', '2']:
-        if i=='1' or not (args.single and ('y' in args.single or 'Y' in args.single)):
-            cmd = 'mv {args.outputdir}/bwt2_unmapped_{i}.fastq {args.outputdir}/unmapped_{i}.fastq'.format(args=args, i=i)
-            hp.run_cmd(cmd, args.verbose, 0)
-            
-            ## cleaning up the fastqfile using a temporary file for the data transfer
-            cmd = 'cp {args.outputdir}/unmapped_{i}.fastq {args.outputdir}/unmapped_{i}.fastq.{i}'.format(args=args, i=i)
-            hp.run_cmd(cmd, args.verbose, 0)
-
-            cmd = "cat {args.outputdir}/unmapped_{i}.fastq.{i}".format(args=args, i=i)+""" | paste - - - - | awk '{ if (length($2) > 25) {print $1"\\n"$2"\\n"$3"\\n"$4} }' > """+ "{args.outputdir}/unmapped_{i}.fastq".format(args=args, i=i)
-            hp.run_cmd(cmd, args.verbose, 0)
-
-            cmd = "rm {args.outputdir}/unmapped_{i}.fastq.{i}".format(args=args, i=i)
-            hp.run_cmd(cmd, args.verbose, 0)
-
+        if i=='1' or not (args.single):
+            # Ioan found Trinity chokes if read length <= jellyfish kmer of 25
+            hp.fastqfiler(
+                '{args.outputdir}/bwt2_unmapped_{i}.fastq'.format(args=args, i=i), 
+                '{args.outputdir}/unmapped_{i}.fastq'.format(args=args, i=i), 
+                args.readlenfilter
+            )
             ## zipping the files
             cmd = 'gzip {args.outputdir}/unmapped_{i}.fastq'.format(args=args, i=i)
             hp.run_cmd(cmd, args.verbose, 0)
-
 
     # if gtf variable set, get gene coverage
     if args.gtf:
@@ -178,10 +169,7 @@ def hostsep(args):
             cmd = 'rm {args.outputdir}/{i}'.format(args=args, i=i)
             hp.run_cmd(cmd, args.verbose, 0)
 
-
-
     hp.echostep(args.step, start=0)
-
 
 # -------------------------------------
 
@@ -192,29 +180,27 @@ def getunmapped(args):
 
     print('find unmapped reads')
 
-    if (args.single and ('y' in args.single or 'Y' in args.single)):
+    if (args.single):
         cmd = 'samtools view -b -f 4 {args.bam} | samtools sort -n -o {args.outputdir}/unmapped.bam'.format(args=args)
     else:
         cmd = 'samtools view -b -f 13 {args.bam} | samtools sort -n -o {args.outputdir}/unmapped.bam'.format(args=args)
-    
+
     hp.run_cmd(cmd, args.verbose, 0)
 
-    cmd = 'samtools view {args.outputdir}/unmapped.bam | {args.scripts}/scripts/sam2fastq.py {args.single} {args.outputdir}/unmapped'.format(args=args)
+    cmd = 'samtools view {args.outputdir}/unmapped.bam | {args.scripts}/scripts/sam2fastq.py {args.outputdir}/tmp_unmapped {args.single}'.format(args=args)
     hp.run_cmd(cmd, args.verbose, 0)
 
-
-    ## cleaning up output files of short or erroneous reads
+    ## filter short reads
     for i in ['1', '2']:
-        if i=='1' or not (args.single and ('y' in args.single or 'Y' in args.single)):
-            cmd = 'cp {args.outputdir}/unmapped_{i}.fastq {args.outputdir}/unmapped_{i}.fastq.{i}'.format(args=args, i=i)
-            hp.run_cmd(cmd, args.verbose, 0)
+        if i=='1' or not (args.single):
+            hp.fastqfiler(
+                '{args.outputdir}/tmp_unmapped_{i}.fastq'.format(args=args, i=i), 
+                '{args.outputdir}/unmapped_{i}.fastq'.format(args=args, i=i), 
+                args.readlenfilter
+            )
 
-            cmd = "cat {args.outputdir}/unmapped_{i}.fastq.{i}".format(args=args, i=i)+""" | paste - - - - | awk '{ if (length($2) > 25) {print $1"\\n"$2"\\n"$3"\\n"$4} }' > """+ "{args.outputdir}/unmapped_{i}.fastq".format(args=args, i=i)
+            cmd = 'rm {args.outputdir}/tmp_unmapped_{i}.fastq'.format(args=args, i=i)
             hp.run_cmd(cmd, args.verbose, 0)
-
-            cmd = "rm {args.outputdir}/unmapped_{i}.fastq.{i}".format(args=args, i=i)
-            hp.run_cmd(cmd, args.verbose, 0)
-
 
     # if gtf variable set, get gene coverage
     if args.gtf:
@@ -225,7 +211,7 @@ def getunmapped(args):
 
     #zip both mates or single file if unpaired reads
     for i in ['1', '2']:
-        if i=='1' or not (args.single and ('y' in args.single or 'Y' in args.single)):
+        if i=='1' or not (args.single):
             cmd = 'gzip {args.outputdir}/unmapped_{i}.fastq'.format(args=args, i=i)
             hp.run_cmd(cmd, args.verbose, 0)
 
