@@ -13,7 +13,8 @@ import shutil
 # -------------------------------------
 
 def get_arg():
-    """Get Arguments
+    """
+    Get Arguments
     :rtype: object
     """
     # parse arguments
@@ -114,7 +115,7 @@ def blast(args):
         qcmd = 'qsub -S {mypython} -N bc_{args.id} -e {args.logsdir} -o {args.logsdir} -t 1-{filecount} '.format(mypython=sys.executable, args=args, filecount=filecount)
         # regular part of command
         cmd = '{args.scripts}/scripts/blast.py --scripts {args.scripts} --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --threads {args.threads} --fmt "{args.fmt}"'.format(args=args)
-	if args.verbose:
+        if args.verbose:
             print(qcmd + cmd)
         message = subprocess.check_output(qcmd + cmd, shell=True)
         print(message)
@@ -157,7 +158,7 @@ def concat(args):
 
     for f in files: 
         # get file length
-	cmd = 'cat ' + f + ' | wc -l'
+        cmd = 'cat ' + f + ' | wc -l'
         len = subprocess.check_output(cmd, shell=True).strip()
 
         # get the name of the fasta file (remove last 6 characters 'result')
@@ -170,14 +171,14 @@ def concat(args):
             for line in h:
                 fastafile.write(line)
 
-	# if length of file is zero
+        # if length of file is zero
         if len == '0':
             noblast.append(os.path.basename(f))
             # cat ${base}.fasta | sed s/X//g
             with open(g, 'r') as h:
                 for line in h:
                     noblastfile.write(line)
-	# else write tophits file
+        # else write tophits file
         else:
             with open(f, 'r') as h:
                 tophitsfile.write(h.readline())

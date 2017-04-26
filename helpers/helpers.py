@@ -292,6 +292,55 @@ def fastafilter(infile, outfile, cutoff):
 
 # -------------------------------------
 
+def fastqfilter(infile, outfile, cutoff):
+    """
+    Filter a fastq file to produce a new fastq file such that seq length > cutoff
+
+    infile: input fastq file
+    outfile: output fastq file
+    cutoff: contig length threshold
+    """
+
+    # a counter
+    counter = 0
+    # a counter for unfiltered entries
+    ecounter = 0
+    fourlinechunk = ''
+    abovecutoff = False
+
+    with open(infile, 'r') as g, open(outfile, 'w') as f:
+        for line in g:
+        # increment counter
+            counter += 1
+
+            # for every new fastq entry
+            if counter % 4 == 1:
+                # write previous if above threshold length
+                if counter > 1 and abovecutoff:
+                    f.write(fourlinechunk)
+                    ecounter += 1
+                # reset variables
+                fourlinechunk = ''
+                abovecutoff = False
+
+            # if sequence line
+            if counter % 4 == 2:
+                if (len(line.rstrip()) > cutoff):
+                    abovecutoff = True
+
+            # increment chunk
+            fourlinechunk += line
+
+        # do the last one
+        if abovecutoff:
+            f.write(fourlinechunk)
+            ecounter += 1
+
+    # return counter for contigs above threshold length
+    return ecounter
+
+# -------------------------------------
+
 def tophitsfilter(infile, outfile):
     """
     Filter a blast tsv to get first entry (i.e., top hit) for degenerate groups

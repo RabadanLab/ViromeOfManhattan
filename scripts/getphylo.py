@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import pickle
 
 # This script takes taxids and traces back up through the taxonomic heirarchy
 # E.g., 
