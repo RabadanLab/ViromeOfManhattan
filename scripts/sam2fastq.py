@@ -11,6 +11,10 @@ import os
 fastqbasename = sys.argv[1]
 args_single = sys.argv[2]
 
+# this silly line casts the string False to the boolean value
+if args.single == 'False':
+    args.single = False
+
 # recapitulate:
 # first mate
 # samtools view -f 64 $1 | cut -f1,10,11 | awk 'BEGIN{OFS="\t";}{print "@"$1"/1"; print $2; print "+"; print $3}' > ${2}_1.fastq

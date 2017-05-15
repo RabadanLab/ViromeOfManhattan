@@ -19,9 +19,7 @@ def get_arg():
     ## Trinity run without gunzipping the fastq files
     parser.add_argument('-1', '--mate1', default='host_separation/unmapped_1.fastq.gz', help='mate1')
     parser.add_argument('-2', '--mate2', default='host_separation/unmapped_2.fastq.gz', help='mate2')
-
     parser.add_argument('--single', default=None)
-
     parser.add_argument('-o', '--outputdir', default='assembly_trinity', help='the output directory')
     parser.add_argument('--trinitymem', required=True, help='max memory for Trinity')
     parser.add_argument('--trinitycores', required=True, help='number of cores for Trinity')
@@ -49,6 +47,10 @@ def get_arg():
     else:
         for i in [args.mate1, args.mate2]:
             hp.check_file_exists_and_nonzero(i, step=args.step)
+
+    # this silly line casts the string False to the boolean value
+    if args.single == 'False':
+        args.single = False
 
     return args
 

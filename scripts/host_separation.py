@@ -51,6 +51,10 @@ def get_arg():
         if i != 'None':
             hp.check_file_exists_and_nonzero(i, step=args.step)
 
+    # this silly line casts the string False to the boolean value
+    if args.single == 'False':
+        args.single = False
+
     return args
 
 # -------------------------------------
@@ -143,7 +147,7 @@ def hostsep(args):
     for i in ['1', '2']:
         if i=='1' or not (args.single):
             # Ioan found Trinity chokes if read length <= jellyfish kmer of 25
-            hp.fastqfiler(
+            hp.fastqfilter(
                 '{args.outputdir}/bwt2_unmapped_{i}.fastq'.format(args=args, i=i), 
                 '{args.outputdir}/unmapped_{i}.fastq'.format(args=args, i=i), 
                 args.readlenfilter
