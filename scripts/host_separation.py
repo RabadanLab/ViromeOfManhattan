@@ -213,9 +213,16 @@ def getunmapped(args):
         hp.run_log_cmd(cmd, args.verbose, args.olog, args.elog)
         print('featureCounts finished')
 
-    #zip both mates or single file if unpaired reads
+    # check output not empty, then zip both mates (or single file if unpaired reads)
     for i in ['1', '2']:
         if i=='1' or not (args.single):
+            # check output not empty
+            cmd = 'head {args.outputdir}/unmapped_{i}.fastq | wc -l'.format(args=args, i=i)
+            numlines = hp.run_cmd(cmd, args.verbose, 1)
+            if numlines == '0':
+                print('[WARNING] No unmapped reads. Exiting')
+                sys.exit(0)
+            # zip
             cmd = 'gzip {args.outputdir}/unmapped_{i}.fastq'.format(args=args, i=i)
             hp.run_cmd(cmd, args.verbose, 0)
 

@@ -12,8 +12,8 @@ fastqbasename = sys.argv[1]
 args_single = sys.argv[2]
 
 # this silly line casts the string False to the boolean value
-if args.single == 'False':
-    args.single = False
+if args_single == 'False':
+    args_single = False
 
 # recapitulate:
 # first mate

@@ -52,7 +52,7 @@ def get_arg():
     parser_scan.add_argument('--bam', default=None, help='bam file input (provide this as an alternative to fastq\'s')
 
     ## Additional parameter to handle single-end input reads
-    parser_scan.add_argument('--single', action='store_true', help = 'boolean to single-end read data (turn on flag and use either -r1 or --bam)')
+    parser_scan.add_argument('--single', action='store_true', help = 'boolean denoting single-end read data (turn on flag and use either -r1 or --bam)')
 
     parser_scan.add_argument('-sr', '--refstar', help='STAR host reference')
     parser_scan.add_argument('-br', '--refbowtie', help='bowtie2 host reference')
@@ -65,9 +65,6 @@ def get_arg():
 
     ## Modfied contigthreshold to 99 from 500, i.e. default is to try to map all the human un-mapped reads to microbial species
     parser_scan.add_argument('--contigthreshold', default='99', help='threshold on contig length for blast (default: 99)')
-    # Trinity default contig length is 200
-    # Ioan: for detection of species, impose no bound on the contig length in assembly
-    parser_scan.add_argument('--trinitycontigthreshold', default='99', help='threshold on contig length for Trinity (default: 99)')
 
     parser_scan.add_argument('--orfthreshold', default='200', help='threshold on ORF length for protein blast (default: 200)')
     parser_scan.add_argument('--orfblast', action='store_true', help='blast the ORFs to protein (nr) database (default: off)')
@@ -80,6 +77,10 @@ def get_arg():
       step 3: blast contigs, \
       step 4: orf discovery, \
       step 5: reporting (default: 12345 - i.e, steps 1 through 5).')
+
+    # Trinity default contig length is 200
+    # Ioan: for detection of species, impose no bound on the contig length in assembly
+    parser_scan.add_argument('--trinitycontigthreshold', default='99', help='threshold on contig length for Trinity (default: 99) (raise to 200 to speed up)')
     parser_scan.add_argument('--trinitymem', default='50', help='max memory for Trinity in gigabytes (default: 50)')
     parser_scan.add_argument('--trinitycores', default='8', help='number of cores for Trinity (default: 8)')
     parser_scan.set_defaults(which='scan')
