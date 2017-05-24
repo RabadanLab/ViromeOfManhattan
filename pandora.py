@@ -60,7 +60,7 @@ def get_arg():
     parser_scan.add_argument('-db', '--blastdb', help='blast (nt) database (contigs are the query set)')
     parser_scan.add_argument('--map_threads', default='4', help='number of threads for the short read alignment (default: 4)')
     parser_scan.add_argument('--blast_threads', default='1', help='number of threads for the blast (blast -num_threads) (default: 1)')
-    parser_scan.add_argument('--blastchunk', default='50', help='the number of rows per split file for blast')
+    parser_scan.add_argument('--blastchunk', default='500', help='the number of rows per split file for blast')
     parser_scan.add_argument('-pdb', '--pblastdb', help='blast protein (nr) database (ORFs are the query set)')
     parser_scan.add_argument('-gtf', '--gtf', help='optional host gft for computing gene coverage after host separation')
 
