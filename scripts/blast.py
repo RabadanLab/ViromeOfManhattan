@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #$ -V
 #$ -cwd
-#$ -l mem=4G,time=4::
 
 # A simple wrapper for blast array job 
 

@@ -125,7 +125,7 @@ def blast(args):
         # hold the script up here, until all the blast jobs finish
         # concat top blast hits; concat log files into one, so as not to clutter the file system
         # qsub part of command
-        qcmd = 'qsub -V -b y -cwd -o log.out -e log.err -l mem=1G,time=1:: -N wait_{args.id} -hold_jid {jid} -sync y echo wait_here'.format(args=args, jid=jid)
+        qcmd = 'qsub -V -b y -cwd -o log.out -e log.err -N wait_{args.id} -hold_jid {jid} -sync y echo wait_here'.format(args=args, jid=jid)
         message = subprocess.check_output(qcmd, shell=True)
         print(message)
 
