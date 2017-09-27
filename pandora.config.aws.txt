@@ -1,18 +1,18 @@
 [Step1]
-refstar=/opt/ref/GRCh37.75/refstar
-refbowtie=/opt/ref/GRCh37.75/refbowtie/GRCh37.75.dna.fa
-gtf=/opt/ref/gtf/Homo_sapiens.GRCh37.75.gtf
+refstar=/Volumes/ref/GRCh37.75/refstar
+refbowtie=/Volumes/ref/GRCh37.75/refbowtie/GRCh37.75.dna.fa
+gtf=/Volumes/ref/gtf/Homo_sapiens.GRCh37.75.gtf
 qparam=-N hsep -V -cwd -o log.out -e log.err 
 
 [Step2]
 qparam=-N asm -V -cwd -o log.out -e log.err
 
 [Step3]
-blastdb=/opt/ref/nt/nt
+blastdb=/Volumes/ref/nt/nt
 qparam=-N blst -V -cwd -o log.out -e log.err
 
 [Step4]
-pblastdb=/opt/ref/nr/nr
+pblastdb=/Volumes/ref/nr/nr
 qparam=-N orf -V -cwd -o log.out -e log.err
 
 [Step5]
