@@ -15,6 +15,9 @@ import sys
 import subprocess
 import os
 import ConfigParser
+# hack to prevent 'ImportError: No module named helpers' on qsub
+mycwd = '/opt/software/Pandora'
+sys.path.append(mycwd)
 from helpers import helpers as hp
 
 def add_common_args(sub):
@@ -40,7 +43,7 @@ def get_arg():
     parser = argparse.ArgumentParser(description=prog_description)
 
     # path of this script
-    mycwd = os.path.dirname(os.path.realpath(__file__))
+    # mycwd = os.path.dirname(os.path.realpath(__file__))
 
     # implement subcommands (Think git: git add, git commit, git push, etc)
     subparsers = parser.add_subparsers(help='sub-command help')
@@ -208,8 +211,8 @@ def scan_main(args):
 
     # dict which maps each step to the qsub part of the command
     q = {
-             '1': '-S {mypython} -N hsep_{args.identifier} -V -cwd -o log.out -e log.err -pe smp {args.map_threads} -R y'.format(mypython=sys.executable, args=args),
-             '2': '-S {mypython} -N asm_{args.identifier} -V -cwd -o log.out -e log.err -pe smp {args.trinitycores} -R y'.format(mypython=sys.executable, args=args),
+             '1': '-S {mypython} -N hsep_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
+             '2': '-S {mypython} -N asm_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
              '3': '-S {mypython} -N blst_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
              '4': '-S {mypython} -N orf_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
              '5': '-S {mypython} -N rep_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args)
