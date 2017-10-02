@@ -105,12 +105,14 @@ def blast(args):
         # mkdir -p
         hp.mkdirp(args.logsdir)
 
-        # split fasta file on contigs above threshold length (and return count)
-        filecount = hp.fastasplit2(args.input, args.outputdir + '/blast', args.threshold, args.filelength)
+        # split fasta file on contigs above threshold length (and return number of contigs, file count)
+        (numcontigs, filecount) = hp.fastasplit2(args.input, args.outputdir + '/blast', args.threshold, args.filelength)
 
         if filecount == 0:
             print("No contigs above threshold. Exiting")
             sys.exit(1)
+        else:
+            print("There are " + str(numcontigs) + " contigs above threshold, and " + str(filecount) + " files to blast.")
 
         # qsub part of command (array job)
         qcmd = 'qsub -S {mypython} -N bc_{args.id} -e {args.logsdir} -o {args.logsdir} -t 1-{filecount} '.format(mypython=sys.executable, args=args, filecount=filecount)

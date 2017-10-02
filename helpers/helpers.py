@@ -285,13 +285,13 @@ def fastasplit2(infile, filename, cutoff, filesize):
                 id = line
             elif len(line) > cutoff:
                 counter += 1
-                print(str(counter) + "\t" + str(1 + int(counter/filesize)))
+                # print(str(counter) + "\t" + str(1 + int(counter/filesize)))
                 with open(filename + '_' + str(1 + int(counter/filesize)) + '.fasta', 'a') as f:
                     f.write(id + '\n')
                     f.write(line + '\n')
 
-    # return counter for contigs above threshold length
-    return counter
+    # return (counter for contigs above threshold length, number of files)
+    return (counter, 1 + int(counter/filesize))
 
 # -------------------------------------
 
