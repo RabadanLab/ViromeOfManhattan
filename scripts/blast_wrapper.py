@@ -6,6 +6,7 @@ import subprocess
 import os
 import glob
 import shutil
+import fileinput
 
 # This script blasts the entries of a fasta file,
 # provided they're over the length threshold
@@ -144,58 +145,100 @@ def concat(args):
 
     print('CONCATENATE START')
 
-    # ids that didn't blast
-    noblast = []
+    # define commands
+    # file of all blast hits
+    cmd = 'cat {args.outputdir}/*.result > {args.outputdir}/concat.txt'.format(args=args)
+    hp.run_cmd(cmd, args.verbose, 0)
+    # all fasta entries
+    cmd = 'cat {args.outputdir}/*.fasta > {args.outputdir}/above_threshold.fa'.format(args=args)
+    hp.run_cmd(cmd, args.verbose, 0)
 
-    # fasta file of entries that didn't blast
-    noblastfile = open(args.outputdir + '/no_blastn.fa', 'w')
+    # set of all input IDs from the concatenated fasta file
+    with open(args.outputdir + '/above_threshold.fa', 'r') as g:
+        allids = {i[1:] for i in g.read().split('\n') if i and i[0] == '>'}
+
+    # set of IDs seen so far
+    seenids = set()
+
     # file of top blast hits
     tophitsfile = open(args.outputdir + '/top.concat.txt', 'w')
-    # file of all blast hits
-    allhitsfile = open(args.outputdir + '/concat.txt', 'w')
-    # all fasta entries
-    fastafile = open(args.outputdir + '/above_threshold.fa', 'w')
+    ifilterfile = open(args.outputdir + '/ifilter.concat.txt', 'w')
+
+    # Ioan: Top number of BLAST hits to parse through in order to determine whether top hit can be trusted as truly non-human
+    topchunk = 10
+    # a counter
+    minicounter = 0
+    # a line representing a top hit
+    topline = None
+    # a filtering boolean (if true, filter out line)
+    filterbool = False
 
     # glob blast files
-    files = glob.glob(args.outputdir + '/*.result')
+    myfiles = glob.glob(args.outputdir + '/*.result')
+    f = fileinput.input(files=myfiles)
+    for line in f:
+        linelist = line.strip().split()
+        myid = linelist[0]
+        # ID not yet seen (i.e., is top hit)
+        if not myid in seenids:
+            tophitsfile.write(line)
+            seenids.add(myid)
 
-    for f in files: 
-        # get file length
-        cmd = 'cat ' + f + ' | wc -l'
-        len = subprocess.check_output(cmd, shell=True).strip()
+            if topline:
+                # print previous top line
+                tophitsfile.write(topline)
+                if not filterbool:
+                    ifilterfile.write(topline)
 
-        # get the name of the fasta file (remove last 6 characters 'result')
-        g = f[:-6] + 'fasta'
+            # here we're assuming fmt is:
+            # qseqid, sseqid, saccver, staxids, pident, nident, length, mismatch, gapopen, gaps, qstart, qend, qlen, qframe, qcovs, sstart, send, slen, sframe, sstrand, evalue, bitscore, stitle
+            topbitscore = float(linelist[21])
+            topline = line.strip()
 
-        with open(f, 'r') as h:
-            for line in h:
-                allhitsfile.write(line)
-        with open(g, 'r') as h:
-            for line in h:
-                fastafile.write(line)
+            # reset counter
+            minicounter = 0
+            # reset boolean
+            filterbool = False
+            print(myid + ' ' + str(minicounter) + ' ' + str(filterbool))
+        # keep on checking results if filter flag hasn't gone high and #lines < topchunk
+        elif (not filterbool) and minicounter < topchunk:
+            # here we're assuming fmt is:
+            # qseqid, sseqid, saccver, staxids, pident, nident, length, mismatch, gapopen, gaps, qstart, qend, qlen, qframe, qcovs, sstart, send, slen, sframe, sstrand, evalue, bitscore, stitle
+            staxids = linelist[3]
+            evalue = float(linelist[20])
+            bitscore = float(linelist[21])
+            filterbool = ioanfilter(staxids, evalue, bitscore, topbitscore)
+            minicounter += 1
+            print(myid + ' ' + str(minicounter) + ' ' + str(filterbool))
 
-        # if length of file is zero
-        if len == '0':
-            noblast.append(os.path.basename(f))
-            # cat ${base}.fasta | sed s/X//g
-            with open(g, 'r') as h:
-                for line in h:
-                    noblastfile.write(line)
-        # else write tophits file
-        else:
-            with open(f, 'r') as h:
-                tophitsfile.write(h.readline())
+        #if myid in seenids:
+        #    continue
+        #else:
+        #    tophitsfile.write(line)
+        #    seenids.add(myid)
 
-        if not args.noclean:
-            os.remove(f)
-            os.remove(g)
+    # do last entry
+    tophitsfile.write(topline)
+    if not filterbool:
+        ifilterfile.write(topline)
 
-    noblastfile.close()
+    f.close()
     tophitsfile.close()
-    allhitsfile.close()
-    fastafile.close()
+    ifilterfile.close()
 
-    print('No blast hits for: ' + ' '.join(noblast))
+    # set of IDs that didn't blast
+    # print(allids)
+    # print(seenids)
+    noblastids = allids - seenids
+
+    # get fasta file of entries that didn't blast
+    filecount = hp.fastaidfilter(args.outputdir + '/above_threshold.fa', args.outputdir + '/no_blastn.fa', noblastids)
+
+    if not args.noclean:
+        cmd = 'rm {args.outputdir}/*.result {args.outputdir}/*.fasta'.format(args=args)
+        hp.run_cmd(cmd, args.verbose, 0)
+
+    print('No blast hits for: ' + ', '.join(list(noblastids)))
 
     # concat blast logs and remove folder
     print('concatenate blast logs')
@@ -209,13 +252,26 @@ def concat(args):
 
 # -------------------------------------
 
+def ioanfilter(staxids, evalue, bitscore, top_score):
+    """
+    Ioan's filter:
+    Only include the result in report of top blast hits if it is NOT a suspected high-alignment score human read
+    """
+    humantaxid = '9606'
+    evalcutoff = 10**(-4)
+    return staxids == humantaxid and evalue < evalcutoff and bitscore > 0.95 * top_score
+
+# -------------------------------------
+
 def main():
     """Main function"""
 
     # get arguments
     args = get_arg()
     # blast
-    blast(args)
+    # DONT FORGET TO RE-COMMENT THIS IN
+    # blast(args)
+    concat(args)
 
 # -------------------------------------
 

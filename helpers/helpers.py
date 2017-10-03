@@ -266,7 +266,7 @@ def fastasplit(infile, filename, cutoff):
 
 def fastasplit2(infile, filename, cutoff, filesize):
     """
-    Split a fasta file to produce a new file per entry such that seq length > cutoff (assume fastajoinlines)
+    Split a fasta file into smaller files, preserving only entries where seq length > cutoff (assume fastajoinlines)
 
     infile: input file
     filename: output file prefix
@@ -316,6 +316,33 @@ def fastafilter(infile, outfile, cutoff):
             elif len(line) > cutoff:
                 counter += 1
                 f.write(id + '\n')
+                f.write(line + '\n')
+
+    # return counter for contigs above threshold length
+    return counter
+
+# -------------------------------------
+
+def fastaidfilter(infile, outfile, ids):
+    """
+    Filter a fasta file to produce a new fasta file with only IDs that appear in ids set
+
+    infile: input fasta file
+    outfile: output fasta file
+    ids: a set of ids
+    """
+
+    # a counter for entries
+    counter = 0
+
+    with open(infile, 'r') as g, open(outfile, 'w') as f:
+        for line in g:
+            line = line.rstrip()
+            if line[0] == '>':
+                id = line[1:]
+            elif id in ids:
+                counter += 1
+                f.write('>' + id + '\n')
                 f.write(line + '\n')
 
     # return counter for contigs above threshold length
@@ -400,34 +427,6 @@ def tophitsfilter(infile, outfile):
                 counter += 1
                 f.write(line)
                 seen.add(myid)
-
-    # return counter for number of uniq queries
-    return counter
-
-# -------------------------------------
-
-def concatandfilter(infile, outfile):
-    """
-    Filter a blast tsv to get first entry (i.e., top hit) for degenerate groups
-
-    infile: input blast tsv file
-    outfile: output blast tsv file
-    """
-
-    # a counter for entries
-    counter = 0
-    # a list of seen ids
-    seen = set()
-
-    with open(infile, 'r') as g, open(outfile, 'w') as f:
-        for line in g:
-            myid = line.split()[0]
-            if myid in seen:
-                continue
-            else:
-                counter += 1
-                f.write(line)
-		seen.add(myid)
 
     # return counter for number of uniq queries
     return counter
