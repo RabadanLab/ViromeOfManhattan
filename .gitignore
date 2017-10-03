@@ -11,3 +11,4 @@ doc/*.pdf
 *Icon
 *.DS_Store
 notes
+tmp*

@@ -382,8 +382,14 @@ def tophitsfilter(infile, outfile):
 
     # a counter for entries
     counter = 0
+    # https://stackoverflow.com/questions/513882/python-list-vs-dict-for-look-up-table
+    # "Lookups in lists are O(n), lookups in dictionaries are amortized O(1),
+    # with regard to the number of items in the data structure.
+    # If you don't need to associate values, use sets.
+    # But if you don't have a value to associate, it is even better to use a set.
+    # It is a hash table, without the 'table' part."
     # a list of seen ids
-    seen = []
+    seen = set()
 
     with open(infile, 'r') as g, open(outfile, 'w') as f:
         for line in g:
@@ -393,7 +399,35 @@ def tophitsfilter(infile, outfile):
             else:
                 counter += 1
                 f.write(line)
-		seen.append(myid)
+                seen.add(myid)
+
+    # return counter for number of uniq queries
+    return counter
+
+# -------------------------------------
+
+def concatandfilter(infile, outfile):
+    """
+    Filter a blast tsv to get first entry (i.e., top hit) for degenerate groups
+
+    infile: input blast tsv file
+    outfile: output blast tsv file
+    """
+
+    # a counter for entries
+    counter = 0
+    # a list of seen ids
+    seen = set()
+
+    with open(infile, 'r') as g, open(outfile, 'w') as f:
+        for line in g:
+            myid = line.split()[0]
+            if myid in seen:
+                continue
+            else:
+                counter += 1
+                f.write(line)
+		seen.add(myid)
 
     # return counter for number of uniq queries
     return counter
@@ -410,7 +444,7 @@ def getnohits(infile, infile2, outfile):
     """
 
     counter = 0
-    contents = []
+    contents = None
 
     # get list of ids in top hits file
     with open(infile, 'r') as f:
