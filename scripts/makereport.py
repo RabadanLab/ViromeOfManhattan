@@ -97,7 +97,7 @@ def makerep(args):
     desiredfields = ['qseqid', 'sseqid', 'qlen','saccver','staxids','evalue', 'bitscore', 'stitle']
 
     # taxid blacklist
-    filterlist = []
+    filterlist = set()
     # header
     header = []
     # id 2 #reads dict (output of samtools idxstats)
@@ -109,7 +109,7 @@ def makerep(args):
     if args.blacklist:
         with open(args.blacklist, 'r') as f:
             # final newline causes empty list elt
-            filterlist = f.read().split('\n')[:-1]
+            filterlist = set([i for i in f.read().split('\n') if i])
 
     # load idx file
     with open(args.id2reads, 'r') as f:
