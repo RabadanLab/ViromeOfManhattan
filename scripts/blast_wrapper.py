@@ -10,6 +10,9 @@ import fileinput
 
 # This script blasts the entries of a fasta file,
 # provided they're over the length threshold
+# It also concatenates the results and does some minor filtering
+
+humantaxid = '9606'
 
 # -------------------------------------
 
@@ -93,13 +96,15 @@ def blast(args):
         hp.run_cmd(cmd, args.verbose, 0)
 
         # make link
-        cmd = 'ln -s blast_1.result {args.outputdir}/concat.txt'.format(args=args)
-        hp.run_cmd(cmd, args.verbose, 0)
-
+        #cmd = 'ln -s blast_1.result {args.outputdir}/concat.txt'.format(args=args)
+        #hp.run_cmd(cmd, args.verbose, 0)
         # get top hits
-        hp.tophitsfilter(args.outputdir + '/blast_1.result', args.outputdir + '/top.concat.txt')
+        #hp.tophitsfilter(args.outputdir + '/blast_1.result', args.outputdir + '/top.concat.txt')
         # get fasta file of entries that didn't blast
-        hp.getnohits(args.outputdir + '/top.concat.txt', args.outputdir + '/blast_1.fasta', args.outputdir + '/no_blastn.fa')
+        #hp.getnohits(args.outputdir + '/top.concat.txt', args.outputdir + '/blast_1.fasta', args.outputdir + '/no_blastn.fa')
+
+        # now filter blast results
+        concat(args)
 
     # if qsub
     else:
@@ -133,7 +138,7 @@ def blast(args):
         message = subprocess.check_output(qcmd, shell=True)
         print(message)
 
-        # now concatenate blast results
+        # now concatenate and filter blast results
         concat(args)
 
     hp.echostep(args.step, start=0)
@@ -141,7 +146,10 @@ def blast(args):
 # -------------------------------------
 
 def concat(args):
-    """concatenate blast files and logs, so as not to leave many files messily scattered about"""
+    """
+    Concatenate blast files and logs, so as not to leave many files messily scattered about.
+    Also, implement Ioan's filtering
+    """
 
     print('CONCATENATE START')
 
@@ -162,6 +170,7 @@ def concat(args):
 
     # file of top blast hits
     tophitsfile = open(args.outputdir + '/top.concat.txt', 'w')
+    # file filtered with Ioan's prescription
     ifilterfile = open(args.outputdir + '/ifilter.concat.txt', 'w')
 
     # Ioan: Top number of BLAST hits to parse through in order to determine whether top hit can be trusted as truly non-human
@@ -184,22 +193,26 @@ def concat(args):
             tophitsfile.write(line)
             seenids.add(myid)
 
+            # this will skip on the loop's first iteration
             if topline:
                 # print previous top line
-                tophitsfile.write(topline)
                 if not filterbool:
-                    ifilterfile.write(topline)
+                    ifilterfile.write(topline + '\n')
 
             # here we're assuming fmt is:
             # qseqid, sseqid, saccver, staxids, pident, nident, length, mismatch, gapopen, gaps, qstart, qend, qlen, qframe, qcovs, sstart, send, slen, sframe, sstrand, evalue, bitscore, stitle
             topbitscore = float(linelist[21])
+            topstaxids = linelist[3]
             topline = line.strip()
 
             # reset counter
             minicounter = 0
-            # reset boolean
-            filterbool = False
-            print(myid + ' ' + str(minicounter) + ' ' + str(filterbool))
+            # reset boolean (if tophit human, preemptively filter)
+            if topstaxids == humantaxid:
+                filterbool = True
+            else:
+                filterbool = False
+            #print(myid + ' ' + str(minicounter) + ' ' + str(filterbool))
         # keep on checking results if filter flag hasn't gone high and #lines < topchunk
         elif (not filterbool) and minicounter < topchunk:
             # here we're assuming fmt is:
@@ -209,16 +222,9 @@ def concat(args):
             bitscore = float(linelist[21])
             filterbool = ioanfilter(staxids, evalue, bitscore, topbitscore)
             minicounter += 1
-            print(myid + ' ' + str(minicounter) + ' ' + str(filterbool))
-
-        #if myid in seenids:
-        #    continue
-        #else:
-        #    tophitsfile.write(line)
-        #    seenids.add(myid)
+            #print(myid + ' ' + str(minicounter) + ' ' + str(filterbool))
 
     # do last entry
-    tophitsfile.write(topline)
     if not filterbool:
         ifilterfile.write(topline)
 
@@ -257,7 +263,7 @@ def ioanfilter(staxids, evalue, bitscore, top_score):
     Ioan's filter:
     Only include the result in report of top blast hits if it is NOT a suspected high-alignment score human read
     """
-    humantaxid = '9606'
+    # humantaxid = '9606'
     evalcutoff = 10**(-4)
     return staxids == humantaxid and evalue < evalcutoff and bitscore > 0.95 * top_score
 
@@ -269,9 +275,8 @@ def main():
     # get arguments
     args = get_arg()
     # blast
-    # DONT FORGET TO RE-COMMENT THIS IN
-    # blast(args)
-    concat(args)
+    blast(args)
+    #concat(args)
 
 # -------------------------------------
 
