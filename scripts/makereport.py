@@ -203,11 +203,10 @@ def makerep(args):
     
     # generate and write html report
     if args.taxid2names != 'None':
-        makeHTML.generateHTML(
-            args.outputdir + '/' + args.taxonreport,
-            args.scripts,
-            args.taxid2names,
-            args.outputdir)
+	try:
+            makeHTML.generateHTML(args.outputdir + '/' + args.taxonreport, args.scripts, args.taxid2names, args.outputdir)
+        except:
+            print('[ERROR] makeHTML failed.')
     else: 
         print('[WARNING] missing names.dmp, the file mapping taxids to names. HTML report will not be generated.')
     

@@ -142,6 +142,10 @@ def get_arg():
     if '4' in args.steps and (not args.orfblast) and args.pblastdb:
         print('[WARNING] --pblastdb argument supplied but boolean --orfblast is off')
 
+    # fix this hack later
+    if '5' in args.steps:
+        args.steps += '6'
+
     # cast as various bools as ints
     for name in 'gzip verbose noclean noSGE orfblast'.split():
         setattr(args, name, int(getattr(args, name, 0)))
@@ -216,6 +220,7 @@ def scan_main(args):
              '3': '-S {mypython} -N blst_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
              '4': '-S {mypython} -N orf_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
              '5': '-S {mypython} -N rep_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args)
+             '6': '-S {mypython} -N rep2_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args)
     }
 
     # dict which maps each step to the shell part of the command
@@ -224,7 +229,8 @@ def scan_main(args):
              '2': '{args.scripts}/scripts/assembly.py --scripts {args.scripts} --single {args.single} --trinitymem {args.trinitymem} --trinitycores {args.trinitycores} --trinitythreshold {args.trinitycontigthreshold} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
              '3': '{args.scripts}/scripts/blast_wrapper.py --scripts {args.scripts} --threshold {args.contigthreshold} --db {args.blastdb} --threads {args.blast_threads} --id {args.identifier} --filelength {args.blastchunk} --verbose {args.verbose} --noclean {args.noclean} --nosge {args.noSGE}'.format(args=args),
              '4': '{args.scripts}/scripts/orf_discovery.py --scripts {args.scripts} --id {args.identifier} --threshold {args.orfthreshold} --db {args.pblastdb} --blast {args.orfblast} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
-             '5': '{args.scripts}/scripts/makereport.py --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names} && {args.scripts}/scripts/makereport.py --outputdir report_ifilter --input blast/ifilter.concat.txt --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names}'.format(args=args)
+             '5': '{args.scripts}/scripts/makereport.py --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names}'.format(args=args)
+             '6': '{args.scripts}/scripts/makereport.py --outputdir report_ifilter --input blast/ifilter.concat.txt --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names}'.format(args=args)
     }
 
     # start with job id set to zero string
