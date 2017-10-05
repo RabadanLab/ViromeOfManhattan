@@ -219,7 +219,7 @@ def scan_main(args):
              '2': '-S {mypython} -N asm_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
              '3': '-S {mypython} -N blst_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
              '4': '-S {mypython} -N orf_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
-             '5': '-S {mypython} -N rep_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args)
+             '5': '-S {mypython} -N rep_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
              '6': '-S {mypython} -N rep2_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args)
     }
 
@@ -229,7 +229,7 @@ def scan_main(args):
              '2': '{args.scripts}/scripts/assembly.py --scripts {args.scripts} --single {args.single} --trinitymem {args.trinitymem} --trinitycores {args.trinitycores} --trinitythreshold {args.trinitycontigthreshold} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
              '3': '{args.scripts}/scripts/blast_wrapper.py --scripts {args.scripts} --threshold {args.contigthreshold} --db {args.blastdb} --threads {args.blast_threads} --id {args.identifier} --filelength {args.blastchunk} --verbose {args.verbose} --noclean {args.noclean} --nosge {args.noSGE}'.format(args=args),
              '4': '{args.scripts}/scripts/orf_discovery.py --scripts {args.scripts} --id {args.identifier} --threshold {args.orfthreshold} --db {args.pblastdb} --blast {args.orfblast} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
-             '5': '{args.scripts}/scripts/makereport.py --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names}'.format(args=args)
+             '5': '{args.scripts}/scripts/makereport.py --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names}'.format(args=args),
              '6': '{args.scripts}/scripts/makereport.py --outputdir report_ifilter --input blast/ifilter.concat.txt --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names}'.format(args=args)
     }
 
