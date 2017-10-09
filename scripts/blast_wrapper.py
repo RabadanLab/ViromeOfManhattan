@@ -37,6 +37,7 @@ def get_arg():
     parser.add_argument('--whichblast', default='blastn', choices=['blastn', 'blastp'], help='which blast to use (blastn, blastp)')
     parser.add_argument('--threads', default='1', help='blast -num_threads option')
     parser.add_argument('--nosge', type=int, default=0, help='no SGE bool')
+    parser.add_argument('--hpc', type=int, default=0, help='run on the CUMC hpc cluster (add additional qsub flags)')
     parser.add_argument('--id', help='id')
     args = parser.parse_args()
 
@@ -122,6 +123,8 @@ def blast(args):
 
         # qsub part of command (array job)
         qcmd = 'qsub -S {mypython} -N bc_{args.id} -e {args.logsdir} -o {args.logsdir} -t 1-{filecount} '.format(mypython=sys.executable, args=args, filecount=filecount)
+        #if args.hpc:
+        #    qcmd += ...
         # regular part of command
         cmd = '{args.scripts}/scripts/blast.py --scripts {args.scripts} --outputdir {args.outputdir} --whichblast {args.whichblast} --db {args.db} --threads {args.threads} --fmt "{args.fmt}"'.format(args=args)
         if args.verbose:

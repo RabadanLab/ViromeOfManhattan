@@ -15,10 +15,6 @@ import sys
 import subprocess
 import os
 import ConfigParser
-# hack to prevent 'ImportError: No module named helpers' on qsub
-mycwd = '/opt/software/Pandora'
-sys.path.append(mycwd)
-from helpers import helpers as hp
 
 def add_common_args(sub):
     """A function to add common args to subparers, modified from StackOverflow"""
@@ -42,9 +38,6 @@ def get_arg():
     prog_description = 'microbial detection from paired-end RNAseq'
     parser = argparse.ArgumentParser(description=prog_description)
 
-    # path of this script
-    # mycwd = os.path.dirname(os.path.realpath(__file__))
-
     # implement subcommands (Think git: git add, git commit, git push, etc)
     subparsers = parser.add_subparsers(help='sub-command help')
 
@@ -56,6 +49,9 @@ def get_arg():
 
     ## Additional parameter to handle single-end input reads
     parser_scan.add_argument('--single', action='store_true', help = 'boolean denoting single-end read data (turn on flag and use either -r1 or --bam)')
+
+    ## parameter to use if running the CUMC cluster (not aws)
+    parser_scan.add_argument('--hpc', action='store_true', help = 'run on the CUMC hpc cluster (add additional qsub flags)')
 
     parser_scan.add_argument('-sr', '--refstar', help='STAR host reference')
     parser_scan.add_argument('-br', '--refbowtie', help='bowtie2 host reference')
@@ -72,7 +68,7 @@ def get_arg():
 
     parser_scan.add_argument('--orfthreshold', default='200', help='threshold on ORF length for protein blast (default: 200)')
     parser_scan.add_argument('--orfblast', action='store_true', help='blast the ORFs to protein (nr) database (default: off)')
-    parser_scan.add_argument('--blacklist', default=mycwd + '/resources/blacklist.txt', help='A text file containing a list of non-pathogen taxids to ignore')
+    parser_scan.add_argument('--blacklist', help='A text file containing a list of non-pathogen taxids to ignore')
     parser_scan.add_argument('--gzip', action='store_true', help='input fastq files are gzipped (default: off)')
     parser_scan.add_argument('--noerror', action='store_true', help='do not check for errors (default: off)')
     parser_scan.add_argument('--steps', default='12345', help='steps to run. The steps are as follows: \
@@ -94,9 +90,20 @@ def get_arg():
     parser_agg.set_defaults(which='aggregate')
 
     # add common arguments
-    for i in [parser_scan, parser_agg]: add_common_args(i)
+    for i in [parser_scan, parser_agg]:
+        add_common_args(i)
 
     args = parser.parse_args()
+
+    # path of this script
+    if args.hpc:
+        mycwd = os.path.dirname(os.path.realpath(__file__))
+    else:
+        # hack to prevent 'ImportError: No module named helpers' on qsub on AWS
+        mycwd = '/opt/software/Pandora'
+        sys.path.append(mycwd)
+    global hp
+    from helpers import helpers as hp
 
     # add key-value pairs to the args dict
     # directory where this script resides             
@@ -113,6 +120,7 @@ def get_arg():
                   (args.gtf, 'gtf', 'Step1'),
                   (args.blastdb, 'blastdb', 'Step3'), 
                   (args.pblastdb, 'pblastdb', 'Step4'),
+                  (args.blacklist, 'blacklist', 'Step5'),
                   (args.taxid2names, 'taxid2names', 'Step5')]:
             if not i[0] and i[1] in hp.config_section_map(Config, i[2]):
                 vars(args)[i[1]] = hp.config_section_map(Config, i[2])[i[1]]
@@ -223,12 +231,22 @@ def scan_main(args):
              '6': '-S {mypython} -N rep2_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args)
     }
 
+    # dict which maps each step to extra qsub params for the CUMC cluster
+    clusterparams = {
+             '1': ' -l mem=16G,time=12:: -pe smp {args.map_threads} -R y'.format(args=args),
+             '2': ' -l mem=12G,time=12:: -pe smp {args.trinitycores} -R y'.format(args=args),
+             '3': ' -l mem=4G,time=8::',
+             '4': ' -l mem=2G,time=2::',
+             '5': ' -l mem=1G,time=1::',
+             '6': ' -l mem=1G,time=1::'
+    }
+
     # dict which maps each step to the shell part of the command
     d = {
              '1': '{args.scripts}/scripts/host_separation.py --scripts {args.scripts} -1 {args.mate1} -2 {args.mate2} --bam {args.bam} --threads {args.map_threads} --single {args.single} --refstar {args.refstar} --refbowtie {args.refbowtie} --gzip {args.gzip} --verbose {args.verbose} --noclean {args.noclean} --gtf {args.gtf}'.format(args=args),
              '2': '{args.scripts}/scripts/assembly.py --scripts {args.scripts} --single {args.single} --trinitymem {args.trinitymem} --trinitycores {args.trinitycores} --trinitythreshold {args.trinitycontigthreshold} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
              '3': '{args.scripts}/scripts/blast_wrapper.py --scripts {args.scripts} --threshold {args.contigthreshold} --db {args.blastdb} --threads {args.blast_threads} --id {args.identifier} --filelength {args.blastchunk} --verbose {args.verbose} --noclean {args.noclean} --nosge {args.noSGE}'.format(args=args),
-             '4': '{args.scripts}/scripts/orf_discovery.py --scripts {args.scripts} --id {args.identifier} --threshold {args.orfthreshold} --db {args.pblastdb} --blast {args.orfblast} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
+             '4': '{args.scripts}/scripts/orf_discovery.py --scripts {args.scripts} --id {args.identifier} --threshold {args.orfthreshold} --db {args.pblastdb} --blast {args.orfblast} --verbose {args.verbose} --noclean {args.noclean} --hpc {args.hpc}'.format(args=args),
              '5': '{args.scripts}/scripts/makereport.py --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names}'.format(args=args),
              '6': '{args.scripts}/scripts/makereport.py --outputdir report_ifilter --input blast/ifilter.concat.txt --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names}'.format(args=args)
     }
@@ -243,7 +261,10 @@ def scan_main(args):
             jid = docmd(args.qparam[i], d[i], jid, args)
         # if not, use default from dict q
         else:
-            jid = docmd(q[i], d[i], jid, args)
+            qprefix = q[i]
+            if args.hpc:
+                qprefix += clusterparams[i]
+            jid = docmd(qprefix, d[i], jid, args)
 
         # only print step name if qsub-ing
         if not args.noSGE:
