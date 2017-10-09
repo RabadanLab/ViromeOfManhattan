@@ -17,3 +17,5 @@ qparam=-N orf -V -cwd -o log.out -e log.err
 
 [Step5]
 qparam=-N rep -V -cwd -o log.out -e log.err
+taxid2names=/Volumes/ref/taxdump/names.dmp
+blacklist=/Volumes/ref/pandora_resources/blacklist.txt
