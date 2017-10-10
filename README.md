@@ -82,6 +82,29 @@ Here is an example command using a configuration file:
 pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --verbose -c pandora.config.txt
 ```
 
+Keep intermediate files:
+
+```
+pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --verbose -c pandora.config.txt --noclean
+```
+
+Run only steps 3 through 5:
+
+```
+pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --verbose -c pandora.config.txt --steps 345
+```
+
+**Output**
+
+Pandora produces three reports:
+ - report.contig.txt - a report keyed on contigs
+ - report.taxon.txt - a report keyed on taxids
+ - report.taxon.html - a report for viewing in your browser
+
+The later looks like this:
+
+![screenshot](img/pandorascreenshot.800.png?raw=true "report.taxon.html")
+
 **Notes**
 
 Currently, Pandora makes use of the [Oracle Grid Engine](https://en.wikipedia.org/wiki/Oracle_Grid_Engine) by default.
