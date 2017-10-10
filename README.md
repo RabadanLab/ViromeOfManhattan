@@ -94,9 +94,19 @@ Run only steps 3 through 5:
 pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --verbose -c pandora.config.txt --steps 345
 ```
 
-*Note*: the CUMC cluster and Starcluster on AWS behave differently.
-You must use the `--hpc` flag to run on the CUMC cluster.
+Example running pandora on AWS with Starcluster with an unmated read file:
 
+```
+mkdir -p logs; qsub -V -N pjob -e logs -o logs -S /usr/bin/python -cwd /opt/software/Pandora/pandora.py scan -id 1 --single --verbose --gzip -c /opt/software/Pandora/pandora.config.aws.txt -r1 single-end.fastq.gz --noclean --trinitycores 6 --trinitymem 30 --blast_threads 2
+```
+
+*Note*: the CUMC cluster and Starcluster on AWS behave differently.
+You must use the `--hpc` flag to run on the CUMC hpc cluster.
+Example:
+
+```
+pandora.py scan -id 1 --verbose --hpc --gzip -c pandora.config.hpc.txt -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz
+```
 
 **Output**
 
