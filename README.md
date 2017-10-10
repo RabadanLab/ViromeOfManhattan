@@ -94,6 +94,10 @@ Run only steps 3 through 5:
 pandora.py scan -id patient1 -r1 mate_1.fastq.gz -r2 mate_2.fastq.gz --gzip --verbose -c pandora.config.txt --steps 345
 ```
 
+*Note*: the CUMC cluster and Starcluster on AWS behave differently.
+You must use the `--hpc` flag to run on the CUMC cluster.
+
+
 **Output**
 
 Pandora produces three reports:
