@@ -24,7 +24,7 @@ The following programs must be in your `PATH`:
 Pandora depends on the following Python modules:
 
 - [Biopython](http://biopython.org/wiki/Main_Page)
-- [Pandas](http://pandas.pydata.org/)
+- [Pandas >= 0.20.1](http://pandas.pydata.org/) (note: older versions of Pandas, such as 0.18.1, will throw an error)
 - scipy
 
 The exact list, with versions, is provided in the `requirements.txt` file.
