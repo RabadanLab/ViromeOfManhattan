@@ -1,6 +1,6 @@
 import pandas as pd;
 
-def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
+def generateHTML(reportLoc, repoLoc, namesLoc, outputLoc, hpcbool):
     """
     generateHTML: generate HTML report from report.taxon: 
     
@@ -8,6 +8,7 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
         repoLoc - location of Pandora repository
         namesLoc - location of names.dmp file containing taxid to name
         outputLoc - location of file output folder
+	hpcbool - a boolean variable hi if running on CUMC's hpc cluster (hacky)
     """
     
     
@@ -40,11 +41,16 @@ def generateHTML(reportLoc,repoLoc,namesLoc,outputLoc):
     nameDump[1] = nameDump[1].str.strip()
     nameDump[2] = nameDump[2].str.strip()
     nameDump[3] = nameDump[3].str.strip()
+    if not hpcbool:
+        nameDump = nameDump.applymap(str)
+
     
     #generate canvasJS string for donut chart
     pd.options.mode.chained_assignment = None
     donutString = ""
     for i in range(0,len(df.index)):
+        if not hpcbool:
+            df['taxID'][i] = df['taxID'][i].split(";")[0]
         df['name'][i] = nameDump[(nameDump[0] == df['taxID'][i]) & (nameDump[3] == 'scientific name')][[1]].to_string(header=False,index=False)
         temp = "{y:"+str(df['RPMH'][i])+",label:'"+df['name'][i]+" -'},"
         df['taxID'][i] = '<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id='+ str(df['taxID'][i]) +'">'+str(df['taxID'][i])+'</a>'

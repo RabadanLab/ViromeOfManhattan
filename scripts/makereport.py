@@ -29,6 +29,7 @@ def get_arg():
     parser.add_argument('--id2reads', default='assembly/reads2contigs.stats.txt', help='the output file of samtools idxstats mapping ids to #reads')
     parser.add_argument('--taxid2names', help='location of names.dmp file mapping taxid to names')
     parser.add_argument('--blacklist', help='the file of blacklist taxids')
+    parser.add_argument('--hpc', type=int, default=0, help='run on the CUMC hpc cluster (add additional qsub flags)')
     parser.add_argument('--noclean', type=int, default=0, help='do not delete temporary intermediate files (default: off)')
     parser.add_argument('--verbose', type=int, default=0, help='verbose mode: echo commands, etc (default: off)')
     parser.add_argument('--id', required=True, help='sample identifier')
@@ -204,7 +205,7 @@ def makerep(args):
     # generate and write html report
     if args.taxid2names != 'None':
 	try:
-            makeHTML.generateHTML(args.outputdir + '/' + args.taxonreport, args.scripts, args.taxid2names, args.outputdir)
+            makeHTML.generateHTML(args.outputdir + '/' + args.taxonreport, args.scripts, args.taxid2names, args.outputdir, args.hpc)
         except:
             print('[ERROR] makeHTML failed.')
     else: 
