@@ -564,12 +564,17 @@ def quitwitherror(message, step=''):
 def echostep(step, start=1):
     """Print text to define start or end of a step"""
 
+    cmd = 'uname -a'
+    nodeinfo = run_cmd(cmd, 0, 1)
+
     if start:
         print('------------------------------------------------------------------')
         print(step.upper() + ' START')
+        # print(nodeinfo)
         sys.stderr.write('------------------------------------------------------------------\n')
         sys.stderr.write(step.upper() + ' START\n')
         sys.stderr.write(str(datetime.now()) + '\n')
+        sys.stderr.write(nodeinfo + '\n')
     else:
         print(step.upper() + ' END')
         print('------------------------------------------------------------------')
