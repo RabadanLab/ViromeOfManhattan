@@ -2,41 +2,41 @@ import pandas as pd;
 
 def generateHTML(reportLoc, repoLoc, namesLoc, outputLoc, hpcbool):
     """
-    generateHTML: generate HTML report from report.taxon: 
-    
+    generateHTML: generate HTML report from report.taxon:
+
         reportLoc - location of report.taxon
         repoLoc - location of Pandora repository
         namesLoc - location of names.dmp file containing taxid to name
         outputLoc - location of file output folder
 	hpcbool - a boolean variable hi if running on CUMC's hpc cluster (hacky)
     """
-    
-    
+
+
     #reportLoc = "report.taxon.txt"
     canvasLoc = repoLoc+"/scripts/vendor/jquery.canvasjs.min.js"
     jqueryLoc = repoLoc+"/scripts/vendor/jquery-3.1.1.slim.min.js"
     datatablesLoc = repoLoc+"/scripts/vendor/datatables.min.js"
     #namesLoc = "/names.dmp"
-    
+
     #load taxon report
     df = pd.read_table(reportLoc)
     df.applymap(str)
     df.columns = ['name','taxID','#_of_read','#_of_contigs','longest_contig','len_longest_contig','RPMH']
     sampleID = str(df['name'][0])
-    
+
     #load canvasJS
     with open(canvasLoc,'r') as canvasjs:
         canvasString = canvasjs.read()
-    
+
     #load jquery
     with open(jqueryLoc,'r') as jqueryjs:
         jqueryString = jqueryjs.read()
-    
+
     #load DataTables
     with open(datatablesLoc,'r') as datatables:
         datatablesString = datatables.read()
-    
-    #load taxid to name 
+
+    #load taxid to name
     nameDump = pd.read_table(namesLoc,sep="|",header=None)
     nameDump[1] = nameDump[1].str.strip()
     nameDump[2] = nameDump[2].str.strip()
@@ -44,25 +44,27 @@ def generateHTML(reportLoc, repoLoc, namesLoc, outputLoc, hpcbool):
     if not hpcbool:
         nameDump = nameDump.applymap(str)
 
-    
+
     #generate canvasJS string for donut chart
     pd.options.mode.chained_assignment = None
     donutString = ""
+    df = df.applymap(str)
     for i in range(0,len(df.index)):
-        if not hpcbool:
-            df['taxID'][i] = df['taxID'][i].split(";")[0]
-        df['name'][i] = nameDump[(nameDump[0] == df['taxID'][i]) & (nameDump[3] == 'scientific name')][[1]].to_string(header=False,index=False)
-        temp = "{y:"+str(df['RPMH'][i])+",label:'"+df['name'][i]+" -'},"
-        df['taxID'][i] = '<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id='+ str(df['taxID'][i]) +'">'+str(df['taxID'][i])+'</a>'
-        donutString=donutString+temp
+        df['taxID'][i] = df['taxID'][i].split(";")[0]
+        tempname = nameDump[(nameDump[0] == df['taxID'][i]) & (nameDump[3] == 'scientific name')][[1]]
+        if(not tempname.empty):
+            df['name'][i] = tempname.to_string(header=False,index=False)
+            temp = "{y:"+str(df['RPMH'][i])+",label:'"+df['name'][i].replace("'","")+" -'},"
+            df['taxID'][i] = '<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id='+ str(df['taxID'][i]) +'">'+str(df['taxID'][i])+'</a>'
+            donutString=donutString+temp
     donutString=donutString.rstrip(',')
-    
+
     #workaround of column width to properly display taxid lnk
     old_width = pd.get_option('display.max_colwidth')
     pd.set_option('display.max_colwidth', -1)
     tableString = df.to_html(index=False).replace("&lt;","<").replace("&gt;",">").replace('<table border="1" class="dataframe">','<table id="table1" border="1" class="dataframe">')
     pd.set_option('display.max_colwidth', old_width)
-    
+
     #generate output including JS packages as string in header
     htmloutput = '''
     <html>
@@ -131,7 +133,7 @@ def generateHTML(reportLoc, repoLoc, namesLoc, outputLoc, hpcbool):
                         {
                                     animationEnabled: true,
                             data: [
-                            {        
+                            {
                                 type: "doughnut",
                                 startAngle:20,
                                 innerRadius: "60%",
@@ -158,7 +160,8 @@ def generateHTML(reportLoc, repoLoc, namesLoc, outputLoc, hpcbool):
             </div>
         </body>
     </html>'''
-    
+
     #write to html file
     with open(outputLoc+'/report.taxon.html', 'w') as f:
         f.write(htmloutput)
+
