@@ -41,7 +41,7 @@ def generateHTML(reportLoc, repoLoc, namesLoc, outputLoc, hpcbool):
     nameDump[1] = nameDump[1].str.strip()
     nameDump[2] = nameDump[2].str.strip()
     nameDump[3] = nameDump[3].str.strip()
-    if not hpcbool:
+    if hpcbool:
         nameDump = nameDump.applymap(str)
 
 
