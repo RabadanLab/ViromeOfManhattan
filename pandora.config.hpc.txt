@@ -11,6 +11,8 @@ qparam=-N asm -V -cwd -o log.out -e log.err -l mem=10G,time=6:: -pe smp 8 -R y
 [Step3]
 blastdb=/ifs/scratch/c2b2/rr_lab/shares/ref/blastdb/nt-current/nt 
 qparam=-N blst -V -cwd -o log.out -e log.err -l mem=6G,time=8::
+bmem=8
+btime=4
 
 [Step4]
 pblastdb=/ifs/scratch/c2b2/rr_lab/shares/ref/blastdb/nr-current/nr
