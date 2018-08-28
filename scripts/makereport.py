@@ -46,7 +46,8 @@ def get_arg():
     from helpers import makeHTML
 
     # error checking: exit if previous step produced zero output
-    for i in [args.input, args.header, args.id2reads]:
+    # for i in [args.input, args.header, args.id2reads]:
+    for i in [args.input, args.header]:
         hp.check_file_exists_and_nonzero(i, step=args.step)
 
     return args
@@ -113,10 +114,13 @@ def makerep(args):
             filterlist = set([i for i in f.read().split('\n') if i])
 
     # load idx file
-    with open(args.id2reads, 'r') as f:
-        for line in f:
-            # map id to #reads
-            idx[line.split()[0].strip()] = line.split()[2].strip()
+    try:
+        with open(args.id2reads, 'r') as f:
+            for line in f:
+                # map id to #reads
+                idx[line.split()[0].strip()] = line.split()[2].strip()
+    except:
+        print('[Warning] Failed to load id2reads file')
 
     # load header
     with open(args.header, 'r') as f:
@@ -173,6 +177,8 @@ def makerep(args):
                     taxonstats[taxid]['longestlength'] = max(taxonstats[taxid].get('longestlength', 0), int(qlen))
                     if not readcounts == '-':
                         taxonstats[taxid]['sum'] = taxonstats[taxid].get('sum', 0) + int(readcounts)
+                    else:
+                        taxonstats[taxid]['sum'] = '-'
 
     # sort by staxids then qlen (with bash)
     # careful: you're including the header in the file (make sure it's sorted properly)
