@@ -78,7 +78,8 @@ def get_arg():
       step 2: assembly, \
       step 3: blast contigs, \
       step 4: orf discovery, \
-      step 5: reporting (default: 12345 - i.e, steps 1 through 5).')
+      step 5: reporting (default: 12345 - i.e, steps 1 through 5), \
+      step 7: blast unassembled reads.')
 
     # Trinity default contig length is 200
     # Ioan: for detection of species, impose no bound on the contig length in assembly
@@ -230,7 +231,8 @@ def scan_main(args):
              '3': '-S {mypython} -N blst_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
              '4': '-S {mypython} -N orf_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
              '5': '-S {mypython} -N rep_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
-             '6': '-S {mypython} -N rep2_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args)
+             '6': '-S {mypython} -N rep2_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
+             '7': '-S /bin/bash -N blst_unass_{args.identifier} -V -cwd -o log.out -e log.err'.format(args=args)
     }
 
     # dict which maps each step to extra qsub params for the CUMC cluster
@@ -240,7 +242,8 @@ def scan_main(args):
              '3': ' -l mem=4G,time=8::',
              '4': ' -l mem=2G,time=2::',
              '5': ' -l mem=1G,time=1::',
-             '6': ' -l mem=1G,time=1::'
+             '6': ' -l mem=1G,time=1::',
+             '7': ' -l mem=1G,time=12::'
     }
 
     # dict which maps each step to the shell part of the command
@@ -250,7 +253,8 @@ def scan_main(args):
              '3': '{args.scripts}/scripts/blast_wrapper.py --scripts {args.scripts} --threshold {args.contigthreshold} --db {args.blastdb} --threads {args.blast_threads} --id {args.identifier} --filelength {args.blastchunk} --verbose {args.verbose} --noclean {args.noclean} --nosge {args.noSGE} --hpc {args.hpc} --btime {args.btime} --bmem {args.bmem}'.format(args=args),
              '4': '{args.scripts}/scripts/orf_discovery.py --scripts {args.scripts} --id {args.identifier} --threshold {args.orfthreshold} --db {args.pblastdb} --blast {args.orfblast} --verbose {args.verbose} --noclean {args.noclean}'.format(args=args),
              '5': '{args.scripts}/scripts/makereport.py --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names} --hpc {args.hpc}'.format(args=args),
-             '6': '{args.scripts}/scripts/makereport.py --outputdir report_ifilter --input blast/ifilter.concat.txt --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names} --hpc {args.hpc}'.format(args=args)
+             '6': '{args.scripts}/scripts/makereport.py --outputdir report_ifilter --input blast/ifilter.concat.txt --scripts {args.scripts} --id {args.identifier} --verbose {args.verbose} --blacklist {args.blacklist} --taxid2names {args.taxid2names} --hpc {args.hpc}'.format(args=args),
+             '7': '{args.scripts}/scripts/blast_unassembled_reads.sh assembly/reads2contigs.bam blast_unassembled_reads {args.scripts} {args.blastdb} {args.blacklist} {args.taxid2names} {args.scripts}/resources/blast.header'.format(args=args)
     }
 
     # start with job id set to zero string
