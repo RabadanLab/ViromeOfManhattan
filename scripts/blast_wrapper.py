@@ -33,6 +33,8 @@ def get_arg():
     parser.add_argument('--verbose', type=int, default=0, help='verbose mode: echo commands, etc (default: off)')
     parser.add_argument('--threshold', type=int, default=0, help='the length threshold')
     parser.add_argument('--filelength', type=int, default=500, help='the number of rows per split file')
+    parser.add_argument('--bmem', help='memory (in G) for qsub of individual blast array job task')
+    parser.add_argument('--btime', help='time (in hours) for qsub of individual blast array job task')
     parser.add_argument('--db', help='the database prefix')
     parser.add_argument('--whichblast', default='blastn', choices=['blastn', 'blastp'], help='which blast to use (blastn, blastp)')
     parser.add_argument('--threads', default='1', help='blast -num_threads option')
@@ -122,7 +124,7 @@ def blast(args):
             print("There are " + str(numcontigs) + " contigs above threshold, and " + str(filecount) + " files to blast.")
 
         # qsub part of command (array job)
-        qcmd = 'qsub -S {mypython} -N bc_{args.id} -e {args.logsdir} -o {args.logsdir} -t 1-{filecount} '.format(mypython=sys.executable, args=args, filecount=filecount)
+        qcmd = 'qsub -S {mypython} -N bc_{args.id} -e {args.logsdir} -o {args.logsdir} -l mem={args.bmem}G,time={args.btime}:: -t 1-{filecount} '.format(mypython=sys.executable, args=args, filecount=filecount)
         #if args.hpc:
         #    qcmd += ...
         # regular part of command
