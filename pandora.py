@@ -241,8 +241,8 @@ def scan_main(args):
              '2': ' -l mem=12G,time=12:: -pe smp {args.trinitycores} -R y'.format(args=args),
              '3': ' -l mem=4G,time=8::',
              '4': ' -l mem=2G,time=2::',
-             '5': ' -l mem=1G,time=1::',
-             '6': ' -l mem=1G,time=1::',
+             '5': ' -l mem=4G,time=1::',
+             '6': ' -l mem=4G,time=1::',
              '7': ' -l mem=1G,time=12::'
     }
 

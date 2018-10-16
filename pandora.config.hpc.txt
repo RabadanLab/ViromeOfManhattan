@@ -19,6 +19,6 @@ pblastdb=/ifs/scratch/c2b2/rr_lab/shares/ref/blastdb/nr-current/nr
 qparam=-N orf -V -cwd -o log.out -e log.err -l mem=2G,time=2::
 
 [Step5]
-qparam=-N rep -V -cwd -o log.out -e log.err -l mem=1G,time=1::
+qparam=-N rep -V -cwd -o log.out -e log.err -l mem=4G,time=1::
 taxid2names=/ifs/scratch/c2b2/rr_lab/shares/ref/taxdump/names.dmp
 blacklist=/ifs/scratch/c2b2/rr_lab/shares/ref/pandora_resources/blacklist.txt

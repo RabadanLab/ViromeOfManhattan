@@ -39,6 +39,7 @@ head -1000 logs/* > all.logs.txt
 # clean up
 echo 'clean up'
 rm x*
+rm tmp
 rm *.fasta
 rm *.result
 rm *.tophit
