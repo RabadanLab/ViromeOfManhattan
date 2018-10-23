@@ -9,8 +9,8 @@ FROM ubuntu
 # File Author / Maintainer
 MAINTAINER docliver
 
-################## BEGIN INSTALLATION ######################
-# Install 
+################## INSTALL STUFF ######################
+# Install programs
 
 # Usage: WORKDIR /path
 WORKDIR /home
@@ -47,8 +47,6 @@ RUN apt-get install -y s3fs
 RUN pip install awscli
 RUN pip install numpy scipy matplotlib pandas sympy nose biopython
 
-###
-
 # Install (and build) bioinformatics packages
 RUN wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.7.1+-x64-linux.tar.gz
 RUN tar -zxvf ncbi-blast-2.7.1+-x64-linux.tar.gz
@@ -73,22 +71,28 @@ RUN tar -zxvf Trinity-v2.8.4.tar.gz
 RUN wget https://sourceforge.net/projects/subread/files/subread-1.6.2/subread-1.6.2-Linux-x86_64.tar.gz
 RUN tar -zxvf subread-1.6.2-Linux-x86_64.tar.gz
 RUN git clone https://github.com/RabadanLab/Pandora.git
-# RUN rm *.gz *.tar *.zip
+# RUN rm *.gz *.tar *.zip'
 
-##################### INSTALLATION END #####################
+RUN mkdir -p data results
 
-# ADD TO PATH
+# ADD COMMANDS TO PATH
 ENV PATH="${PATH}:/home/STAR-2.6.0a/bin/Linux_x86_64"
 ENV PATH="${PATH}:/home/bowtie2-2.3.4.3-linux-x86_64"
 ENV PATH="${PATH}:/home/ncbi-blast-2.7.1+/bin"
 ENV PATH="${PATH}:/home/subread-1.6.2-Linux-x86_64/bin"
 ENV PATH="${PATH}:/home/trinityrnaseq-Trinity-v2.8.4"
 
-# MISC (make links)
-RUN mkdir -p /opt/software
-WORKDIR /opt/software
-RUN ln -s /home/Pandora
-WORKDIR /home
+##################### INSTALL STUFF #####################
 
-# COMMAND
-CMD echo "Hello docker!"
+# SET UP DIRECTORIES, COPY FILES
+RUN mkdir -p data ref results /opt/software /root/.aws
+RUN ln -s /home/Pandora /opt/software/Pandora
+
+# COPY DATA
+COPY data/mate1.fq.gz /home/data/
+COPY data/mate2.fq.gz /home/data/
+
+# RUN PANDORA
+WORKDIR /home/results
+# CMD echo "hello world"
+CMD python ../Pandora/pandora.py scan -id 1 --verbose --gzip -c ../Pandora/pandora.config.docker.txt -r1 ../data/mate1.fq.gz -r2 ../data/mate2.fq.gz --noclean --verbose --noSGE
