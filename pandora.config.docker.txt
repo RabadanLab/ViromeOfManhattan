@@ -1,6 +1,6 @@
 [Step1]
 refstar=/home/ref/GRCh37.75/refstar
-refbowtie=/home/ref/GRCh37.75/refbowtie
+refbowtie=/home/ref/GRCh37.75/refbowtie/GRCh37.75.dna.fa
 gtf=/home/ref/GRCh37.75/Homo_sapiens.GRCh37.75.gtf
 
 [Step2]
