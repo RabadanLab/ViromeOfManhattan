@@ -71,6 +71,10 @@ RUN tar -zxvf Trinity-v2.8.4.tar.gz
 RUN wget https://sourceforge.net/projects/subread/files/subread-1.6.2/subread-1.6.2-Linux-x86_64.tar.gz
 RUN tar -zxvf subread-1.6.2-Linux-x86_64.tar.gz
 RUN git clone https://github.com/RabadanLab/Pandora.git
+# ADD THIS SO IT GETS GIT UPDATES INSTEAD OF RELYING ON THE CACHE
+WORKDIR /home/Pandora
+RUN git pull
+WORKDIR /home
 # RUN rm *.gz *.tar *.zip'
 
 RUN mkdir -p data results
