@@ -67,11 +67,30 @@ RUN ./configure && make && make install
 WORKDIR /home
 RUN wget https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.3.4.3/bowtie2-2.3.4.3-linux-x86_64.zip
 RUN unzip bowtie2-2.3.4.3-linux-x86_64.zip
-RUN wget https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.8.4.tar.gz
-RUN tar -zxvf Trinity-v2.8.4.tar.gz
-WORKDIR /home/trinityrnaseq-Trinity-v2.8.4
+
+# RUN https://github.com/gmarcais/Jellyfish/releases/download/v2.2.10/jellyfish-2.2.10.tar.gz
+# RUN tar -zxvf jellyfish-2.2.10.tar.gz
+# WORKDIR /home/jellyfish-2.2.10
+# RUN ./configure && make && make install
+# WORKDIR /home
+
+# RUN wget https://github.com/COMBINE-lab/salmon/releases/download/v0.11.3/salmon-0.11.3-linux_x86_64.tar.gz
+# RUN tar -zxvf salmon-0.11.3-linux_x86_64.tar.gz
+
+# RUN wget https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.8.4.tar.gz
+# RUN tar -zxvf Trinity-v2.8.4.tar.gz
+# WORKDIR /home/trinityrnaseq-Trinity-v2.8.4
+# RUN make
+# WORKDIR /home
+
+RUN wget https://github.com/trinityrnaseq/trinityrnaseq/archive/v2.1.1.tar.gz
+RUN tar -zxvf v2.1.1.tar.gz
+WORKDIR /home/trinityrnaseq-2.1.1
+RUN rm Chrysalis/Makefile
+COPY Chrysalis/Makefile Chrysalis/Makefile
 RUN make
 WORKDIR /home
+
 RUN wget https://sourceforge.net/projects/subread/files/subread-1.6.2/subread-1.6.2-Linux-x86_64.tar.gz
 RUN tar -zxvf subread-1.6.2-Linux-x86_64.tar.gz
 RUN git clone https://github.com/RabadanLab/Pandora.git
@@ -88,7 +107,9 @@ ENV PATH="${PATH}:/home/STAR-2.6.0a/bin/Linux_x86_64"
 ENV PATH="${PATH}:/home/bowtie2-2.3.4.3-linux-x86_64"
 ENV PATH="${PATH}:/home/ncbi-blast-2.7.1+/bin"
 ENV PATH="${PATH}:/home/subread-1.6.2-Linux-x86_64/bin"
-ENV PATH="${PATH}:/home/trinityrnaseq-Trinity-v2.8.4"
+# ENV PATH="${PATH}:/home/trinityrnaseq-Trinity-v2.8.4"
+ENV PATH="${PATH}:/home/trinityrnaseq-2.1.1"
+# ENV PATH="${PATH}:/home/salmon-0.11.3-linux_x86_64/bin"
 
 ##################### INSTALL STUFF #####################
 
