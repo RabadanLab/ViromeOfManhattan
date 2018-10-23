@@ -17,7 +17,7 @@ The following programs must be in your `PATH`:
 - [Samtools](http://www.htslib.org/) 1.4 (*note*: use older versions of samtools at your own risk - samtools is often not backwards compatible)
 - [STAR](https://github.com/alexdobin/STAR)
 - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
-- [Trinity 2.1](https://github.com/trinityrnaseq/trinityrnaseq/wiki) (as of 2017, the newer versions of Trinity are plagued with bugs)
+- [Trinity 2.1](https://github.com/trinityrnaseq/trinityrnaseq/wiki) (as of 2017, the newer versions of Trinity are plagued with bugs; note Trinity requires java and bowtie v1)
 - [BLAST](http://www.ncbi.nlm.nih.gov/books/NBK279671/) 2.3.x
 - [featureCounts](http://subread.sourceforge.net/) (Subread)
 

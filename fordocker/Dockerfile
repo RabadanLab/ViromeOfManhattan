@@ -43,6 +43,7 @@ RUN apt-get install -y unzip
 RUN apt-get install -y rsync
 RUN apt-get install -y cmake
 RUN apt-get install -y s3fs
+RUN apt-get install -y default-jdk
 
 # Install python packages
 RUN pip install awscli
@@ -65,8 +66,12 @@ RUN tar -xvf htslib-1.4.1.tar
 WORKDIR /home/htslib-1.4.1
 RUN ./configure && make && make install
 WORKDIR /home
+
+# Trinity dependencies
 RUN wget https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.3.4.3/bowtie2-2.3.4.3-linux-x86_64.zip
 RUN unzip bowtie2-2.3.4.3-linux-x86_64.zip
+
+
 
 # RUN https://github.com/gmarcais/Jellyfish/releases/download/v2.2.10/jellyfish-2.2.10.tar.gz
 # RUN tar -zxvf jellyfish-2.2.10.tar.gz
@@ -91,6 +96,9 @@ COPY Chrysalis/Makefile Chrysalis/Makefile
 RUN make
 WORKDIR /home
 
+RUN wget https://sourceforge.net/projects/bowtie-bio/files/bowtie/1.2.2/bowtie-1.2.2-linux-x86_64.zip
+RUN unzip bowtie-1.2.2-linux-x86_64.zip
+
 RUN wget https://sourceforge.net/projects/subread/files/subread-1.6.2/subread-1.6.2-Linux-x86_64.tar.gz
 RUN tar -zxvf subread-1.6.2-Linux-x86_64.tar.gz
 RUN git clone https://github.com/RabadanLab/Pandora.git
@@ -109,6 +117,8 @@ ENV PATH="${PATH}:/home/ncbi-blast-2.7.1+/bin"
 ENV PATH="${PATH}:/home/subread-1.6.2-Linux-x86_64/bin"
 # ENV PATH="${PATH}:/home/trinityrnaseq-Trinity-v2.8.4"
 ENV PATH="${PATH}:/home/trinityrnaseq-2.1.1"
+ENV PATH="${PATH}:/home/bowtie-1.2.2-linux-x86_64"
+
 # ENV PATH="${PATH}:/home/salmon-0.11.3-linux_x86_64/bin"
 
 ##################### INSTALL STUFF #####################
