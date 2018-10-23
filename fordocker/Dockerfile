@@ -41,6 +41,7 @@ RUN apt-get install -y liblzma-dev
 RUN apt-get install -y python-pip
 RUN apt-get install -y unzip
 RUN apt-get install -y rsync
+RUN apt-get install -y cmake
 RUN apt-get install -y s3fs
 
 # Install python packages
@@ -68,13 +69,16 @@ RUN wget https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.3.4.3/bowti
 RUN unzip bowtie2-2.3.4.3-linux-x86_64.zip
 RUN wget https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.8.4.tar.gz
 RUN tar -zxvf Trinity-v2.8.4.tar.gz
+WORKDIR /home/trinityrnaseq-Trinity-v2.8.4
+RUN make
+WORKDIR /home
 RUN wget https://sourceforge.net/projects/subread/files/subread-1.6.2/subread-1.6.2-Linux-x86_64.tar.gz
 RUN tar -zxvf subread-1.6.2-Linux-x86_64.tar.gz
 RUN git clone https://github.com/RabadanLab/Pandora.git
-# ADD THIS SO IT GETS GIT UPDATES INSTEAD OF RELYING ON THE CACHE
-WORKDIR /home/Pandora
-RUN git pull
-WORKDIR /home
+# BEWARE: docker build relies on cache rather than grabbing repo updates
+# WORKDIR /home/Pandora
+# RUN git pull
+# WORKDIR /home
 # RUN rm *.gz *.tar *.zip'
 
 RUN mkdir -p data results
