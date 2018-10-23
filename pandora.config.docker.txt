@@ -1,0 +1,16 @@
+[Step1]
+refstar=/home/ref/GRCh37.75/refstar
+refbowtie=/home/ref/GRCh37.75/refbowtie
+gtf=/home/ref/GRCh37.75/Homo_sapiens.GRCh37.75.gtf
+
+[Step2]
+
+[Step3]
+blastdb=/home/ref/nt/nt
+
+[Step4]
+pblastdb=/home/ref/nr/nr
+
+[Step5]
+taxid2names=/home/ref/taxdump/names.dmp
+blacklist=/home/ref/pandora_resources/blacklist.txt
