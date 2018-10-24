@@ -127,4 +127,4 @@ You can turn this off with the `--noSGE` flag, but blast will be very slow.
 
 Note that RNA-seq enriched for poly-A transcripts will miss prokaryotic pathogens.
 
-Status: Active Development
+*Status*: Active Development

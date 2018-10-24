@@ -27,6 +27,8 @@ def add_common_args(sub):
     sub.add_argument('--noclean', action='store_true', help='do not delete temporary intermediate files (default: off)')
     sub.add_argument('--verbose', action='store_true', help='verbose mode: echo commands, etc (default: off)')
     sub.add_argument('--noSGE', action='store_true', help='do not qsub jobs with the Oracle Grid Engine (default: off)')
+    ## parameter to use if running the CUMC cluster (not aws)
+    sub.add_argument('--hpc', action='store_true', help = 'run on the CUMC hpc cluster (add additional qsub flags)')
 
     return sub
 
@@ -49,9 +51,6 @@ def get_arg():
 
     ## Additional parameter to handle single-end input reads
     parser_scan.add_argument('--single', action='store_true', help = 'boolean denoting single-end read data (turn on flag and use either -r1 or --bam)')
-
-    ## parameter to use if running the CUMC cluster (not aws)
-    parser_scan.add_argument('--hpc', action='store_true', help = 'run on the CUMC hpc cluster (add additional qsub flags)')
 
     parser_scan.add_argument('-sr', '--refstar', help='STAR host reference')
     parser_scan.add_argument('-br', '--refbowtie', help='bowtie2 host reference')
@@ -90,6 +89,8 @@ def get_arg():
 
     # create the parser for the 'aggregate' command
     parser_agg = subparsers.add_parser('aggregate', help='create report aggregated over multiple sample runs')
+    parser_agg.add_argument('--steps', default='1', help='steps to run. The steps are as follows: \
+      step 1: preprocess sample reports.')
     parser_agg.set_defaults(which='aggregate')
 
     # add common arguments
@@ -114,6 +115,16 @@ def get_arg():
     # qsub parameters
     vars(args)['qparam'] = {}
 
+    return args
+
+# -------------------------------------
+
+def check_arg_scan(args):
+    """
+    Check args for scan subcommand
+    This function also modifies args (:0)
+    """
+
     # if configuration file specified and option not already supplied by flag, read option in from config file
     if args.config:
         Config = ConfigParser.ConfigParser()
@@ -132,10 +143,6 @@ def get_arg():
         for i in map(str, range(1,6)):
             if 'qparam' in hp.config_section_map(Config, 'Step' + i):
                 vars(args)['qparam'][i] = hp.config_section_map(Config, 'Step' + i)['qparam']
-
-    # print args
-    print(args)
-    print
 
     # error checking
     if '1' in args.steps and not ((args.mate1 and args.mate2) or args.bam or (args.single and (args.mate1 or args.bam))):
@@ -165,7 +172,37 @@ def get_arg():
     if args.bam: 
         setattr(args, 'bam', os.path.abspath(os.path.expanduser(args.bam)))
 
-    return args
+# -------------------------------------
+
+def check_error(args):
+    """Check for errors, check dependencies"""
+
+    # check for required programs
+    #hp.check_dependencies(['samtools', 'bam', 'bowtie2', 'STAR', 'blastn', 'Trinity'])
+
+    # check for existence of files, if supplied
+    for i in [args.mate1, args.mate2, args.bam, args.blacklist]:
+        if i:
+            hp.check_path(i)
+
+    # check if input files gzipped
+    if args.mate1 and args.mate2:
+        if args.gzip and not (args.mate1[-3:] == '.gz' and args.mate2[-3:] == '.gz'):
+            print('[ERROR] For --gzip option, files must have .gz extension')
+            sys.exit(1)
+        elif (args.mate1[-3:] == '.gz' or args.mate2[-3:] == '.gz') and not args.gzip:
+            print('[ERROR] Files have .gz extension: use --gzip option')
+            sys.exit(1)
+    elif args.mate1 and args.single:
+        if (args.gzip and not (args.mate1[-3:] == '.gz')) or  ((args.mate1[-3:] == '.gz') and not args.gzip):
+            print('[ERROR] Zip flag and file type do not match')
+            sys.exit(1)
+
+    # check if proper extention
+    if args.bam:
+        if not (args.bam[-4:] == '.bam'):
+            print('[ERROR] For --bam option, files must have .bam extension')
+            sys.exit(1)        
 
 # -------------------------------------
 
@@ -180,6 +217,15 @@ def main():
 
     # get arguments
     args = get_arg()
+
+    if args.which == 'scan':
+        check_arg_scan(args)
+    elif args.which == 'aggregate':
+        pass
+
+    # print args
+    print(args)
+    print
 
     # invoke subcommand
     # print('--> subcommand: ' + args.which)
@@ -214,6 +260,37 @@ def docmd(myqcmd, mycmd, jid, args):
             print(cmd)
         # run command, get job id
 	return hp.getjid(subprocess.check_output(cmd, shell=True))
+
+# -------------------------------------
+
+def run_steps(q, clusterparams, d, args):
+    """
+    Run the steps in the pipeline
+
+    q: dict which maps each step to the qsub part of the command
+    clusterparams: dict which maps each step to extra qsub params for the CUMC cluster
+    d: dict which maps each step to the shell part of the command
+    args: arguments
+    """
+
+    # start with job id set to zero string
+    jid = '0'
+
+    # run steps
+    for i in args.steps:
+        # if qsub params specified in config file
+        if i in args.qparam:
+            jid = docmd(args.qparam[i], d[i], jid, args)
+        # if not, use default from dict q
+        else:
+            qprefix = q[i]
+            if args.hpc:
+                qprefix += clusterparams[i]
+            jid = docmd(qprefix, d[i], jid, args)
+
+        # only print step name if qsub-ing
+        if not args.noSGE:
+            print('Step ' + i + ', jid = ' + jid)
 
 # -------------------------------------
 
@@ -257,72 +334,29 @@ def scan_main(args):
              '7': '{args.scripts}/scripts/blast_unassembled_reads.sh assembly/reads2contigs.bam blast_unassembled_reads {args.scripts} {args.blastdb} {args.blacklist} {args.taxid2names} {args.scripts}/resources/blast.header'.format(args=args)
     }
 
-    # start with job id set to zero string
-    jid = '0'
-
-    # run steps
-    for i in args.steps:
-        # if qsub params specified in config file
-        if i in args.qparam:
-            jid = docmd(args.qparam[i], d[i], jid, args)
-        # if not, use default from dict q
-        else:
-            qprefix = q[i]
-            if args.hpc:
-                qprefix += clusterparams[i]
-            jid = docmd(qprefix, d[i], jid, args)
-
-        # only print step name if qsub-ing
-        if not args.noSGE:
-            print('Step ' + i + ', jid = ' + jid)
+    run_steps(q, clusterparams, d, args)
 
 # -------------------------------------
 
 def agg_main(args):
     """Run aggregate function"""
 
-    # dict which maps each step to 2-tuple, which contains the qsub part of the command,
-    # and the shell part of the command
-    #d = {
-    #         '1': ('qsub -N agg', '{}/scripts/aggregate.sh {}'.format(args.scripts, int(args.noclean)))
-    #}
+    # dict which maps each step to the qsub part of the command
+    q = {
+             '1': '-S {mypython} -N agg_preproc_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args)
+    }
 
-    #jid = 0
-    #jid = docmd(d['1'], jid, args)
+    # dict which maps each step to extra qsub params for the CUMC cluster
+    clusterparams = {
+             '1': ' -l mem=4G,time=4::'
+    }
 
-    pass
+    # dict which maps each step to the shell part of the command
+    d = {
+             '1': '{args.scripts}/scripts/aggregate_preprocess.py --scripts {args.scripts}'.format(args=args)
+    }
 
-# -------------------------------------
-
-def check_error(args):
-    """Check for errors, check dependencies"""
-
-    # check for required programs
-    #hp.check_dependencies(['samtools', 'bam', 'bowtie2', 'STAR', 'blastn', 'Trinity'])
-
-    # check for existence of files, if supplied
-    for i in [args.mate1, args.mate2, args.bam, args.blacklist]:
-        if i:
-            hp.check_path(i)
-
-    # check if input files gzipped
-    if args.mate1 and args.mate2:
-        if args.gzip and not (args.mate1[-3:] == '.gz' and args.mate2[-3:] == '.gz'):
-            print('[ERROR] For --gzip option, files must have .gz extension')
-            sys.exit(1)
-        elif (args.mate1[-3:] == '.gz' or args.mate2[-3:] == '.gz') and not args.gzip:
-            print('[ERROR] Files have .gz extension: use --gzip option')
-            sys.exit(1)
-    elif args.mate1 and args.single:
-        if (args.gzip and not (args.mate1[-3:] == '.gz')) or  ((args.mate1[-3:] == '.gz') and not args.gzip):
-            print('[ERROR] Zip flag and file type do not match')
-            sys.exit(1)
-
-    # check if proper extention
-    if args.bam:
-        if not (args.bam[-4:] == '.bam'):
-            print('[ERROR] For --bam option, files must have .bam extension')
-            sys.exit(1)
+    run_steps(q, clusterparams, d, args)
 
 # -------------------------------------
 
