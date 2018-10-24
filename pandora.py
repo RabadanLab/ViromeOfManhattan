@@ -89,8 +89,14 @@ def get_arg():
 
     # create the parser for the 'aggregate' command
     parser_agg = subparsers.add_parser('aggregate', help='create report aggregated over multiple sample runs')
+    parser_agg.add_argument('--samples', default=None, help='path of the file containing the samples names (one sample per line)')
+    parser_agg.add_argument('--taxid2names', default=None, help='location of names.dmp file mapping taxid to names')
+    parser_agg.add_argument('--taxid2nodes', default=None, help='location of nodes.dmp file')
+    parser_agg.add_argument('--batchdir', default=None, help='path of the directory containing the output of multiple Pandoras runs')    
+    parser_agg.add_argument('--suffixreport', default="/report_ifilter/report.contig.txt", help='suffix string of the report (default: /report_ifilter/report.contig.txt)')
+    parser_agg.add_argument('--suffixstats', default="/report_ifilter/report.taxon.txt", help='suffix string of the stats report (default: /report_ifilter/report.taxon.txt)')
     parser_agg.add_argument('--steps', default='1', help='steps to run. The steps are as follows: \
-      step 1: preprocess sample reports.')
+      step 1: preprocess')
     parser_agg.set_defaults(which='aggregate')
 
     # add common arguments
@@ -174,6 +180,24 @@ def check_arg_scan(args):
 
 # -------------------------------------
 
+def check_arg_aggregate(args):
+    """
+    Check args for the aggregate subcommand
+    This function also modifies args (:0)
+    """
+
+    # (DRY violation)
+    # if configuration file specified and option not already supplied by flag, read option in from config file
+    if args.config:
+        Config = ConfigParser.ConfigParser()
+        Config.read(args.config)
+        for i in [(args.taxid2names, 'taxid2names', 'StepA1'), 
+                    (args.taxid2nodes, 'taxid2nodes', 'StepA1')]:
+            if not i[0] and i[1] in hp.config_section_map(Config, i[2]):
+                vars(args)[i[1]] = hp.config_section_map(Config, i[2])[i[1]]
+
+# -------------------------------------
+
 def check_error(args):
     """Check for errors, check dependencies"""
 
@@ -221,7 +245,7 @@ def main():
     if args.which == 'scan':
         check_arg_scan(args)
     elif args.which == 'aggregate':
-        pass
+        check_arg_aggregate(args)
 
     # print args
     print(args)
@@ -353,7 +377,7 @@ def agg_main(args):
 
     # dict which maps each step to the shell part of the command
     d = {
-             '1': '{args.scripts}/scripts/aggregate_preprocess.py --scripts {args.scripts}'.format(args=args)
+             '1': '{args.scripts}/scripts/aggregate_preprocess.py --scripts {args.scripts} --samples {args.samples} --taxid2names {args.taxid2names} --taxid2nodes {args.taxid2nodes} --batchdir {args.batchdir} --suffixreport {args.suffixreport} --suffixstats {args.suffixstats}'.format(args=args)
     }
 
     run_steps(q, clusterparams, d, args)
