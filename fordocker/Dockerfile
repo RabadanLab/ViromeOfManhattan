@@ -71,8 +71,6 @@ WORKDIR /home
 RUN wget https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.3.4.3/bowtie2-2.3.4.3-linux-x86_64.zip
 RUN unzip bowtie2-2.3.4.3-linux-x86_64.zip
 
-
-
 # RUN https://github.com/gmarcais/Jellyfish/releases/download/v2.2.10/jellyfish-2.2.10.tar.gz
 # RUN tar -zxvf jellyfish-2.2.10.tar.gz
 # WORKDIR /home/jellyfish-2.2.10
@@ -133,5 +131,5 @@ COPY data/mate2.fq.gz /home/data/
 
 # RUN PANDORA
 WORKDIR /home/results
-# CMD echo "hello world"
-CMD python ../Pandora/pandora.py scan -id 1 --verbose --gzip -c ../Pandora/pandora.config.docker.txt -r1 ../data/mate1.fq.gz -r2 ../data/mate2.fq.gz --noclean --verbose --noSGE
+
+CMD python ../Pandora/pandora.py scan -id 1 --verbose --gzip -c ../Pandora/pandora.config.docker.txt -r1 ../data/mate1.fq.gz -r2 ../data/mate2.fq.gz --noclean --verbose --noSGE --trinitymem 20 --trinitycores 4
