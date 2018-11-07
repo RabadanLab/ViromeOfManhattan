@@ -192,7 +192,7 @@ Now we're ready to go. Run docker as:
 docker run -v /home/ubuntu/fordocker/ref:/home/ref -v /home/ubuntu/fordocker/results:/home/results pandoraslim
 ```
 
-The idea here is to pass our local `ref` and `results` directories to Docker. When Docker is finished running, the results will be in the `results` folder on our local computer (or instance).
+The idea here is to pass our local `ref` and `results` directories to Docker. When Docker is finished running, the results will be in the `results` folder on our local computer (or instance). A note about the above command: the filepath `/home/ubuntu/fordocker/ref` may vary according to where you copy the `fordocker` directory; however, the `/home/ref` filepath is fixed.
 
 If (for some reason) you want to run Docker interactively, you can do that as:
 
