@@ -56,6 +56,8 @@ def get_taxid_stuff(args):
     """
     """
 
+    print('Getting phylogeny')
+
     # taxid to (parent taxid, rank)
     id2parentrank = {}
     # taxid to name 
@@ -114,7 +116,7 @@ def taxonomy(taxid, id2parentrank, id2name):
 
 # -------------------------------------
 
-def Pandora_report_process(pandora_df, myaccblacklist):
+def Pandora_report_process(pandora_df, myaccblacklist, id2parentrank, id2name):
 
     ## Sorting input report by 'saccver':
     pandora_df = pandora_df.sort_values("saccver", ascending = True)
@@ -140,7 +142,7 @@ def Pandora_report_process(pandora_df, myaccblacklist):
             continue  
 
         # If the taxid appears as list with ids separated by ";", we select the first entry for taxonomic classfication 
-        row_tax = taxonomy(str(row['staxids']).split(';')[0])
+        row_tax = taxonomy(str(row['staxids']).split(';')[0], id2parentrank, id2name)
 
         ## Creating new row to append with datafields as dictionary
         temp_row = {'Accession_ver': row['saccver'], 'Title': row['stitle'], 'Num_reads': row['num_reads'],\
@@ -280,19 +282,15 @@ def Pandora_report_process_class_thresh(processed_report_df, class_lvl = "Access
 
 # -------------------------------------
 
-def process_batch(mysamples):
+def process_batch(args, mysamples, myaccblacklist, id2parentrank, id2name):
 
     for sample in mysamples:
-
         print("Processing... sample " + sample)
-
         if os.path.isfile(args.outputdir + "/" + sample + "_processed0.tsv"):
             continue
         else:
-                
-            temp_report = pd.DataFrame.from_csv(prefix_extension+sample+Pandora_report_suffix, sep="\t")
-            
-            Pandora_report_process(temp_report).to_csv(destination_folder+sample+"_processed0.tsv", sep = "\t")
+            temp_report = pd.DataFrame.from_csv(args.batchdir + '/' + sample + args.suffixreport, sep="\t")
+            Pandora_report_process(temp_report, myaccblacklist, id2parentrank, id2name).to_csv(args.outputdir + '/' + sample + "_processed0.tsv", sep = "\t")
 
 # -------------------------------------
 
@@ -316,16 +314,17 @@ def main():
 
     mysamples = []
     with open(args.samples, 'r') as f:
-        mysamples = f.read().split('\n')
-    print(mysamples)
+        # drop the one empty field
+        mysamples = f.read().split('\n')[:-1]
+    # print(mysamples)
 
     myaccblacklist = []
     with open(args.accblacklist, 'r') as f:
-        myaccblacklist = f.read().split('\n')
-    print(myaccblacklist)
+        # drop the one empty field
+        myaccblacklist = f.read().split('\n')[:-1]
+    # print(myaccblacklist)
 
-    # example
-    # print(taxonomy("24", id2parentrank, id2name))
+    process_batch(args, mysamples, myaccblacklist, id2parentrank, id2name)
 
     # end of step
     hp.echostep(args.step, start=0)
