@@ -132,4 +132,4 @@ COPY data/mate2.fq.gz /home/data/
 # RUN PANDORA
 WORKDIR /home/results
 
-CMD python ../Pandora/pandora.py scan -id 1 --verbose --gzip -c ../Pandora/pandora.config.docker.txt -r1 ../data/mate1.fq.gz -r2 ../data/mate2.fq.gz --noclean --verbose --noSGE --trinitymem 20 --trinitycores 4
+CMD python ../Pandora/pandora.py scan -id 1 --verbose --gzip -c ../Pandora/pandora.config.docker.txt -r1 ../data/mate1.fq.gz -r2 ../data/mate2.fq.gz --verbose --noSGE --trinitymem 20 --trinitycores 4
