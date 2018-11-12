@@ -18,6 +18,11 @@ import seaborn as sns
 
 # -------------------------------------
 
+global phylo_class_levels
+phylo_class_levels = ['Accession_ver', 'Species', 'Genus', 'Family', 'Order', 'Class', 'Phylum', 'Superkingdom']
+
+# -------------------------------------
+
 def get_arg():
     """
     Get Arguments
@@ -283,17 +288,88 @@ def Pandora_report_process_class_thresh(processed_report_df, class_lvl = "Access
 # -------------------------------------
 
 def process_batch(args, mysamples, myaccblacklist, id2parentrank, id2name):
+    """
+    Process Pandora reports in two stages: first by Accession_version and full phylogeny;
+    then by classification level only
+    """
 
     for sample in mysamples:
-        print("Processing... sample " + sample)
+        print("Processing... sample: " + sample)
         if os.path.isfile(args.outputdir + "/" + sample + "_processed0.tsv"):
             continue
         else:
             temp_report = pd.DataFrame.from_csv(args.batchdir + '/' + sample + args.suffixreport, sep="\t")
             Pandora_report_process(temp_report, myaccblacklist, id2parentrank, id2name).to_csv(args.outputdir + '/' + sample + "_processed0.tsv", sep = "\t")
 
+    for class_lvl in phylo_class_levels:
+        print("Processing... class_lvl: " + class_lvl)
+        for sample in mysamples:
+            filename = sample + "_processed0.tsv"
+            print(" Processing sample: " + filename)
+            temp_report0 = pd.DataFrame.from_csv(args.outputdir + '/' + filename, sep="\t")
+            new_file_name = sample + "_" + class_lvl + "_processed1.tsv"
+            Pandora_report_process_class_thresh(temp_report0, class_lvl=class_lvl).to_csv(args.outputdir + '/' + new_file_name, sep="\t")
+
 # -------------------------------------
 
+def process_batch2(args, mysamples):
+    """
+    Looping over all the classification levels and creating merge tables for every class
+    Three merge tables are created: num_reads, max_contig_length and evalue
+    """
+
+    table_stats = ['Num_reads', 'Max_contig_len', 'Contig_eval']
+    destination_filname = "Merged_table_"
+
+    for class_lvl in phylo_class_levels:
+
+        temp_merge_reads = np.nan
+        temp_merge_len = np.nan
+        temp_merge_eval= np.nan
+        counter = 0
+
+        tables_dict = {'Num_reads': temp_merge_reads,
+            'Max_contig_len': temp_merge_len,
+            'Contig_eval': temp_merge_eval}
+
+        correct_columns_samples = []
+
+        for sample in mysamples:
+            filename = args.outputdir + '/' + sample + '_' + class_lvl + '_processed1.tsv'
+            next_table = pd.DataFrame.from_csv(filename, sep= "\t")
+            correct_columns_samples.append(sample)
+            if class_lvl == "Accession_ver":
+                next_table["Join_title"] = next_table["Accession_ver"] + "__" + next_table["Title"]
+                if counter == 0:
+                    counter += 1
+                    for key in tables_dict.keys():
+                        tables_dict[key] = next_table[["Join_title", key]]
+                else:
+                    for key in tables_dict.keys():
+                        tables_dict[key] = pd.merge(tables_dict[key], next_table[["Join_title", key]], on="Join_title", how = 'outer', suffixes = ["", "_" + sample])
+            else:
+                if counter == 0:
+                    counter += 1
+                    for key in tables_dict.keys():
+                        tables_dict[key] = next_table[[class_lvl, key]]
+                else:
+                    for key in tables_dict.keys():
+                        tables_dict[key] = pd.merge(tables_dict[key], next_table[[class_lvl, key]], on=class_lvl, how = 'outer', suffixes = ["", "_" + sample])
+
+        ## Outputting the merged tables
+
+        for key in tables_dict.keys():
+            if class_lvl == "Accession_ver":
+                tables_dict[key].index = tables_dict[key]["Join_title"]
+                tables_dict[key] = tables_dict[key].drop("Join_title", axis = 1)
+            else:
+                tables_dict[key].index = tables_dict[key][class_lvl]
+                tables_dict[key] = tables_dict[key].drop(class_lvl, axis = 1)
+
+            tables_dict[key].columns = correct_columns_samples
+            tables_dict[key].to_csv( args.outputdir + '/' + destination_filname + class_lvl + "_" + key + ".tsv", sep = "\t" )
+
+# -------------------------------------
 
 def main():
     """Main function"""
@@ -325,6 +401,7 @@ def main():
     # print(myaccblacklist)
 
     process_batch(args, mysamples, myaccblacklist, id2parentrank, id2name)
+    process_batch2(args, mysamples)
 
     # end of step
     hp.echostep(args.step, start=0)
