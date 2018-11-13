@@ -371,6 +371,44 @@ def process_batch2(args, mysamples):
 
 # -------------------------------------
 
+def process_batch3(args, mysamples):
+    """
+    Generate a 2 column file such that col 1 is the sample and col 2 is the tot num mapped reads
+
+    Parse stats file that looks like this:
+
+    23436870 + 0 in total (QC-passed reads + QC-failed reads)
+    167849 + 0 secondary
+    0 + 0 supplementary
+    0 + 0 duplicates
+    9818159 + 0 mapped (41.89% : N/A)
+    0 + 0 paired in sequencing
+    0 + 0 read1
+    0 + 0 read2
+    0 + 0 properly paired (N/A : N/A)
+    0 + 0 with itself and mate mapped
+    0 + 0 singletons (N/A : N/A)
+    0 + 0 with mate mapped to a different chr
+    0 + 0 with mate mapped to a different chr (mapQ>=5)
+    """
+
+    with open(args.outputdir + '/' + 'tot_host_reads.txt', 'w') as f:
+        for sample in mysamples:
+            mappedreads = 0
+            with open(args.batchdir + '/' + sample + '/host_separation/mapping_stats.STAR.txt', 'r') as g:
+                for line in g:
+                    if 'mapped' in line:
+                        mappedreads += int(line.split(' ')[0])
+                        break
+            with open(args.batchdir + '/' + sample + '/host_separation/mapping_stats.bwt.txt', 'r') as g:
+                for line in g:
+                    if 'mapped' in line:
+                        mappedreads += int(line.split(' ')[0])
+                        break
+            f.write(sample + "\t" + str(mappedreads) + "\n")
+
+# -------------------------------------
+
 def main():
     """Main function"""
 
@@ -400,8 +438,9 @@ def main():
         myaccblacklist = f.read().split('\n')[:-1]
     # print(myaccblacklist)
 
-    process_batch(args, mysamples, myaccblacklist, id2parentrank, id2name)
-    process_batch2(args, mysamples)
+    # process_batch(args, mysamples, myaccblacklist, id2parentrank, id2name)
+    # process_batch2(args, mysamples)
+    process_batch3(args, mysamples)
 
     # end of step
     hp.echostep(args.step, start=0)
