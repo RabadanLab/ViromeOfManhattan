@@ -96,8 +96,9 @@ def get_arg():
     parser_agg.add_argument('--batchdir', default=None, help='path of the directory containing the output of multiple Pandoras runs')    
     parser_agg.add_argument('--suffixreport', default="/report_ifilter/report.contig.txt", help='suffix string of the report (default: /report_ifilter/report.contig.txt)')
     parser_agg.add_argument('--suffixstats', default="/report_ifilter/report.taxon.txt", help='suffix string of the stats report (default: /report_ifilter/report.taxon.txt)')
-    parser_agg.add_argument('--steps', default='1', help='steps to run. The steps are as follows: \
-      step 1: preprocess')
+    parser_agg.add_argument('--steps', default='12', help='steps to run. The steps are as follows: \
+      step 1: preprocess, \
+      step 2: generate report')
     parser_agg.set_defaults(which='aggregate')
 
     # add common arguments
@@ -369,17 +370,20 @@ def agg_main(args):
 
     # dict which maps each step to the qsub part of the command
     q = {
-             '1': '-S {mypython} -N agg_preproc_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args)
+             '1': '-S {mypython} -N agg_preproc_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args),
+             '2': '-S {mypython} -N agg_report_{args.identifier} -V -cwd -o log.out -e log.err'.format(mypython=sys.executable, args=args)
     }
 
     # dict which maps each step to extra qsub params for the CUMC cluster
     clusterparams = {
-             '1': ' -l mem=4G,time=4::'
+             '1': ' -l mem=4G,time=4::',
+             '2': ' -l mem=4G,time=4::'
     }
 
     # dict which maps each step to the shell part of the command
     d = {
-             '1': '{args.scripts}/scripts/aggregate_preprocess.py --scripts {args.scripts} --samples {args.samples} --taxid2names {args.taxid2names} --taxid2nodes {args.taxid2nodes} --batchdir {args.batchdir} --suffixreport {args.suffixreport} --suffixstats {args.suffixstats} --accblacklist {args.accblacklist}'.format(args=args)
+             '1': '{args.scripts}/scripts/aggregate_preprocess.py --scripts {args.scripts} --samples {args.samples} --taxid2names {args.taxid2names} --taxid2nodes {args.taxid2nodes} --batchdir {args.batchdir} --suffixreport {args.suffixreport} --suffixstats {args.suffixstats} --accblacklist {args.accblacklist}'.format(args=args),
+             '2': '{args.scripts}/scripts/aggregate_report.py --scripts {args.scripts} --samples {args.samples} '.format(args=args)
     }
 
     run_steps(q, clusterparams, d, args)

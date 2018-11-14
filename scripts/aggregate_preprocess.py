@@ -438,8 +438,8 @@ def main():
         myaccblacklist = f.read().split('\n')[:-1]
     # print(myaccblacklist)
 
-    # process_batch(args, mysamples, myaccblacklist, id2parentrank, id2name)
-    # process_batch2(args, mysamples)
+    process_batch(args, mysamples, myaccblacklist, id2parentrank, id2name)
+    process_batch2(args, mysamples)
     process_batch3(args, mysamples)
 
     # end of step
