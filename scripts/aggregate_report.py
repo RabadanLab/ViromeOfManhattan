@@ -22,8 +22,6 @@ from scipy import linalg
 
 # -------------------------------------
 
-# -------------------------------------
-
 def get_arg():
     """
     Get Arguments
@@ -53,39 +51,22 @@ def get_arg():
 
 # -------------------------------------
 
-global phylo_class_levels
-phylo_class_levels = ['Accession_ver', 'Species', 'Genus', 'Family', 'Order', 'Class', 'Phylum', 'Superkingdom']
-
-# -------------------------------------
-
-def process1(args, mysamples):
+def process0(args, mysamples):
     """
-    PCA plots by classification levels
+    Set global variables
     """
 
-    # global source_folder
+    # set global variables
+    global phylo_class_levels
+    phylo_class_levels = ['Accession_ver', 'Species', 'Genus', 'Family', 'Order', 'Class', 'Phylum', 'Superkingdom']
+    global source_folder
     source_folder = args.outputdir + "/../aggregate_preprocess"
-
+    global host_reads
     host_reads = pd.DataFrame.from_csv(source_folder + "/tot_host_reads.txt", sep = "\t", header=None)
     host_reads.columns = ["Tot_reads"]
     host_reads.index.name = "Sample ID"
 
-    # test_table = pd.DataFrame.from_csv(source_folder + "/Merged_table_Phylum_Num_reads.tsv", sep='\t')
-    # 
-    # test_table = test_table.replace(np.NaN, 0.0)
-    # 
-    # # Normalize with host reads
-    # 
-    # for sample in mysamples:
-    #   test_table[sample] = 10**6 * (test_table[sample]/host_reads.at[sample, "Tot_reads"])
-    # 
-    # pca_test = PCA(n_components=2)
-    # pca_test_proj = pca_test.fit_transform(test_table.T)
-    # 
-    # with open(args.outputdir + '/' + 'PCA1vsPCA2forSampPhylumExp.txt', 'w') as f:
-    #   for index in range(test_table.shape[1]):
-    #       f.write(test_table.columns[index] + "\t" + str(pca_test_proj.T[0][index]) + "\t" + str(pca_test_proj.T[1][index]) + "\n")
-
+    global classification_table_sp
     classification_table_sp = pd.DataFrame(columns = phylo_class_levels)
 
     for sample in mysamples:    
@@ -96,6 +77,13 @@ def process1(args, mysamples):
         classification_table_sp = classification_table_sp.drop_duplicates()
 
     classification_table_sp.index = range(0,classification_table_sp.shape[0])
+
+# -------------------------------------
+
+def process1(args, mysamples):
+    """
+    PCA plots by classification levels
+    """
 
     for lvl in phylo_class_levels:
         
@@ -148,6 +136,78 @@ def process1(args, mysamples):
 
 # -------------------------------------
 
+def process2(args, mysamples):
+    """
+    """
+
+    lvl = "Species"
+
+    lvl_table = pd.DataFrame.from_csv(source_folder + "/" + "Merged_table_" + lvl + "_Num_reads.tsv", sep='\t')
+    lvl_table = lvl_table.replace(np.NaN, 0.0)
+
+    ### Selecting **ONLY** bacterial reads ###
+
+    lvl_super_kingdoms = []
+
+    for index_ID in lvl_table.index:
+        temp_loc = classification_table_sp[classification_table_sp[lvl] == index_ID.split("__")[0]].index.tolist()[0]
+        lvl_super_kingdoms.append(classification_table_sp.at[temp_loc, "Superkingdom"])
+
+    lvl_table["Superkingdom"] = lvl_super_kingdoms
+    lvl_table = lvl_table[lvl_table["Superkingdom"] == "Bacteria"]
+    lvl_table = lvl_table[mysamples]
+
+    for index in lvl_table.index:
+        if ("uncultured" in index.lower()) or ("unidentified" in index.lower()):
+            lvl_table = lvl_table.drop(index, axis=0)
+
+    # Normalize with host reads
+    for sample in mysamples:
+        lvl_table[sample] = 10**6 * (lvl_table[sample]/host_reads.at[sample, "Tot_reads"])
+        with open(args.outputdir + '/' + 'bacteria.' + sample + '.txt', 'w') as f:
+            # Normalize with host reads
+            f.write(str(lvl_table.sort_values(sample, ascending=False).head(10)[[sample]]))
+            f.write("\n")
+
+    lvl_table["Means"] = np.mean(lvl_table,axis=1)
+    lvl_table["Stds"] = np.std(lvl_table, axis=1)
+
+    # fix the formatting here
+    with open(args.outputdir + '/lvl_table.txt', 'w') as f:
+        f.write(str(lvl_table.sort_values("Stds", ascending=False)))
+
+    species_to_consider = list(set(lvl_table.sort_values("Stds", ascending=False).index[0:10]).union(set(lvl_table.sort_values("Means", ascending=False).index[0:10])))
+
+    for j, species in enumerate(species_to_consider):
+
+        # Plotting normalized species reads
+        # fig, ax = plt.subplots(figsize=(10,6))
+        # sp_scatter = ax.scatter(range(lvl_table.shape[1] - 2), np.log10( 1 + lvl_table.loc[species].values[:-2]), color = 'r', alpha = 0.9, marker = 'o', s = 40)
+
+        with open(args.outputdir + '/' + 'species.' + str(j) + '.txt', 'w') as f:
+            f.write("Sample\t" + species + "\n")
+            # Normalize with host reads
+            for i in range(10):
+                # print(lvl_table.columns[i])
+                f.write(lvl_table.columns[i])
+                f.write("\t")
+                f.write(str(np.log10( 1 + lvl_table.loc[species].values[:-2])[i]))
+                f.write("\n")
+
+        # ax.set_title(species + " reads")
+        # plt.xlabel("Samples")
+        # plt.ylabel("Log_10 (1 + reads per 1M human reads)")
+        # ax.set_xticks(range(lvl_table.shape[1] - 2))
+        # ax.set_xticklabels(lvl_table.columns[:-2], rotation = '90')
+        # plt.legend(loc="best")
+        # plt.show()
+
+    # print(lvl_table.loc[species_to_consider][mysamples].T)
+    with open(args.outputdir + '/' + 'abundances.species.txt', 'w') as f:
+        f.write(lvl_table.loc[species_to_consider][mysamples].T.to_csv(sep="\t"))
+
+# -------------------------------------
+
 def main():
     """Main function"""
 
@@ -169,7 +229,9 @@ def main():
         mysamples = f.read().split('\n')[:-1]
         # print(mysamples)
 
+    process0(args, mysamples)
     process1(args, mysamples)
+    process2(args, mysamples)
 
     # end of step
     hp.echostep(args.step, start=0)
