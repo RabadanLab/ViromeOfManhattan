@@ -340,9 +340,16 @@ def scan_main(args):
     }
 
     # dict which maps each step to extra qsub params for the CUMC cluster
+
+    # In the previous version of SGE, if you requested the following cluster job:  mem=3G and -pe smp 4
+    # SGE would schedule a reservation of 4 cores and 12G of Ram by automatically multiplying the requested RAM by the number of cores requested.
+    # This function is no longer used by SGE for multicore (smp) jobs.
+    memmap = str(int(args.map_threads) * 16)
+    memassembly = str(int(args.trinitycores) * 12)
+
     clusterparams = {
-             '1': ' -l mem=16G,time=12:: -pe smp {args.map_threads} -R y'.format(args=args),
-             '2': ' -l mem=12G,time=12:: -pe smp {args.trinitycores} -R y'.format(args=args),
+             '1': ' -l mem={qmem}G,time=12:: -pe smp {args.map_threads} -R y'.format(qmem=memmap, args=args),
+             '2': ' -l mem={qmem}G,time=12:: -pe smp {args.trinitycores} -R y'.format(qmem=memassembly, args=args),
              '3': ' -l mem=4G,time=8::',
              '4': ' -l mem=2G,time=2::',
              '5': ' -l mem=4G,time=1::',
