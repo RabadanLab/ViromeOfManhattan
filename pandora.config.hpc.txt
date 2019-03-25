@@ -2,10 +2,10 @@
 refstar=/ifs/scratch/c2b2/rr_lab/shares/ref/STAR 
 refbowtie=/ifs/scratch/c2b2/rr_lab/shares/ref/hg19/faidx/hg19.fa 
 gtf=/ifs/scratch/c2b2/rr_lab/shares/ref/pandora_resources/hg19.refFlat.gtf
-qparam=-N hsep -V -cwd -o log.out -e log.err -l mem=16G,time=12:: -pe smp 4 -R y
+qparam=-N hsep -V -cwd -o log.out -e log.err -l mem=64G,time=12:: -pe smp 4 -R y
 
 [Step2]
-qparam=-N asm -V -cwd -o log.out -e log.err -l mem=10G,time=6:: -pe smp 8 -R y
+qparam=-N asm -V -cwd -o log.out -e log.err -l mem=80G,time=6:: -pe smp 8 -R y
 # qparam=-N asm -V -cwd -o log.out -e log.err -l mem=4G,time=4::
 
 [Step3]
