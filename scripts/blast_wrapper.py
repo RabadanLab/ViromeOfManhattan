@@ -251,15 +251,18 @@ def concat(args):
 
     print('No blast hits for: ' + ', '.join(list(noblastids)))
 
-    # concat blast logs and remove folder
-    print('concatenate blast logs')
-    cmd = 'head -100 {args.logsdir}/* > {args.outputdir}/log.blast'.format(args=args)
-    hp.run_cmd(cmd, args.verbose, 0)
+    if args.nosge:
+        pass
+    else:
+        # concat blast logs and remove folder
+        print('concatenate blast logs')
+        cmd = 'head -100 {args.logsdir}/* > {args.outputdir}/log.blast'.format(args=args)
+        hp.run_cmd(cmd, args.verbose, 0)
 
-    if not args.noclean:
-        shutil.rmtree(args.logsdir)
+        if not args.noclean:
+            shutil.rmtree(args.logsdir)
 
-    print('CONCATENATE END')
+        print('CONCATENATE END')
 
 # -------------------------------------
 
