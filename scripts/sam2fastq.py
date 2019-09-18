@@ -50,7 +50,8 @@ with open(fastq1, 'w') as f, open(fastq2, 'w') as g:
         if (args_single):
             # Ioan: Removing the '/1' read specification before the first '\n' character
             # possibly a source of formatting errors running Trinity with the --single flag
-            f.write('@' + id + '\n' + myread + '\n' + '+\n' + qual + '\n')
+            # oe: putting this back in: Trinity 2.8.5 throws an error without it!
+            f.write('@' + id + '/1\n' + myread + '\n' + '+\n' + qual + '\n')
         else:
             # get the binary value of the flag and bitwise AND with 64 ( i.e, int('1000000',2) )
             # and then shift 6 bits to look at the 7th bit, which tells us if mate 1 (refer to key).
