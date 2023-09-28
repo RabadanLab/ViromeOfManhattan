@@ -1,0 +1,26 @@
+dataCounts<-read.table('concatenate_all_samples_counts.csv',header=T,sep=',',row.names=1)#count data of all samples
+metaData<-read.table('metadata_pre_during_with_bacteria_github.csv',header=T,sep=',')
+#metaData<-read.table('metaData_input_symptom_vs_bacteria_github.csv',header=T,sep=',') #for symptom vs bacteria
+metaData$S_saliv_fraction_Kracken<-scale(metaData$S_saliv_fraction_Kracken)
+metaData$S_pneumo_fraction_Kracken<-scale(metaData$S_pneumo_fraction_Kracken)#example for symptom vs bacteria
+dataCounts<-dataCounts[,metaData$Sample_ID]
+
+
+ dds<-DESeqDataSetFromMatrix(countData=dataCounts,colData=metaData,design=~Sample_ID+Protocol+LONGITUDINAL+S_saliv_fraction_Kracken +LONGITUDINAL:S_saliv_fraction_Kracken)
+ 
+ 
+ #dds<-DESeqDataSetFromMatrix(countData=dataCounts,colData=metaData,design=~Sample_ID+Protocol+combination+S_pneumo_fraction_Kracken +combination:S_pneumo_fraction_Kracken)#example for symptom vs bacteria
+ 
+dds$LONGITUDINAL <- relevel(dds$LONGITUDINAL, ref = "PRE")
+
+#dds$combination <- relevel(dds$combination, ref = "DURING_ASYMPT")#for symptom vs bacteria
+
+
+
+dds <- DESeq(dds)
+resultsNames(dds)
+res<-results(dds,name='LONGITUDINALDURING.S_saliv_fraction_Kracken') #LONGITUDINALDURING.S saliv fraction Kracken
+#res<-results(dds,name='combinationDURING_SYMPT.S_pneumo_fraction_Kracken'))#example for symptom vs bacteria
+
+res <- res[order(res$padj),]
+write.table(res,file='DEG_output.csv',sep=',')
